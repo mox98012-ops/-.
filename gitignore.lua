@@ -2,14 +2,19 @@ if serenium_LOADED and not _G.serenium_DEBUG then
 	return;
 end;
 pcall(function() getgenv().serenium_LOADED = true; end);
-game:GetService("Players").LocalPlayer:WaitForChild("CharacterLoaded");
-game:GetService("Players").LocalPlayer:WaitForChild("DataLoadedClient");
-game:GetService("Players").LocalPlayer:WaitForChild("DataLoaded");
 if not game:IsLoaded() then game.Loaded:Wait(); end;
 if not LPH_OBFUSCATED then
 	LPH_NO_UPVALUES = function(...) return ...; end;
 	LPH_NO_VIRTUALIZE = function(...) return ...; end;
     LPH_CRASH = function(...) return ...; end;
+end;
+game:GetService("Players").LocalPlayer:WaitForChild("CharacterLoaded");
+game:GetService("Players").LocalPlayer:WaitForChild("DataLoadedClient");
+game:GetService("Players").LocalPlayer:WaitForChild("DataLoaded");
+for _, void in pairs(game.workspace:GetDescendants()) do
+	if void.Name == "VoidCollidePart" and void:IsA("Part") then
+		void.CanTouch = false;
+	end;
 end;
 local Data = Data;
 if not Data then
@@ -258,6 +263,7 @@ getgenv().ragebot = false;
 getgenv().fakeswing = false;
 getgenv().swingsound = false;
 getgenv().autoequip = false;
+getgenv().ndcd = false;
 getgenv().hbe_part = "Head";
 getgenv().hbesize = 1;
 getgenv().stompshoverange = 10;
@@ -267,7 +273,6 @@ getgenv().jumppower = 50;
 getgenv().walkspeed = 16;
 getgenv().flyspeed = 16;
 getgenv().spinspeed = 10;
-getgenv().hbe_debug = true
 getgenv().teleport = function(CFrame)
 	game:GetService("TweenService"):Create(humanoidrootpart,TweenInfo.new(0),{ CFrame = CFrame }):Play();
 end;
@@ -284,12 +289,6 @@ local function whitelisted(player)
 
     return false;
 end;
-
-local function HBE_DEBUG(...)
-	if getgenv().hbe_debug then
-		warn("[HBE DEBUG]", ...)
-	end
-end
 
 -- void hide
 getgenv().clientcframe = getgenv().clientcframe or { Connections = {}, History = {}; };
@@ -1052,6 +1051,7 @@ function revertranged(name)
 		end;
 	end;
 end;
+
 -- stamina
 framework:BindToRenderStep(function()
     local stamina = modules.Name["DefaultStaminaHandlerClient"].getDefaultStamina();
@@ -1101,32 +1101,25 @@ local function ApplyHitbox(Character)
 	table.insert(FakeHitboxes, FakeHitbox)
 end
 
---// Existing characters
 for _, v in PlayerCharacters:GetChildren() do
 	if v ~= localplayer.Character then
 		ApplyHitbox(v)
 	end
 end
-
---// Player connections
 for _, v in players:GetPlayers() do
 	if v ~= localplayer then
 		v.CharacterAdded:Connect(ApplyHitbox)
 	end
 end
-
 players.PlayerAdded:Connect(function(player)
 	player.CharacterAdded:Connect(ApplyHitbox)
 end)
-
---// Update loop
 runservice.RenderStepped:Connect(function()
 	for i, v in pairs(FakeHitboxes) do
 		if not v:IsDescendantOf(game) then
 			table.remove(FakeHitboxes, i)
 			continue
 		end
-
 		local toExpand = v.Parent:FindFirstChild(Config.HBEPart)
 		if toExpand and v:FindFirstChild("Weld") and v.Weld.Part0 ~= toExpand then
 			v.Weld.Part0 = toExpand
@@ -1303,8 +1296,6 @@ if Modules.RangedHitVisuals and Modules.RangedHitVisuals.defaultHit then
         return old(player, tool, cfg, hitpart, newHitCf, normal, material, cosmetic)
     end
 end
-
--- Wallbang / ignore list override
 if Modules.RangedWeaponClient and Modules.RangedWeaponClient.updateIgnoreList then
     Modules.RangedWeaponClient.updateIgnoreList = function(rangedData)
         if tick() - (rangedData._lastIgnoreListUpdateTick or 0) < 5 then
@@ -1326,58 +1317,47 @@ if Modules.RangedWeaponClient and Modules.RangedWeaponClient.updateIgnoreList th
         return tagged
     end
 end
-
--- Remote override (hit redirection)
 if Network and Network.FireServer then
     local OldFireServer = Network.FireServer
-    
+
     Network.FireServer = function(self, remoteName, ...)
         local args = {...}
-        
-        local function redirectHit(partName)
-            if not Config.HitboxExpand then return end
-            if not args[2] or args[2].Name ~= "FakeHitbox" then return end
-            
-            local targetPart = args[2].Parent:FindFirstChild(
-                partName == "Random" and R6BodyParts[math.random(1, #R6BodyParts)] or partName
-            ) or args[2].Parent:FindFirstChild("Torso")
-            
-            if targetPart then
-                args[2] = targetPart
-            end
-        end
-        
+
         if remoteName == "MeleeDamage" then
-            redirectHit(Config.HBEPart)
-            if args[2] ~= "FakeHitbox" then
-                args[5] = CFrame.new(
-                    math.random(-1,1) * (args[2].Size.X / 2),
-                    math.random(-1,1) * (args[2].Size.Y / 2),
-                    math.random(-1,1) * (args[2].Size.Z / 2)
-                )
+            if Config.HitboxExpand
+                and args[2]
+                and args[2].Name == "FakeHitbox"
+                and args[2].Parent
+            then
+                local partName = Config.HBEPart
+                local parent = args[2].Parent
+
+                local targetPart =
+                    parent:FindFirstChild(
+                        partName == "Random"
+                            and R6BodyParts[math.random(#R6BodyParts)]
+                            or partName
+                    )
+                    or parent:FindFirstChild("Torso")
+
+                if targetPart then
+                    args[2] = targetPart
+
+                    local function rand()
+                        return math.random() * 2 - 1
+                    end
+
+                    args[5] = CFrame.new(
+                        rand() * (targetPart.Size.X / 2),
+                        rand() * (targetPart.Size.Y / 2),
+                        rand() * (targetPart.Size.Z / 2)
+                    )
+                end
             end
-            
-        elseif remoteName == "MeleeFinish" then
-            redirectHit(Config.HBEPart)
-            
-        elseif remoteName == "RangedHit" then
-            redirectHit(Config.HBEPart)
-            if args[2] ~= "FakeHitbox" then
-                args[4] = args[2].Position
-                args[5] = CFrame.Angles(args[5]:ToEulerAnglesYXZ()) * CFrame.new(
-                    math.random(-1,1) * (args[2].Size.X / 2),
-                    math.random(-1,1) * (args[2].Size.Y / 2),
-                    math.random(-1,1) * (args[2].Size.Z / 2)
-                )
-            end
-            
-            if Config.AlwaysHead and args[2] and args[2].Parent then
-                local head = args[2].Parent:FindFirstChild("Head")
-                if head then args[2] = head end
-            end
+
+            return OldFireServer(self, remoteName, unpack(args))
         end
-        
-        return OldFireServer(self, remoteName, unpack(args))
+        return OldFireServer(self, remoteName, ...)
     end
 end
 
@@ -1434,6 +1414,64 @@ do
 		end;
 		return oldfunc(...);
 	end);
+	framework:argmodify("RangedExplode", {}, function(n, ...)
+		local args = { ... }
+		local part = args[2]
+		if Config.HitboxExpand then
+			part = part.Parent:FindFirstChild(
+				Config.HBEPart == "Random" and R6BodyParts[math.random(1, #R6BodyParts)] or Config.HBEPart
+			) or args[2].Parent:FindFirstChild("Torso")
+		end
+
+		if Config.HitboxExpand then
+			if part then
+				return {
+					[2] = part,
+					[4] = part.Position,
+					--part.CFrame:ToObjectSpace(
+					[5] = CFrame.Angles(args[5]:ToEulerAnglesYXZ()) * CFrame.new(
+						(math.random() * math.random(-1, 1)) * (part.Size.X / 2),
+						(math.random() * math.random(-1, 1)) * (part.Size.Y / 2),
+						(math.random() * math.random(-1, 1)) * (part.Size.Z / 2)
+					),
+					--)
+				}
+			end
+		end
+
+		if getgenv().AlwaysHead then
+			return { [2] = args[2].Parent:FindFirstChild("Head") }
+		end
+
+		return
+	end)
+	framework:argmodify("RangedHit", {}, function(n, ...)
+		local args = { ... }
+		if Config.HitboxExpand and args[2].Name == "FakeHitbox" then
+			local part = args[2].Parent:FindFirstChild(
+				Config.HBEPart == "Random" and R6BodyParts[math.random(1, #R6BodyParts)] or Config.HBEPart
+			) or args[2].Parent:FindFirstChild("Torso")
+			if part then
+				return {
+					[2] = part,
+					[4] = part.Position,
+					--part.CFrame:ToObjectSpace(
+					[5] = CFrame.Angles(args[5]:ToEulerAnglesYXZ()) * CFrame.new(
+						(math.random() * math.random(-1, 1)) * (part.Size.X / 2),
+						(math.random() * math.random(-1, 1)) * (part.Size.Y / 2),
+						(math.random() * math.random(-1, 1)) * (part.Size.Z / 2)
+					),
+					--)
+				}
+			end
+		end
+
+		if getgenv().AlwaysHead then
+			return { [2] = args[2].Parent:FindFirstChild("Head") }
+		end
+
+		return
+	end)
 	local CanFireStartFallDamage = true;
 	framework:argmodify("StartFallDamage", {}, function(n, ...)
 		if not checkcaller() and not CanFireStartFallDamage then
@@ -1618,8 +1656,75 @@ network:BindEvents({
                 end;
             until humanoidrootpart.ReceiveAge == 0;
         end;
-    end;
-});
+    end,
+    KilledPlayer = function(statData)
+        local diedPlayer = modules.Name["MockHandler"].getPlayerOrMockFromPlayerOrMockUserId(statData.playerOrMockUserIdThatDied)
+        local killType = statData.singleKillType
+        local killStreak = statData.killStreak
+        local headShot = statData.isHeadshot
+        local collat = statData.isCollat
+        local multiplier = statData.xpMult
+        local baseXp = statData.baseXpToGive
+        local baseCredits = statData.baseCreditsToGive
+
+        if diedPlayer and Toggles.Killsay.Value then
+            local PickFrom = Data.KillSayStuff.Normal
+            local GotXp = baseXp
+            local GotCredits = baseCredits
+
+            if killType == "2" then
+                PickFrom = Data.KillSayStuff.Assist
+            elseif killType == "3" then
+                PickFrom = Data.KillSayStuff.Finish
+                GotXp = statData.finishXpToGive
+                GotCredits = statData.finishCreditsToGive
+            elseif killType == "4" then
+                PickFrom = Data.KillSayStuff.Glory
+                GotXp = statData.gkXpToGive
+                GotCredits = statData.gkCreditsToGive
+            end
+
+            if headShot then
+                PickFrom = PickFrom.Headshot or PickFrom
+                GotXp = statData.headshotXpToGive
+                GotCredits = statData.headshotCreditsToGive
+            end
+
+            if collat then
+                PickFrom = PickFrom.Collat or PickFrom
+                GotXp = statData.collatXpToGive
+                GotCredits = statData.collatCreditsToGive
+            end
+
+            local killStreakData = killStreak > 1 and (Data.KillStreak[killStreak - 1] or Data.KillStreak[#Data.KillStreak])
+            if killStreakData then
+                GotXp = statData.killStreakXpToGive
+                GotCredits = statData.killStreakCreditsToGive
+            end
+
+            local Message
+            repeat
+                Message = PickFrom[math.random(1, #PickFrom)]
+                task.wait()
+            until typeof(Message) == "string"
+            Message = Message:gsub("%%Died%%", diedPlayer.DisplayName)
+            Message = Message:gsub("%%XP%%", GotXp * multiplier)
+            Message = Message:gsub("%%Credits%%", GotCredits)
+            if killStreakData then
+                Message = Message:gsub("%%KillstreakDisplayName%%", killStreakData.displayName)
+            else
+                Message = Message:gsub("%%KillstreakDisplayName%%", "Double Kill")
+            end
+
+            local Weapon = framework:GetWeapon() or framework:GetRanged()
+            if Weapon then
+                Message = Message:gsub("%%Weapon%%", Weapon.Name)
+            end
+
+            game:GetService("TextChatService").TextChannels.RBXGeneral:SendAsync(Message)
+        end
+    end
+})
 framework:BindToRenderStep(function()
 	if getgenv().nut then
 		if character and not character:FindFirstChild("ff") then
@@ -1672,7 +1777,6 @@ local roles = {
     ["Analytics"] = true;
 	["Studio Developer"] = true;
 	["Lead"] = true;
-    ["NET"] = true;
     ["NOCTOVO"] = true;
 };
 local kickmessage = "Staff Detected By Anti Mod\n%s (@%s) - %s";
@@ -1837,7 +1941,7 @@ main:AddSlider("TPRange", {
 	Text = "tp range";
 	Default = 5;
 	Min = 1;
-	Max = 15;
+	Max = 12;
 	Rounding = 0;
 	Compact = true;
 });
@@ -1868,7 +1972,6 @@ local function waitUntilTimeout(signal, timeout)
 	end;
 	return result;
 end;
-
 -- Combat Section
 framework:BindToRenderStep(function()
     if getgenv().killaura and not KADebounce then
@@ -2336,7 +2439,7 @@ do
         Text = "range";
         Default = 15;
         Min = 1;
-        Max = 15;
+        Max = 20;
         Rounding = 0;
 		Compact = true;
         Suffix = " studs";
@@ -2657,6 +2760,27 @@ charactertab:AddToggle("jumppower", {
         end;
     end;
 });
+charactertab:AddToggle('NoAnimations', {
+    Text = 'no animations',
+    Default = false,
+    Tooltip = 'stops all character animations',
+    Callback = function()
+        if Toggles.NoAnimations.Value then
+            task.spawn(function()
+                while Toggles.NoAnimations.Value do
+                    if character and humanoid then
+                        for i, v in humanoid:GetPlayingAnimationTracks() do
+                            if v.Animation ~= spinAnim then
+                                v:Stop()
+                            end
+                        end
+                    end
+                    runservice.RenderStepped:Wait()
+                end
+            end)
+        end
+    end
+})
 charactertab:AddToggle("spin", {
     Text = "spin";
     Default = false;
@@ -2787,6 +2911,7 @@ exploit:AddToggle("nodashcd", {
     Text = "no dash cooldown";
     Default = false;
     Callback = function(Value)
+		getgenv().ndcd = Value; 
         if Value then
             modules.Name["DashConstants"].DASH_COOLDOWN = 0;
         else
@@ -3093,6 +3218,10 @@ othertabs:AddSlider("HitboxSize", {
 })
 
 -- main misc
+mmisc:AddToggle("killsay", {
+    Text = "killsay";
+    Default = false;
+});
 mmisc:AddToggle("svs", {
     Text = "spoof vc status";
     Default = false;
@@ -3119,6 +3248,19 @@ mmisc:AddToggle("Ragebot", {
 		end);
 	end;
 });
+mmisc:AddToggle("ShowLine", {
+	Text = "show line";
+	Default = false;
+}):AddColorPicker("linecolor", {
+	Default = Color3.new(1, 1, 1);
+	Title = "line color";
+	Transparency = 0;
+});
+mmisc:AddToggle('Killsay', {
+    Text = 'killsay',
+    Default = false,
+    Tooltip = 'cause annoyance on kill'
+})
 mmisc:AddToggle("antimod", {
     Text = "anti mod";
     Default = false;
@@ -3517,133 +3659,133 @@ misc1:AddButton("attempt kill", function()
 		end);
 	end;
 	local function stopjitter()
-		desync = false;
-	end;
-	local function getmychar()
-		local char = localplayer.Character;
-		if not char or not char.Parent then
-			char = localplayer.CharacterAdded:Wait();
-		end;
-		local root = char:FindFirstChild("HumanoidRootPart");
-		local hum = char:FindFirstChild("Humanoid");
-		return char, root, hum;
-	end;
-	local function gettargetchar()
-		if isnpc then
-			local char = target.Character;
-			if char and char.Parent then
-				return char, char:FindFirstChild("HumanoidRootPart");
-			end;
-			return nil, nil;
-		else
-			local char = target.Character;
-			if not char or not char.Parent then
-				char = target.CharacterAdded:Wait();
-			end;
-			return char, char:FindFirstChild("HumanoidRootPart");
-		end;
-	end;
-	local heartbeatconn; heartbeatconn = runservice.Heartbeat:Connect(function()
-		if not attachactive then
-			heartbeatconn:Disconnect();
-			return;
-		end;
-		local mychar, myroot, myhumanoid = getmychar();
-		local targetchar, targetroot = gettargetchar();
-		if myroot and myhumanoid and targetroot then
-			local rootToUse = driver or myroot;
-			rootToUse.CFrame = targetroot.CFrame;
-			sethiddenproperty(rootToUse, "PhysicsRepRootPart", targetroot);
-			local ragdollremote = myhumanoid:FindFirstChild("RagdollRemoteEvent") 
-				or myhumanoid:WaitForChild("RagdollRemoteEvent");
-			if ragdollremote then
-				ragdollremote:FireServer(true);
-			end;
-			startjitter(rootToUse);
-		end;
-	end);
-	task.spawn(function()
-		while attachactive do
-			if framework:InMenu(localplayer) then break; end;
-			local _, myroot, myhumanoid = getmychar();
-			local _, targetroot = gettargetchar();
-			if not myhumanoid or myhumanoid.Health <= 0 then
-				task.wait(0.1);
-			else
-				for i = 1, 50 do
-					if framework:InMenu(localplayer) then break; end;
-					if targetroot and targetroot.Parent then
-						network:FireServer("TakeFallDamage", math.huge, Vector3.new(0, -1, 0), targetroot.Position);
-					end;
-					task.wait();
-				end;
-			end;
-			task.wait(0.05);
-		end;
-		attachactive = false;
-		stopjitter();
-		if heartbeatconn then heartbeatconn:Disconnect(); end;
-	end);
+    desync = false;
+end;
+local function getmychar()
+    local char = localplayer.Character;
+    if not char or not char.Parent then
+        char = localplayer.CharacterAdded:Wait();
+    end;
+    local root = char:FindFirstChild("HumanoidRootPart");
+    local hum = char:FindFirstChild("Humanoid");
+    return char, root, hum;
+end;
+local function gettargetchar()
+    if isnpc then
+        local char = target.Character;
+        if char and char.Parent then
+            return char, char:FindFirstChild("HumanoidRootPart");
+        end;
+        return nil, nil;
+    else
+        local char = target.Character;
+        if not char or not char.Parent then
+            char = target.CharacterAdded:Wait();
+        end;
+        return char, char:FindFirstChild("HumanoidRootPart");
+    end;
+end;
+local heartbeatconn; heartbeatconn = runservice.Heartbeat:Connect(function()
+    if not attachactive then
+        heartbeatconn:Disconnect();
+        return;
+    end;
+    local mychar, myroot, myhumanoid = getmychar();
+    local targetchar, targetroot = gettargetchar();
+    if myroot and myhumanoid and targetroot then
+        local rootToUse = driver or myroot;
+        rootToUse.CFrame = targetroot.CFrame;
+        sethiddenproperty(rootToUse, "PhysicsRepRootPart", targetroot);
+        local ragdollremote = myhumanoid:FindFirstChild("RagdollRemoteEvent") 
+            or myhumanoid:WaitForChild("RagdollRemoteEvent");
+        if ragdollremote then
+            ragdollremote:FireServer(true);
+        end;
+        startjitter(rootToUse);
+    end;
+end);
+task.spawn(function()
+    while attachactive do
+        if framework:InMenu(localplayer) then break; end;
+        local _, myroot, myhumanoid = getmychar();
+        local _, targetroot = gettargetchar();
+        if not myhumanoid or myhumanoid.Health <= 0 then
+            task.wait(0.1);
+        else
+            for i = 1, 50 do
+                if framework:InMenu(localplayer) then break; end;
+                if targetroot and targetroot.Parent then
+                    network:FireServer("TakeFallDamage", math.huge, Vector3.new(0, -1, 0), targetroot.Position);
+                end;
+                task.wait();
+            end;
+        end;
+        task.wait(0.05);
+    end;
+    attachactive = false;
+    stopjitter();
+    if heartbeatconn then heartbeatconn:Disconnect(); end;
+end);
 end);
 misc1:AddButton("attempt fling", function()
-	local target = SelectedPlayer
-	if not target then return; end;
-	local fling = true;
-	local hbconn, velconn;
-	local connections = {}
-	local function stopFling()
-		if not fling then return; end;
-		fling = false;
-		for _, conn in ipairs(connections) do
-			if conn.Connected then
-				conn:Disconnect();
-			end;
-		end;
-		connections = {};
-		if humanoidrootpart and humanoidrootpart.Parent then
-			sethiddenproperty(humanoidrootpart, "PhysicsRepRootPart", humanoidrootpart)
-			humanoidrootpart.Velocity = Vector3.zero;
-			humanoidrootpart.RotVelocity = Vector3.zero;
-		end;
-	end;
-	local function getrootandhumanoid(player)
-		local char = player.Character;
-		if not char then return; end;
-		local hrp = char:FindFirstChild("HumanoidRootPart");
-		local hum = char:FindFirstChildOfClass("Humanoid");
-		if hrp and hum then
-			return hrp, hum;
-		end;
-	end;
-	local function fling()
-		local targethrp, targethumanoid = getrootandhumanoid(target)
-		if not targethrp or not targethumanoid or not humanoidrootpart then
-			stopFling();
-			return;
-		end;
-		table.insert(connections, targethumanoid.Died:Once(stopFling));
-		table.insert(connections, humanoid.Died:Once(stopFling));
-		table.insert(connections, target.CharacterAdded:Connect(stopFling));
-		table.insert(connections, localplayer.CharacterAdded:Connect(stopFling));
-		table.insert(connections, runservice.Heartbeat:Connect(function()
-			if not fling then return; end;
-			local newhrp, _ = getrootandhumanoid(target);
-			if newhrp and humanoidrootpart and humanoidrootpart.Parent then
-				sethiddenproperty(humanoidrootpart, "PhysicsRepRootPart", newhrp);
-				humanoidrootpart.CFrame = newhrp.CFrame;
-			end;
-		end));
-		table.insert(connections, runservice.Heartbeat:Connect(function()
-			if not fling then return; end;
-			if humanoidrootpart and humanoidrootpart.Parent then
-				local vel = humanoidrootpart.Velocity;
-				humanoidrootpart.Velocity = vel * 10000 + Vector3.new(0, 10000, 0);
-				runservice.RenderStepped:Wait();
-				humanoidrootpart.Velocity = vel + Vector3.new(0, 0.1, 0);
-			end;
-		end));
-	end;
-	fling();
+    local target = SelectedPlayer
+    if not target then return; end;
+    local fling = true;
+    local hbconn, velconn;
+    local connections = {}
+    local function stopFling()
+        if not fling then return; end;
+        fling = false;
+        for _, conn in ipairs(connections) do
+            if conn.Connected then
+                conn:Disconnect();
+            end;
+        end;
+        connections = {};
+        if humanoidrootpart and humanoidrootpart.Parent then
+            sethiddenproperty(humanoidrootpart, "PhysicsRepRootPart", humanoidrootpart)
+            humanoidrootpart.Velocity = Vector3.zero;
+            humanoidrootpart.RotVelocity = Vector3.zero;
+        end;
+    end;
+    local function getrootandhumanoid(player)
+        local char = player.Character;
+        if not char then return; end;
+        local hrp = char:FindFirstChild("HumanoidRootPart");
+        local hum = char:FindFirstChildOfClass("Humanoid");
+        if hrp and hum then
+            return hrp, hum;
+        end;
+    end;
+    local function fling()
+        local targethrp, targethumanoid = getrootandhumanoid(target)
+        if not targethrp or not targethumanoid or not humanoidrootpart then
+            stopFling();
+            return;
+        end;
+        table.insert(connections, targethumanoid.Died:Once(stopFling));
+        table.insert(connections, humanoid.Died:Once(stopFling));
+        table.insert(connections, target.CharacterAdded:Connect(stopFling));
+        table.insert(connections, localplayer.CharacterAdded:Connect(stopFling));
+        table.insert(connections, runservice.Heartbeat:Connect(function()
+            if not fling then return; end;
+            local newhrp, _ = getrootandhumanoid(target);
+            if newhrp and humanoidrootpart and humanoidrootpart.Parent then
+                sethiddenproperty(humanoidrootpart, "PhysicsRepRootPart", newhrp);
+                humanoidrootpart.CFrame = newhrp.CFrame;
+            end;
+        end));
+        table.insert(connections, runservice.Heartbeat:Connect(function()
+            if not fling then return; end;
+            if humanoidrootpart and humanoidrootpart.Parent then
+                local vel = humanoidrootpart.Velocity;
+                humanoidrootpart.Velocity = vel * 10000 + Vector3.new(0, 10000, 0);
+                runservice.RenderStepped:Wait();
+                humanoidrootpart.Velocity = vel + Vector3.new(0, 0.1, 0);
+            end;
+        end));
+    end;
+    fling();
 end);
 misc1:AddButton("whitelist", function()
     local playername = SelectedPlayer.Name;
@@ -3868,6 +4010,83 @@ runservice.Heartbeat:Connect(function(dt)
 		end;
 	end;
 end);
+local TextChatService = game:GetService("TextChatService");
+local CanSend = true
+TextChatService.MessageReceived:Connect(function(message)
+	if message.Text:match("You must wait before sending another message.") and CanSend then
+		CanSend = false
+		task.delay(4.5, function()
+			CanSend = true
+		end)
+	end
+end)
+network:BindEvents({
+	KilledPlayer = function(statData)
+		local KillSayStuff = Data.KillSayStuff
+		local MockHandler = modules.Name["MockPlayerHandler"]
+		local KillStreak = modules.Name["KillStreakConfigs"]
+		local diedPlayer = MockHandler.getPlayerOrMockFromPlayerOrMockUserId(statData.playerOrMockUserIdThatDied)
+		local killType = statData.singleKillType
+		local killStreak = statData.killStreak
+		local headShot = statData.isHeadshot
+		local collat = statData.isCollat
+		local multiplier = statData.xpMult
+		local baseXp = statData.baseXpToGive
+		local baseCredits = statData.baseCreditsToGive
+		if diedPlayer and Toggles.killsay.Value then
+			local PickFrom = KillSayStuff.Normal
+			local GotXp = baseXp
+			local GotCredits = baseCredits
+			if killType == "2" then
+				PickFrom = KillSayStuff.Assist
+			elseif killType == "3" then
+				PickFrom = KillSayStuff.Finish
+				GotXp = statData.finishXpToGive
+				GotCredits = statData.finishCreditsToGive
+			elseif killType == "4" then
+				PickFrom = KillSayStuff.Glory
+				GotXp = statData.gkXpToGive
+				GotCredits = statData.gkCreditsToGive
+			end
+			if headShot then
+				PickFrom = PickFrom.Headshot or PickFrom
+				GotXp = statData.headshotXpToGive
+				GotCredits = statData.headshotCreditsToGive
+			end
+			if collat then
+				PickFrom = PickFrom.Collat or PickFrom
+				GotXp = statData.collatXpToGive
+				GotCredits = statData.collatCreditsToGive
+			end
+			local killStreakData = killStreak > 1 and (KillStreak[killStreak - 1] or KillStreak[#KillStreak])
+			if killStreakData then
+				GotXp = statData.killStreakXpToGive
+				GotCredits = statData.killStreakCreditsToGive
+			end
+			local Message
+			repeat
+				Message = PickFrom[math.random(1, #PickFrom)]
+				task.wait()
+			until typeof(Message) == "string"
+			Message = Message:gsub("%%Died%%", diedPlayer.DisplayName)
+			Message = Message:gsub("%%XP%%", GotXp * multiplier)
+			Message = Message:gsub("%%Credits%%", GotCredits)
+			if killStreakData then
+				Message = Message:gsub("%%KillstreakDisplayName%%", killStreakData.displayName)
+			else
+				Message = Message:gsub("%%KillstreakDisplayName%%", "Double Kill")
+			end
+			local Weapon = framework:GetWeapon() or framework:GetRanged()
+			if Weapon then
+				Message = Message:gsub("%%Weapon%%", Weapon.Name)
+			end
+			if CanSend then
+				TextChatService.TextChannels.RBXGeneral:SendAsync(Message)
+			end
+		end
+	end
+})
+
 local CachedPlayers = {};
 local function UpdateCachedPlayers()
 	CachedPlayers = {};
@@ -3886,7 +4105,6 @@ players.PlayerRemoving:Connect(function()
 end);
 local FlingThread;
 local CanFlingAll = false;
-
 auto:AddToggle("loopflingall", {
     Text = "loop attempt fling all";
     Default = false;
@@ -3997,6 +4215,29 @@ auto:AddToggle("AutoDetonateC4", {
 		getgenv().AutoDetonateC4 = v;
 	end;
 });
+auto:AddToggle('SpamBioRepairSound', {
+    Text = 'spam bio-repair pen sound',
+    Default = false,
+    Tooltip = 'spams bio-repair pen sound',
+    Callback = function()
+        if Toggles.SpamBioRepairSound.Value then
+            workspace.ChildAdded:Connect(function(child)
+                if child:IsA("Sound") and child.Name == "jab" then
+                    child:Destroy()
+                end
+            end)
+            task.spawn(function()
+                local stomp = { Torso = workspace }
+                while Toggles.SpamBioRepairSound.Value do
+                    modules.Name["VFXClient"].runAndReplicateEffect("HealthPen", {
+                        stomp,
+                    }, "jab")
+                    task.wait(0.5)
+                end
+            end)
+        end
+    end
+})
 auto:AddSlider("stomprange", {
     Text = "stomp range";
     Default = 10;
@@ -5382,7 +5623,7 @@ aimbot:AddSlider("FOVSizeAimbot", {
 	Text = "fov size";
 	Default = 500;
 	Min = 10;
-	Max = 500;
+	Max = 1000;
 	Rounding = 0;
 	Compact = true;
 });
@@ -5502,18 +5743,6 @@ gunmods:AddToggle("NoGravity", {
 	end;
 });
 
-gunmods:AddToggle("FastProjectiles", {
-	Text = "fast projectiles";
-	Default = false;
-	Callback = function(value)
-		if value then
-			modifyranged("speed", 3000);
-		else
-			revertranged("speed");
-		end;
-	end;
-});
-
 gunmods:AddToggle("NoReloadCancel", {
 	Text = "no reload cancel";
 	Default = false;
@@ -5564,7 +5793,7 @@ gunmods:AddToggle("Wallbang", {
 	Text = "wallbang";
 	Default = false;
 	Callback = function(v)
-		Config.Wallbang = v
+		Config.Wallbang = v;
 		getgenv().Wallbang = v;
 	end;
 });
@@ -5885,11 +6114,6 @@ do -- Silent Aim
 
 			metadata.canShootBulletssss = false
 
-			if Classes.ShowRageBotTarget.Value then
-				ShowInformation(targetPlayer)
-				RagebotHighlight.Adornee = targetPlayer.Character
-			end
-
 			LockedTarget = player
 
 			metadata._mainCasterBehavior.RaycastParams.FilterDescendantsInstances = {
@@ -5954,6 +6178,44 @@ do -- Silent Aim
 
 			local distance = (origin - Head.Position).Magnitude
 			local timeToHit = distance / projectileSpeed
+
+			if not (ranged.Name == "Longbow" or ranged.Name == "Crossbow" or ranged.Name == "Heavy Bow") then
+				task.delay(timeToHit + 0.08, function()
+					if cast.UserData and cast.StateInfo and cast.StateInfo.UpdateConnection then
+						if Toggles.ShowLine.Value then
+							local part = Instance.new("Part")
+							part.Anchored = true
+							part.CanCollide = false
+							part.Material = Enum.Material.Neon
+							part.Color = Options.linecolor.Value
+							part.Size = Vector3.new(0.1, 0.1, (Head.Position - HumanoidRootPart.Position).Magnitude)
+							part.CFrame = CFrame.new(HumanoidRootPart.Position, Head.Position)
+								* CFrame.new(0, 0, -part.Size.Z / 2)
+							part.Transparency = 0
+							part.Parent = workspace
+							task.spawn(function()
+								local fadeTime = 2
+								local steps = 30
+								for i = 1, steps do
+									part.Transparency = i / steps
+									task.wait(fadeTime / steps)
+								end
+								part:Destroy()
+							end)
+						end
+						metadata._mainCaster.RayHit:Fire(cast, {
+							Distance = 1,
+							Instance = Head,
+							Material = Enum.Material.SmoothPlastic,
+							Position = Head.Position,
+							Normal = Vector3.yAxis,
+						}, nil, cast.RayInfo.CosmeticBulletObject)
+						cast:Terminate()
+					end
+				end)
+			end
+			task.wait(metadata._itemConfig.cooldown)
+
 			if metadata._clientAmmoVO.Value <= 0 then
 				network:FireServer("StartRangedReload", ranged)
 				task.wait(metadata._itemConfig.reloadTime - 0.2)
@@ -5967,7 +6229,6 @@ do -- Silent Aim
 					end)
 				end
 			end
-
 			metadata.canShootBulletssss = true
 		end
 	end)
