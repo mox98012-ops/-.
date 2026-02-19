@@ -1,35 +1,41 @@
+if (not game:IsLoaded()) then game.Loaded:Wait(); end;
 info = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId);
-if (info.Creator.CreatorType ~= "Group" or info.Creator.CreatorTargetId ~= 5192826) then
+if (info.Creator.CreatorType ~= "Group" or info.Creator.CreatorTargetId ~= 5192826 or getgenv().serenium_LOADED) then
 	return;
 end;
 if (not game:GetService("Players").LocalPlayer) then
     repeat task.wait() until game:GetService("Players").LocalPlayer;
 end;
-if identifyexecutor() == "Solara" then
-	return;
+for _, void in pairs(workspace:GetDescendants()) do
+	if (void.Name == "VoidCollidePart" and void:IsA("Part")) then
+		void.CanTouch = false;
+		void:GetPropertyChangedSignal("CanTouch"):Connect(function()
+			if (not void.CanTouch == false) then
+				void.CanTouch = false;
+			end;
+		end);
+	end;
 end;
+workspace.FallenPartsDestroyHeight = -math.huge;
+workspace:GetPropertyChangedSignal("FallenPartsDestroyHeight"):Connect(function()
+	if (not workspace.FallenPartsDestroyHeight == -math.huge) then
+		workspace.FallenPartsDestroyHeight = -math.huge;
+	end;
+end);
 game:GetService("Players").LocalPlayer:WaitForChild("CharacterLoaded");
 game:GetService("Players").LocalPlayer:WaitForChild("DataLoadedClient");
 game:GetService("Players").LocalPlayer:WaitForChild("DataLoaded");
-if getgenv().serenium_LOADED then
-	return;
-end;
 getgenv().serenium_LOADED = true;
-if not game:IsLoaded() then game.Loaded:Wait(); end;
 if not LPH_OBFUSCATED then
-	LPH_NO_UPVALUES = function(...) return ...; end;
-	LPH_NO_VIRTUALIZE = function(...) return ...; end;
-    LPH_CRASH = function(...) return ...; end;
-    LPH_JIT = function(...) return ...; end;
-    LPH_JIT_MAX = function(...) return ...; end;
-end;
-task.spawn(function()
-	for _, void in pairs(game.workspace:GetDescendants()) do
-		if void.Name == "VoidCollidePart" and void:IsA("Part") then
-			void.CanTouch = false;
-		end;
-	end;
-end);
+    getgenv().LPH_NO_VIRTUALIZE = function(f) return f end
+    getgenv().LPH_JIT = function(f) return f end
+    getgenv().LPH_JIT_MAX = function(f) return f end
+    getgenv().LPH_NO_UPVALUES = function(f) return f end
+    getgenv().LPH_CRASH = function() return end
+end
+
+local function InitializeSerenium()
+
 local Data = Data;
 if not Data then
 	Data = {
@@ -131,16 +137,19 @@ if not Data then
 	};
 end;
 -- variables
+local modules; local framework;
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/linoria-fork/refs/heads/main/linoria.lua"))();
 local savemanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/savemanager/refs/heads/main/linoria.lua"))();
 local thememanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/refs/heads/main/addons/ThemeManager.lua"))();
-local window = library:CreateWindow({Title = "			  serenium.hvh - discord.gg/serenium   <font color=\"#ff0000\">combat warriors</font>", Center = true, AutoShow = true, TabPadding = 8, MenuFadeTime = 0});
+local window = library:CreateWindow({Title = "			 nil.solutions - discord.gg/serenium   <font color=\"#ff0000\">combat warriors</font>", Center = true, AutoShow = true, TabPadding = 8, MenuFadeTime = 0});
 local tabs = {main = window:AddTab('main'), ranged = window:AddTab("ranged"); charactertab = window:AddTab("character"), misc = window:AddTab("misc"), visuals = window:AddTab("visuals"), sniper = window:AddTab("sniper"), settings = window:AddTab("settings")};
 
 -- tabs
 local main = tabs.main:AddLeftGroupbox("main");
 local parrysection2 = tabs.main:AddRightGroupbox("auto parry")
 local parrysection = tabs.main:AddRightGroupbox("modifications")
+local ragebotsection = tabs.misc:AddLeftGroupbox("ragebot");
+
 local mmisc = tabs.misc:AddLeftGroupbox("main");
 local miscauto = tabs.misc:AddLeftGroupbox("auto");
 local misc = tabs.misc:AddLeftGroupbox("cosmetic");
@@ -157,47 +166,55 @@ local aimbot = tabs.ranged:AddLeftGroupbox("aimbot");
 local gunmods = tabs.ranged:AddLeftGroupbox("gun mods");
 local silentaim = tabs.ranged:AddRightGroupbox("silent aim");
 
+local charactersection = tabs.visuals:AddRightGroupbox("character visuals");
+local espsection = tabs.visuals:AddLeftGroupbox("esp");
+
 -- others
 local whitelist = {};
-local toggles = Toggles;
+local viewing = nil;
 local camera = workspace.CurrentCamera;
-local boostmultiplier = 2;
-local updown = true;
-local flying = false;
-local keys = {w=false, a=false, s=false, d=false, space=false, ctrl=false, lshift=false};
-local driver = nil;
-local runservice = game:GetService("RunService");
-local repstorage = game:GetService("ReplicatedStorage");
-local userinputservice = cloneref(game:GetService("UserInputService"));
-local httpservice = game:GetService("HttpService");
-local localplayer = game:GetService("Players").LocalPlayer;
-local players = game:GetService("Players");
-local character = localplayer.Character or localplayer.CharacterAdded:Wait();
-local humanoidrootpart = character:WaitForChild("HumanoidRootPart");
-local humanoid = character:WaitForChild("Humanoid");
-local workspace = game:GetService("Workspace");
-local function GetPlayerCharacters()
-    return workspace:FindFirstChild("PlayerCharacters") or workspace:FindFirstChild("Characters") or workspace;
-end;
-local PlayerCharacters = GetPlayerCharacters()
-local ParryingCharacters = {};
-library.IgnoreWhileTyping = true;
-local spinspeed = 10;
-local spineabled = false;
-local KADebounce = false;
-local OnTp = false;
-local Active = true;
-local AttachRoot = nil;
-local Ignored = {};
-local R6BodyParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"};
-local Classes = setmetatable({}, {
-	__index = function(t, k)
-		return Toggles[k] or Options[k];
-	end;
-});
-local originalDashCooldown = nil;
---getgenv variables
-getgenv().antifling = false;
+    local boostmultiplier = 2;
+    local updown = true;
+    local flying = false;
+    local keys = {w=false, a=false, s=false, d=false, space=false, ctrl=false, lshift=false};
+    local driver = nil;
+    local runservice = game:GetService("RunService");
+    local repstorage = game:GetService("ReplicatedStorage");
+    local userinputservice = cloneref(game:GetService("UserInputService"));
+    local httpservice = game:GetService("HttpService");
+    local localplayer = game:GetService("Players").LocalPlayer;
+    local players = game:GetService("Players");
+    local character = localplayer.Character or localplayer.CharacterAdded:Wait();
+    local humanoidrootpart = character:WaitForChild("HumanoidRootPart");
+    local humanoid = character:WaitForChild("Humanoid");
+    local workspace = game:GetService("Workspace");
+    
+    local function GetPlayerCharacters()
+        return workspace:FindFirstChild("PlayerCharacters") or workspace:FindFirstChild("Characters") or workspace;
+    end;
+    
+    local PlayerCharacters = GetPlayerCharacters()
+    local ParryingCharacters = {};
+    library.IgnoreWhileTyping = true;
+    local spinspeed = 10;
+    local spineabled = false;
+    local KADebounce = false;
+    local OnTp = false;
+    local Active = true;
+    local AttachRoot = nil;
+    local Ignored = {};
+    local R6BodyParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"};
+    
+    local Classes = setmetatable({}, {
+        __index = function(t, k)
+            return Toggles[k] or Options[k];
+        end;
+    });
+    
+    local originalDashCooldown = nil;
+
+    --getgenv variables
+    getgenv().antifling = false;
 getgenv().infstamina = false;
 getgenv().canalwaysjump = false;
 getgenv().nnt = false;
@@ -286,12 +303,12 @@ serverposition("heartbeat", "voidhidelogic", function(cf)
     end;
 end, 15);
 setrunning("voidhidelogic", true);
-runservice.Heartbeat:Connect(function()
+runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
     local hum = localplayer.Character and localplayer.Character:FindFirstChild("Humanoid");
     if hum and getgenv().voidenabled then
         hum:ChangeState(Enum.HumanoidStateType.Freefall);
     end;
-end);
+end));
 -- fly
 local function connect(newchar)
     character = newchar;
@@ -315,7 +332,7 @@ userinputservice.InputEnded:Connect(function(input, gpe)
     local n = input.KeyCode.Name:lower();
     if keys[n] ~= nil then keys[n] = false; end;
 end);
-runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(newcclosure(function(dt)
+runservice.Heartbeat:Connect(newcclosure(LPH_NO_VIRTUALIZE(function(dt)
     if getgenv().flyenabled ~= flying then
         flying = getgenv().flyenabled;
         if flying then
@@ -346,6 +363,8 @@ runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(newcclosure(function(dt)
     	bv.MaxForce = Vector3.new(1e9, 1e9, 1e9);
     	bv.Velocity = Vector3.zero;
 	end;
+	humanoidrootpart.Velocity = Vector3.zero;
+    humanoidrootpart.RotVelocity = Vector3.zero;
     local move = Vector3.zero;
     if keys.w then move += camera.CFrame.LookVector; end;
     if keys.s then move -= camera.CFrame.LookVector; end;
@@ -378,7 +397,7 @@ runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
 end));
 -- desync
 local active = true;
-task.spawn(LPH_NO_VIRTUALIZE(function()
+task.spawn(LPH_JIT_MAX(function()
 	while true do
 		runservice.Heartbeat:Wait()
 		if not active then
@@ -438,7 +457,7 @@ local HitDetectionImpl = {
     YOffset = 0,
     LastCloneTime = 0
 };
-HitDetectionImpl.CreateLog = function(text)
+HitDetectionImpl.CreateLog = LPH_NO_VIRTUALIZE(function(text)
     local screen = workspace.CurrentCamera.ViewportSize
     local prefixBase = "serenium"
     local prefixHvh = ".hvh"
@@ -537,8 +556,8 @@ HitDetectionImpl.CreateLog = function(text)
         if HitDetectionImpl.YOffset > 300 then -- Limit upward stacking to prevent going off-screen
             HitDetectionImpl.YOffset = 0
         end
-    end)
-end;
+    end);
+end);
 HitDetectionImpl.PlaySound = function(soundName, volume)
     if soundName == "None" or not HitDetectionImpl.Sounds[soundName] then return end;
     local sound = Instance.new("Sound");
@@ -548,7 +567,7 @@ HitDetectionImpl.PlaySound = function(soundName, volume)
     sound:Play();
     sound.Ended:Connect(function() sound:Destroy(); end);
 end;
-HitDetectionImpl.CreateEffect = function(effectType, part, color, damage)
+HitDetectionImpl.CreateEffect = LPH_NO_VIRTUALIZE(function(effectType, part, color, damage)
     if not part or not part.Position or part.Name == "FakeHitbox" then return end
     local mainColor = color or Color3.new(1, 1, 1)
 
@@ -780,11 +799,11 @@ HitDetectionImpl.CreateEffect = function(effectType, part, color, damage)
             label2.Visible = false
             label1:Remove()
             label2:Remove()
-        end)
+        end);
     end;
-end;
+end);
 local LastHits = {}
-local function OnHit(targetPlayer, hitPart, damage, hitType)
+local OnHit = LPH_NO_VIRTUALIZE(function(targetPlayer, hitPart, damage, hitType)
     if not targetPlayer then return end
     
     -- Smart Part Resolver: Detect FakeHitbox and find real part for logs/effects
@@ -842,12 +861,12 @@ local function OnHit(targetPlayer, hitPart, damage, hitType)
                      return
                  end
             end
-        end)
+        end);
     end
-end;
+end);
 
 -- game exploit setup
-local modules = { Name = {}, Id = {} };
+modules = { Name = {}, Id = {} };
 local utilityids = {};
 local weaponids = {};
 setthreadidentity(2);
@@ -872,12 +891,12 @@ local remotes;
 if eventhandler then
 	remotes = getupvalue(eventhandler, 1);
 end;
-local framework = {};
+framework = {};
 local hooks = {};
 local modify = {};
 local signal = modules.Name["Signal"];
 local onfireserver = network.FireServer;
-function handle(_, Name, ...)
+handle = LPH_NO_VIRTUALIZE(function(_, Name, ...)
 	local Args = { ... };
 	if modify[Name] then
 		local shouldhook = modify[Name].Check(Name, unpack(Args));
@@ -900,12 +919,12 @@ function handle(_, Name, ...)
 		return pcall(hooks[Name], onfireserver, _, Name, ...);
 	end;
 	return onfireserver(_, Name, unpack(Args));
-end;
+end);
 network.fireserver = function(_, Name, ...)
 	return handle(_, Name, ...);
 end;
 function framework:addhook(Name, Function)
-	hooks[Name] = Function;
+	hooks[Name] = LPH_NO_VIRTUALIZE(Function);
 end;
 function framework:argmodify(Name, ToModify, Check)
 	modify[Name] = { Args = { ToModify }, Check = Check }
@@ -1020,7 +1039,7 @@ players.PlayerRemoving:Connect(function()
 	updatecached();
 end);
 function framework:GetClosest(Distance, Priority, CheckFunction)
-    local function n(Player)
+    local n = LPH_NO_VIRTUALIZE(function(Player)
         if 
             Player.Character
             and Player.Character:FindFirstChild("HumanoidRootPart")
@@ -1033,7 +1052,7 @@ function framework:GetClosest(Distance, Priority, CheckFunction)
             return true;
         end;
         return false;
-    end;
+    end);
     local Distance = Distance or math.huge;
     local CheckFunction = CheckFunction or n;
     local ClosestPlayers = {};
@@ -1073,7 +1092,7 @@ function framework:GetClosest(Distance, Priority, CheckFunction)
 end;
 
 function framework:GetClosest2(Distance, CheckFunction)
-	local function n(Player)
+    local n = LPH_NO_VIRTUALIZE(function(Player)
 		if
 			Player.Character
 			and Player.Character:FindFirstChild("HumanoidRootPart")
@@ -1087,7 +1106,7 @@ function framework:GetClosest2(Distance, CheckFunction)
 			return true;
 		end;
 		return false;
-	end;
+	end);
 
 	local Distance = Distance or math.huge;
 	local CheckFunction = CheckFunction or n;
@@ -1120,8 +1139,8 @@ function framework:GetClosest2(Distance, CheckFunction)
 	return ClosestPlayer and { [ClosestPlayer] = true } or nil;
 end;
 
-function framework:GetClosestToMouse(Distance, Priority, CheckFunction)
-	local function n(Player)
+function framework:GetClosestToMouse(Distance, Priority, CheckFunction, MaxDist3D)
+	local n = LPH_NO_VIRTUALIZE(function(Player)
 		if
 			Player.Character
 			and Player.Character:FindFirstChild("HumanoidRootPart")
@@ -1132,7 +1151,7 @@ function framework:GetClosestToMouse(Distance, Priority, CheckFunction)
 			return true;
 		end;
 		return false;
-	end;
+	end);
 
 	local Distance = Distance or math.huge;
 	local CheckFunction = CheckFunction or n;
@@ -1160,6 +1179,11 @@ function framework:GetClosestToMouse(Distance, Priority, CheckFunction)
 		local HRP = v.Character and v.Character:FindFirstChild("HumanoidRootPart");
 		if not HRP then continue end
 		local vector, onScreen = camera:WorldToScreenPoint(HRP.Position);
+		if onScreen then
+            if MaxDist3D and (HRP.Position - camera.CFrame.Position).Magnitude > MaxDist3D then
+                onScreen = false
+            end
+        end
 		if onScreen then
 			local Magnitude = (MousePosition - Vector2.new(vector.X, vector.Y)).Magnitude;
 			if Magnitude < Distance then
@@ -1355,7 +1379,7 @@ function framework:Teleport(CF)
 end;
 
 local activeRenderSteps = {}
-function framework:BindToRenderStep(toBind, delayTime, priority: Enum.RenderPriority)
+function framework:BindToRenderStep(toBind, delayTime, priority)
     local name = httpservice:GenerateGUID(false)
     table.insert(activeRenderSteps, name)
 	local isDelayed = false;
@@ -1363,7 +1387,7 @@ function framework:BindToRenderStep(toBind, delayTime, priority: Enum.RenderPrio
 		name,
 		(priority and priority or Enum.RenderPriority.First).Value,
 		delayTime
-			and function()
+			and LPH_NO_VIRTUALIZE(function()
 				if isDelayed then
 					return;
 				end;
@@ -1371,7 +1395,7 @@ function framework:BindToRenderStep(toBind, delayTime, priority: Enum.RenderPrio
 				task.spawn(toBind);
 				task.wait(delayTime);
 				isDelayed = false;
-			end
+			end)
 			or toBind
 	);
     return name
@@ -1395,7 +1419,7 @@ function framework:InMenu(Player)
 	end;
 	return IsMenu;
 end;
-function framework:Check(Character)
+framework.Check = LPH_NO_VIRTUALIZE(function(self, Character)
 	local success, result = pcall(function()
 		if not Character or table.find(ParryingCharacters, Character) then
 			return false;
@@ -1436,7 +1460,7 @@ function framework:Check(Character)
 		return false
 	end
 	return result
-end;
+end);
 function framework:WaitForDescendant(Root, Name, Condition, Timeout)
 	local Descendant = nil;
 	local Timedout = false;
@@ -1572,12 +1596,12 @@ for _, player in Players:GetPlayers() do
         if player.Character then
             ApplyHitbox(player.Character)
         end
-        player.CharacterAdded:Connect(LPH_NO_VIRTUALIZE(ApplyHitbox));
+        player.CharacterAdded:Connect(ApplyHitbox);
     end
 end
 
 Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(LPH_NO_VIRTUALIZE(ApplyHitbox));
+    player.CharacterAdded:Connect(ApplyHitbox);
 end)
 runservice.RenderStepped:Connect(LPH_NO_VIRTUALIZE(function()
     for i = #FakeHitboxes, 1, -1 do
@@ -1608,11 +1632,11 @@ runservice.RenderStepped:Connect(LPH_NO_VIRTUALIZE(function()
             end
         end
     end
-end))
+end));
 if modules.Name["RangedHitVisuals"] and modules.Name["RangedHitVisuals"].defaultHit then
     local old = modules.Name["RangedHitVisuals"].defaultHit
     
-    modules.Name["RangedHitVisuals"].defaultHit = function(player, tool, cfg, hitpart, hitcf, normal, material, cosmetic)
+    modules.Name["RangedHitVisuals"].defaultHit = LPH_NO_VIRTUALIZE(function(player, tool, cfg, hitpart, hitcf, normal, material, cosmetic)
         local newHitCf = hitcf
         
         if Config.HitboxExpand and hitpart and hitpart.Name == "FakeHitbox" then
@@ -1637,10 +1661,10 @@ if modules.Name["RangedHitVisuals"] and modules.Name["RangedHitVisuals"].default
         end
         
         return old(player, tool, cfg, hitpart, newHitCf, normal, material, cosmetic)
-    end
+    end);
 end
 if modules.Name["RangedWeaponClient"] and modules.Name["RangedWeaponClient"].updateIgnoreList then
-    modules.Name["RangedWeaponClient"].updateIgnoreList = function(rangedData)
+    modules.Name["RangedWeaponClient"].updateIgnoreList = LPH_NO_VIRTUALIZE(function(rangedData)
         if tick() - (rangedData._lastIgnoreListUpdateTick or 0) < 5 then
             return rangedData._ignoreList
         end
@@ -1658,12 +1682,12 @@ if modules.Name["RangedWeaponClient"] and modules.Name["RangedWeaponClient"].upd
 
         rangedData._ignoreList = tagged
         return tagged
-    end
+    end);
 end
 if network and network.FireServer then
 	local OldFireServer = network.FireServer
 	
-	network.FireServer = function(self, remoteName, ...)
+	network.FireServer = LPH_NO_VIRTUALIZE(function(self, remoteName, ...)
 		local args = {...}
 		
 		if remoteName == "MeleeDamage" then
@@ -1744,7 +1768,7 @@ if network and network.FireServer then
 		end
 		
 		return OldFireServer(self, remoteName, unpack(args))
-	end
+	end);
 end
 local spin = Instance.new("Animation");
 spin.AnimationId = "rbxassetid://188632011";
@@ -1797,9 +1821,9 @@ do
             return;
         end;
         old[modulename .. "_" .. funcname] = mod[funcname];
-        mod[funcname] = function(...)
+        mod[funcname] = LPH_NO_VIRTUALIZE(function(...)
             return newfunc(old[modulename .. "_" .. funcname], ...);
-        end;
+        end);
     end;
 	hook("JumpHandlerClient", "getCanJump", function(oldfunc, ...)
 		if getgenv().canalwaysjump then
@@ -1826,30 +1850,30 @@ do
 		return oldfunc(...);
 	end);
 	local CanFireStartFallDamage = true;
-	framework:argmodify("StartFallDamage", {}, LPH_NO_VIRTUALIZE(function(n, ...)
+	framework:argmodify("StartFallDamage", {}, function(n, ...)
 		if not checkcaller() and not CanFireStartFallDamage then
 			return;
 		end;
 		return;
-	end));
-	framework:argmodify("TakeFallDamage", {}, LPH_NO_VIRTUALIZE(function(n, ...)
+	end);
+	framework:argmodify("TakeFallDamage", {}, function(n, ...)
 		if not checkcaller() and not CanFireStartFallDamage then
 			return;
 		end;
 		return;
-	end));
-	framework:argmodify("LogKick", {}, LPH_NO_VIRTUALIZE(function(n, ...)
+	end);
+	framework:argmodify("LogKick", {}, function(n, ...)
 		if not checkcaller() then
 			return;
 		end;
 		return;
-	end));
-	framework:argmodify("LogACTrigger", {}, LPH_NO_VIRTUALIZE(function(n, ...)
+	end);
+	framework:argmodify("LogACTrigger", {}, function(n, ...)
 		if not checkcaller() then
 			return;
 		end;
 		return;
-	end));
+	end);
 	framework:argmodify("GotHitRE", {}, function(n, ...)
 		if (not checkcaller() and getgenv().nut) then
 			return;
@@ -1874,36 +1898,36 @@ do
 		end;
 		return oldfunc(...);
 	end);
-	hook("HealthHandler", "getRealHealth", LPH_NO_VIRTUALIZE(function(oldfunc, ...)
+	hook("HealthHandler", "getRealHealth", function(oldfunc, ...)
 		if getgenv().nhe then
 			return math.huge;
 		end;
 		return oldfunc(...);
-	end));
-	hook("RangedWeaponClient", "cancelReload", LPH_NO_VIRTUALIZE(function(oldfunc,...)
+	end);
+	hook("RangedWeaponClient", "cancelReload", function(oldfunc,...)
 		if getgenv().nocancel then
 			return;
 		end;
 		return oldfunc(...);
-	end));
+	end);
 	hook("InstancePropsHandler", "add", function(oldfunc, a, b, c, ...)
 		if getgenv().ngpe and a ~= character and c == "GHOST_POTION" then
 			return;
 		end;
 		return oldfunc(a, b, c, ...);
 	end);
-	hook("ItemAttachmentHandlerClient", "addItemAttachment", LPH_NO_VIRTUALIZE(function(oldfunc, ...)
+	hook("ItemAttachmentHandlerClient", "addItemAttachment", function(oldfunc, ...)
         if getgenv().hideweapon then
             return;
         end;
         return oldfunc(...);
-    end));
-    hook("WaterHandler", "getBoundsIsInWater", LPH_NO_VIRTUALIZE(function(oldfunc, ...)
+    end);
+    hook("WaterHandler", "getBoundsIsInWater", function(oldfunc, ...)
         if getgenv().antiswim then
             return;
         end;
         return oldfunc(...);
-    end));
+    end);
 	local function nkb(funckey)
 		return function(oldfunc, self, ...)
 			local char = character or (localplayer and localplayer.Character);
@@ -1948,17 +1972,17 @@ do
 			};
 		end;
 	end;
-    framework:argmodify("UpdateIsCrouching", { [1] = true }, LPH_NO_VIRTUALIZE(function(n, ...)
+    framework:argmodify("UpdateIsCrouching", { [1] = true }, function(n, ...)
         if getgenv().nnt then
             return true;
         end;
-    end));
-	framework:argmodify("UpdateHasVc", { [1] = true }, LPH_NO_VIRTUALIZE(function(n, ...)
+    end);
+	framework:argmodify("UpdateHasVc", { [1] = true }, function(n, ...)
 		if getgenv().vcenabled then
 			return true;
 		end;
 		return;
-	end));
+	end);
 	local store = modules.Name["RoduxStore"].store;
 	local olddispatch = store.dispatch;
 	store.dispatch = function(table, sigma, ...)
@@ -1967,7 +1991,7 @@ do
 				getgenv().parrystununtil = tick() + 0.35;
 				if getgenv().voidonparry and (tick() - (getgenv().last_void_parry or 0) > 3) then
 					getgenv().last_void_parry = tick();
-					task.spawn(function()
+					task.spawn(LPH_JIT_MAX(function()
 						pcall(function()
 							if Toggles.voidenabled.Value and Options.voidenabledkey:GetState() then
 								getgenv().voidenabled = true;
@@ -1989,7 +2013,7 @@ do
 								end);
 							end;
 						end);
-					end);
+					end));
 				end;
 				if getgenv().nps then
 					local JumpPower = modules.Name["JumpHandlerClient"];
@@ -1999,7 +2023,7 @@ do
 						local WSContainer = Walkspeed.getValueContainer();
 						local JPContainer = JumpPower.getJumpPowerValueContainer();
 						local ARContainer = AutoRotate.getAutoRotateToggleCounter();
-						task.spawn(LPH_NO_VIRTUALIZE(function()
+						task.spawn(LPH_JIT_MAX(function()
 							task.wait(0.1);
 							modules.Name["CoreGuiHandlerClient"].toggleBackpack(true);
 							modules.Name["CoreGuiHandlerClient"].toggleResetButton(true);
@@ -2056,7 +2080,7 @@ if localplayer.Character then
     connect(localplayer.Character);
 end;
 network:BindEvents({
-    CreateAntiCheatNotification = LPH_NO_VIRTUALIZE(function(data)
+    CreateAntiCheatNotification = function(data)
         if data.punishType == "rectified" and getgenv().fno and humanoidrootpart then
             repeat
                 local tool = localplayer.Backpack:GetChildren()[1];
@@ -2069,7 +2093,7 @@ network:BindEvents({
                 end;
             until humanoidrootpart.ReceiveAge == 0;
         end;
-    end);
+    end;
 });
 
 -- ui setup
@@ -2096,6 +2120,28 @@ main:AddToggle("KillAura", {
             getgenv().killaura = state;
         end);
     end;
+});
+silentaim:AddToggle("SilentAim", {
+	Text = "silent aim";
+	Default = false;
+});
+silentaim:AddToggle("stickyaim", {
+	Text = "sticky aim";
+	Default = false;
+	Callback = function()
+		UpdateFeature("stickyaim", "stickbind", function(state)
+			getgenv().stick = state;
+		end);
+	end;
+}):AddKeyPicker("stickbind", {
+	Text = "sticky aim";
+	Default = "T";
+	NoUi = true;
+	Callback = function()
+		UpdateFeature("stickyaim", "stickbind", function(state)
+			getgenv().stick = state;
+		end);
+	end;
 });
 main:AddSlider("KillAuraRange", {
 	Text = "kill aura range";
@@ -2133,24 +2179,6 @@ main:AddToggle("tpenemy", {
         end);
     end;
 });
-main:AddToggle("stick", {
-	Text = "stick to enemy";
-	Default = false;
-	Callback = function()
-		UpdateFeature("stick", "stickbind", function(state)
-			getgenv().stick = state;
-		end);
-	end;
-}):AddKeyPicker("stickbind", {
-	Text = "stick to enemy";
-	Default = "T";
-	NoUi = true;
-	Callback = function()
-		UpdateFeature("stick", "stickbind", function(state)
-			getgenv().stick = state;
-		end);
-	end;
-});
 main:AddToggle("spectateneemy", {
 	Text = "spectate enemy";
 	Default = false;
@@ -2168,6 +2196,15 @@ main:AddToggle("spectateneemy", {
 			getgenv().spectateneemy = state;
 		end);
 	end;
+});
+main:AddToggle("RageAutoParry", {
+    Text = "rage auto parry";
+    Default = false;
+    Tooltip = "Bypasses all restrictions (range, angle, chance)";
+    Callback = function(value)
+        if not Classes.RageAutoParry then Classes.RageAutoParry = {} end;
+        Classes.RageAutoParry.Value = value;
+    end
 });
 main:AddDropdown("TPType", {
 	Values = {"Behind", "Orbit", "Above", "Below", "Attach", "Random"};
@@ -2242,7 +2279,7 @@ local function waitUntilTimeout(signal, timeout)
     if timedOut then return "Timed out" end
 	return unpack(result);
 end;
-local function gethitpart(character)
+gethitpart = LPH_NO_VIRTUALIZE(function(character)
 	local head = character:FindFirstChild("Head");
 	if head then
 		return head;
@@ -2251,8 +2288,8 @@ local function gethitpart(character)
 	if hrp then
 		return hrp;
 	end;
-end;
-function meleehitboxes(metadata)
+end);
+meleehitboxes = LPH_NO_VIRTUALIZE(function(metadata)
     if not metadata then return nil; end;
     local success, result;
     local retries = 0;
@@ -2266,7 +2303,7 @@ function meleehitboxes(metadata)
         end;
     until (success and result) or retries > 10;
     return result;
-end;
+end);
 effectsjunk = workspace:WaitForChild("EffectsJunk")
 map = workspace:FindFirstChild("Map")
 processed = {}
@@ -2300,7 +2337,7 @@ function shouldDisable(part)
     end
     return false
 end
-function processPart(part)
+processPart = LPH_NO_VIRTUALIZE(function(part)
 	if getgenv().nut then
 		if not part:IsA("BasePart") then return end
 		if processed[part] then return end
@@ -2313,7 +2350,7 @@ function processPart(part)
 			part:SetAttribute("DamagePerSecond", nil)
 		end
 	end
-end;
+end);
 for _, obj in ipairs(effectsjunk:GetDescendants()) do
     processPart(obj);
 end;
@@ -2328,7 +2365,7 @@ if map then
 end;
 effectsjunk.DescendantAdded:Connect(processPart);
 -- Combat Section
-framework:BindToRenderStep(LPH_JIT_MAX(function()
+framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
 	if getgenv().killaura and not KADebounce then
 		local weapon, metadata = framework:GetWeapon();
 		local hitboxes = meleehitboxes(metadata);
@@ -2463,6 +2500,8 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
             end;
         end;
     end;
+end));
+framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
 	if not weapon and getgenv().autoequip then
 		local Character = localplayer.Character;
 		for _, v in pairs(localplayer.Backpack:GetChildren()) do
@@ -2515,6 +2554,8 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
 		end;
 	end;
 	modules.Name["RoduxStore"].store:getState().admin.is = true;
+end));
+framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
     if getgenv().fastrespawn then
         if humanoid.Health == 0 then
             network:FireServer("StartFastRespawn");
@@ -2606,7 +2647,163 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
             end
         end
     end
-end, nil, Enum.RenderPriority.Character));
+end), nil, Enum.RenderPriority.Character);
+local StartSnowveilEffect = function()
+    if SnowveilActive then return end
+    
+    local char = localplayer.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    
+    SnowveilActive = true
+    library:Notify("S N O W V E I L initiated.", 3)
+    
+    local emotionalEffects = {}
+    local function CreateEffect(className, name, props)
+        local effect = Instance.new(className)
+        effect.Name = "Snowveil_" .. name
+        for k, v in pairs(props) do effect[k] = v end
+        effect.Parent = game:GetService("Lighting")
+        table.insert(emotionalEffects, effect)
+        return effect
+    end
+
+    local success, err = pcall(function()
+        CreateEffect("ColorCorrectionEffect", "BW", {Saturation = -1, Contrast = 0.3})
+        CreateEffect("BlurEffect", "Blur", {Size = 8})
+        
+        local oldTime = game:GetService("Lighting").ClockTime
+        game:GetService("Lighting").ClockTime = 0
+        
+        local staticSound = Instance.new("Sound")
+        staticSound.Name = "SnowveilStatic"
+        staticSound.SoundId = "rbxassetid://135167757310626"
+        staticSound.Looped = false
+        staticSound.Volume = 0.8
+        staticSound.Parent = game:GetService("SoundService")
+        staticSound:Play()
+        table.insert(emotionalEffects, staticSound)
+        
+        root.Anchored = true
+        
+        local userId = 5251233245
+
+        local npc = game.Players:CreateHumanoidModelFromUserId(userId)
+        npc.Name = "snowveil"
+        npc.Parent = workspace
+        
+        local noclipConn
+        noclipConn = runservice.Stepped:Connect(LPH_NO_VIRTUALIZE(function()
+            if not SnowveilActive then noclipConn:Disconnect() return end
+            if npc then
+                for _, v in pairs(npc:GetDescendants()) do
+                    if v:IsA("BasePart") then v.CanCollide = false end
+                end
+            end
+            if dog then
+                for _, v in pairs(dog:GetDescendants()) do
+                    if v:IsA("BasePart") then v.CanCollide = false end
+                end
+            end
+        end))
+        table.insert(emotionalEffects, noclipConn)
+
+        npc:PivotTo(root.CFrame * CFrame.new(0, 0, 30))
+
+        local dog = nil
+        local objects = game:GetObjects("rbxassetid://17105403700")
+        if objects and #objects > 0 then
+            dog = objects[1]
+            dog.Name = "Snowveil_Dog"
+            dog.Parent = workspace
+            
+            if dog:IsA("Model") and dog.ScaleTo then
+                dog:ScaleTo(3.15)
+            else
+                for _, v in pairs(dog:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        v.Size = v.Size * 3.15
+                    end
+                end
+            end
+            
+            for _, v in pairs(dog:GetDescendants()) do
+                if v:IsA("BasePart") then 
+                    v.Anchored = true 
+                    v.CanCollide = false
+                end
+            end
+            
+            dog:PivotTo(root.CFrame * CFrame.new(3.5, -1.1, 0))
+        end
+        
+        if npc and dog then 
+            local npcHum = npc:FindFirstChildOfClass("Humanoid")
+            local npcRoot = npc:FindFirstChild("HumanoidRootPart")
+            if npcHum then npcHum.WalkSpeed = 30 end
+            
+            task.wait(0.6)
+            
+            if npcHum then
+                npcHum:MoveTo(dog:GetPivot().Position)
+                
+                local startTime = tick()
+                while (npcRoot.Position - dog:GetPivot().Position).Magnitude > 5 and tick() - startTime < 3 do
+                    task.wait()
+                end
+            end
+            
+            pcall(function()
+                local grabPart = npc:FindFirstChild("Right Arm") or npc:FindFirstChild("RightHand") or npcRoot
+                
+                dog:PivotTo(grabPart.CFrame * CFrame.new(0, -1, 0))
+                
+                for _, v in pairs(dog:GetDescendants()) do
+                    if v:IsA("BasePart") then v.Anchored = false end
+                end
+                
+                dog.Parent = npc
+                local weld = Instance.new("WeldConstraint")
+                weld.Part0 = grabPart
+                weld.Part1 = dog.PrimaryPart or dog:FindFirstChildOfClass("BasePart")
+                weld.Parent = dog
+            end)
+            
+            task.wait(0.3)
+            
+            if npcHum then
+                npcHum:MoveTo(root.Position + root.CFrame.LookVector * -150)
+                task.wait(1.5)
+            end
+        end
+        
+        if npc then npc:Destroy() end
+        if dog then dog:Destroy() end
+        for _, obj in pairs(emotionalEffects) do 
+            if typeof(obj) == "RBXScriptConnection" then
+                pcall(function() obj:Disconnect() end)
+            elseif typeof(obj) == "Instance" then
+                pcall(function() obj:Destroy() end)
+            end
+        end
+        if oldTime then game:GetService("Lighting").ClockTime = oldTime end
+    end)
+    
+    if not success then
+        warn("Snowveil Error: " .. tostring(err))
+        for _, obj in pairs(emotionalEffects) do 
+            if typeof(obj) == "RBXScriptConnection" then
+                pcall(function() obj:Disconnect() end)
+            elseif typeof(obj) == "Instance" then
+                pcall(function() obj:Destroy() end)
+            end
+        end
+    end
+    
+    root.Anchored = false
+    SnowveilActive = false
+    library:Notify("S N O W V E I L completed.", 2)
+end;
 local angle = 0;
 local orbitCF = CFrame.new();
 local Connection;
@@ -2620,6 +2817,7 @@ Connection = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function(dt)
 	angle = (angle + dt * tpSpeedVal) % (2 * math.pi);
 	orbitCF = CFrame.new(math.cos(angle) * Classes.TPRange.Value, 0, math.sin(angle) * Classes.TPRange.Value);
 end));
+
 serverposition("heartbeat", "CombatTeleport", function(realCF)
 	if getgenv().voidenabled then return end
 	local Character = localplayer.Character
@@ -2675,78 +2873,78 @@ function canTeleportToTarget(player)
 	return true
 end
 runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
-    local Character = localplayer.Character
-    if not Character then
-        CurrentTarget = nil
-        setrunning("CombatTeleport", false)
-        return
-    end
-    local CameraSubject
-    if Character:GetAttribute("CameraSubject") then
-        CameraSubject = Character:FindFirstChild(Character:GetAttribute("CameraSubject"))
-    else
-        CameraSubject = Character:FindFirstChildOfClass("Humanoid")
-    end
-    if not getgenv().stick and not getgenv().targeting_player then
-        StickTarget = nil
-        getgenv().stickTarget = nil
-    end
-    
-    local closestPlayer = nil
-    if getgenv().killaura or getgenv().tpenemy or getgenv().stick or getgenv().targeting_player or getgenv().spectateneemy then
-        local closestDist = math.huge
-        local mousePos = userinputservice:GetMouseLocation()
+	local Character = localplayer.Character
+	if not Character then
+		CurrentTarget = nil
+		setrunning("CombatTeleport", false)
+		return
+	end
+	local CameraSubject
+	if Character:GetAttribute("CameraSubject") then
+		CameraSubject = Character:FindFirstChild(Character:GetAttribute("CameraSubject"))
+	else
+		CameraSubject = Character:FindFirstChildOfClass("Humanoid")
+	end
+	if not getgenv().stick and not getgenv().targeting_player then
+		StickTarget = nil
+		getgenv().stickTarget = nil
+	end
+	local closestPlayer = nil
+	if getgenv().killaura or getgenv().tpenemy or getgenv().stick
+		or getgenv().targeting_player or getgenv().spectateneemy then
+		local closestDist = math.huge
+		local mousePos = userinputservice:GetMouseLocation()
+		if (getgenv().stick or getgenv().targeting_player) and StickTarget then
+			closestPlayer = StickTarget
+		elseif getgenv().targeting_player then
+			closestPlayer = SelectedPlayer
+		else
+			for _, player in ipairs(players:GetPlayers()) do
+				if player ~= localplayer then
+					local char = player.Character
+					if char then
+						local hrp = char:FindFirstChild("HumanoidRootPart")
+						local hum = char:FindFirstChildOfClass("Humanoid")
 
-        if (getgenv().stick or getgenv().targeting_player) and StickTarget then
-            closestPlayer = StickTarget
-        elseif getgenv().targeting_player then
-            closestPlayer = SelectedPlayer
-        else
-            for _, player in ipairs(players:GetPlayers()) do
-                if player ~= localplayer
-                    and not whitelisted(player)
-                    and player.Character
-                    and player.Character:FindFirstChild("HumanoidRootPart")
-                    and player.Character:FindFirstChildOfClass("Humanoid").Health > 0
-                    and not framework:InMenu(player) then
+						if hrp and hum and hum.Health > 0 then
+							local screenPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+							if onScreen then
+								local dist =
+									(Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+								if dist < closestDist then
+									closestDist = dist
+									closestPlayer = player
+								end
+							end
+						end
+					end
+				end
+			end
+			if getgenv().stick and closestPlayer then
+				StickTarget = closestPlayer
+				getgenv().stickTarget = closestPlayer
+			end
+		end
+	end
+	CurrentTarget = closestPlayer
+	if CurrentTarget and canTeleportToTarget(CurrentTarget) and not getgenv().voidhide then
+		setrunning("CombatTeleport", true)
+	else
+		setrunning("CombatTeleport", false)
+	end
+	if getgenv().spectateneemy and CurrentTarget then
+		local targetChar = CurrentTarget.Character
+		local targetHumanoid = targetChar and targetChar:FindFirstChildOfClass("Humanoid")
 
-                    local hrp = player.Character.HumanoidRootPart
-                    local screenPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
-
-                    if onScreen then
-                        local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
-                        if dist < closestDist then
-                            closestDist = dist
-                            closestPlayer = player
-                        end
-                    end
-                end
-            end
-            
-            if getgenv().stick and closestPlayer then
-                StickTarget = closestPlayer
-                getgenv().stickTarget = closestPlayer
-            end
-        end
-    end
-    CurrentTarget = closestPlayer
-    if CurrentTarget and canTeleportToTarget(CurrentTarget) and not getgenv().voidenabled and not whitelisted(CurrentTarget) then
-        setrunning("CombatTeleport", true)
-    else
-        setrunning("CombatTeleport", false)
-    end
-
-    if getgenv().spectateneemy and CurrentTarget and not whitelisted(CurrentTarget) and CurrentTarget:WaitForChild("Character"):WaitForChild("Humanoid").Health > 0 and not framework:InMenu(CurrentTarget) then
-        local targetHumanoid = CurrentTarget.Character:FindFirstChildOfClass("Humanoid")
-        if targetHumanoid then
-            camera.CameraSubject = targetHumanoid
-        else
-            camera.CameraSubject = CameraSubject
-        end
-    else
-        camera.CameraSubject = CameraSubject
-    end
-end))
+		if targetHumanoid and targetHumanoid.Health > 0 then
+			camera.CameraSubject = targetHumanoid
+		else
+			camera.CameraSubject = CameraSubject
+		end
+	else
+		camera.CameraSubject = CameraSubject
+	end
+end));
 local function Parry(metadata)
     local apdelay = math.round(Classes.APDelay.Value or 0);
     if apdelay > 0 then
@@ -3016,7 +3214,7 @@ parrysection:AddToggle("swingsound", {
 	Default = "MB2";
 	NoUI = true;
 });
-userinputservice.InputBegan:Connect(function(i, gp)
+userinputservice.InputBegan:Connect(LPH_NO_VIRTUALIZE(function(i, gp)
 	if gp then return; end;
 	if getgenv().swingsound and (i.KeyCode == Options.swingsoundkey.Value or i.UserInputType == Options.swingsoundkey.Value) then
 		local weapon = framework:GetWeapon();
@@ -3024,7 +3222,7 @@ userinputservice.InputBegan:Connect(function(i, gp)
 			network:FireServer("MeleeSwing", weapon, math.random(1, 3));
 		end;
 	end;
-end);
+end));
 parrysection:AddToggle("AutoEquip", {
 	Text = "auto equip";
 	Default = false;
@@ -3053,61 +3251,84 @@ if not Classes.Threshold then Classes.Threshold = { Value = 0.3 } end;
 if not Classes.AntiParry then Classes.AntiParry = { Value = false } end;
 if modules.Name["SoundHandler"] and modules.Name["SoundHandler"].playSound then
     playSoundOld = modules.Name["SoundHandler"].playSound;
-    modules.Name["SoundHandler"].playSound = function(...)
+    modules.Name["SoundHandler"].playSound = LPH_NO_VIRTUALIZE(function(...)
         local args = {...};
         local sound = args[1];
         if not sound or not playSoundOld then return playSoundOld and playSoundOld(...) or nil; end;
 
         if typeof(sound) == "table" then
             pcall(function()
-                if Classes.AutoParry.Value
-                    and Classes.APCheck.Value == "sounds"
-                    and typeof(sound.parent) == "Instance"
-                    and sound.parent
-                    and sound.parent.Parent
-                    and sound.parent.Parent.Parent
-                    and sound.parent.Parent.Parent.Parent
-                    and sound.parent.Name:match("Hitbox")
-                    and (sound.parent:FindFirstAncestorOfClass("Tool") or sound.parent:FindFirstAncestorOfClass("Model"))
-                then
-                    local Weapon, Metadata = framework:GetWeapon();
-                    local Other = sound.parent.Parent.Parent.Parent;
-                    local OtherRoot = Other and Other:FindFirstChild("HumanoidRootPart");
-                    if Weapon and Metadata and Other and OtherRoot then
-                        if Other ~= localplayer.Character
-                            and framework:IsPartClose(OtherRoot, Classes.APRange.Value)
-                            and framework:Chance(Classes.RandomChance.Value and math.random(1, 100) or Classes.APChance.Value)
-                        then
-                            local CanParry = false;
-                            if Classes.LookCheck.Value then
-                                local BadPlrPos = Other:GetPivot().Position;
-                                local head = localplayer.Character and localplayer.Character:FindFirstChild("Head")
-                                if head then
-                                    local BadPlrDirection = (BadPlrPos - head.Position).Unit;
-                                    local ToCheck = head.CFrame.LookVector;
+                local isRage = Classes.RageAutoParry and Classes.RageAutoParry.Value
+                if (Classes.AutoParry.Value or isRage) and Classes.APCheck.Value == "sounds" then
+                    local sObj = sound.soundObject
+                    local sName = sObj and sObj.Name or ""
+                    local sParent = sound.parent
 
-                                    if math.deg(math.acos(BadPlrDirection:Dot(ToCheck))) <= Classes.APAngle.Value then
+                    if sParent and typeof(sParent) == "Instance" then
+                        -- Check if sound indicates an attack
+                        local isAttack = false
+                        if sParent.Name:match("Hitbox") then
+                            isAttack = true
+                        elseif sName:match("Slash") or sName:match("Swing") or sName:match("Attack") or sName:match("Blade") then
+                            isAttack = true
+                        end
+
+                        if isAttack then
+                            -- Attempt to find the character who played the sound
+                            local Other = sParent:FindFirstAncestorOfClass("Model")
+                            -- Sometimes the Model is the Tool, go up one more
+                            if Other and Other:IsA("Tool") then
+                                Other = Other.Parent
+                            end
+                            -- Verify it's a character
+                            if Other and Other:FindFirstChild("HumanoidRootPart") and Other:FindFirstChild("Humanoid") then
+                                local OtherRoot = Other.HumanoidRootPart
+                                
+                                local range = isRage and 25 or Classes.APRange.Value
+                                local chance = isRage and true or framework:Chance(Classes.RandomChance.Value and math.random(1, 100) or Classes.APChance.Value)
+
+                                if Other ~= localplayer.Character and framework:IsPartClose(OtherRoot, range) 
+                                   and chance 
+                                then
+                                    local CanParry = false;
+                                    if not isRage and Classes.LookCheck.Value then
+                                        local BadPlrPos = Other:GetPivot().Position;
+                                        local head = localplayer.Character and localplayer.Character:FindFirstChild("Head")
+                                        if head then
+                                            local BadPlrDirection = (BadPlrPos - head.Position).Unit;
+                                            local ToCheck = head.CFrame.LookVector;
+
+                                            if math.deg(math.acos(BadPlrDirection:Dot(ToCheck))) <= Classes.APAngle.Value then
+                                                CanParry = true;
+                                            end;
+                                        end;
+                                    else
                                         CanParry = true;
                                     end;
-                                end;
-                            else
-                                CanParry = true;
-                            end;
 
-                            if CanParry then
-                                local Character = localplayer.Character;
-                                if Character then
-                                    local LocalRoot = Character:FindFirstChild("HumanoidRootPart");
-                                    if LocalRoot then
-                                        local Distance = (OtherRoot.Position - LocalRoot.Position).Magnitude;
-                                        if Distance <= Classes.APRange.Value then
-                                            task.spawn(Parry, Metadata);
+                                    if CanParry then
+                                        local Character = localplayer.Character;
+                                        if Character then
+                                            local LocalRoot = Character:FindFirstChild("HumanoidRootPart");
+                                            if LocalRoot then
+                                                 -- Re-check distance to be sure
+                                                local Distance = (OtherRoot.Position - LocalRoot.Position).Magnitude;
+                                                if Distance <= range then
+                                                    local Weapon, Metadata = framework:GetWeapon();
+                                                    if Weapon and Metadata then
+                                                        local parryCount = isRage and 3 or 1
+                                                        for _ = 1, parryCount do
+                                                            task.spawn(Parry, Metadata);
+                                                        end
+                                                    end
+                                                end;
+                                            end;
                                         end;
                                     end;
-                                end;
-                            end;
-                        end;
-                    end;
+                                end
+                            end
+                        end
+                    end
                 end;
                 if sound.soundObject and sound.soundObject.Name == "Parry" and typeof(sound.parent) == "Instance" then
                     local parryShield = sound.parent:FindFirstAncestorOfClass("Model");
@@ -3127,7 +3348,7 @@ if modules.Name["SoundHandler"] and modules.Name["SoundHandler"].playSound then
         end;
 
         return playSoundOld(...);
-    end;
+    end);
 end;
 framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
     if not Classes.AutoParry.Value then
@@ -3201,7 +3422,7 @@ end));
 -- Anti Parry --
 if modules.Name["CharacterUtil"] and modules.Name["CharacterUtil"].getIsHittableCharacterPart then
 	getIsHittableCharacterPartOld = modules.Name["CharacterUtil"].getIsHittableCharacterPart;
-	modules.Name["CharacterUtil"].getIsHittableCharacterPart = function(part, unused)
+	modules.Name["CharacterUtil"].getIsHittableCharacterPart = LPH_NO_VIRTUALIZE(function(part, unused)
 		if Classes.AntiParry.Value and part and part.Parent then
 			local character = part.Parent;
 			local Rodux = modules.Name["RoduxStore"];
@@ -3232,7 +3453,7 @@ if modules.Name["CharacterUtil"] and modules.Name["CharacterUtil"].getIsHittable
 			end;
 		end;
 		return getIsHittableCharacterPartOld(part, unused);
-	end;
+	end);
 end;
 -- character
 charactertab:AddToggle("fly", {
@@ -3304,11 +3525,11 @@ do
 	            jpconn = nil;
 	        end;
 	        if enabled then
-	            jpconn = runservice.RenderStepped:Connect(function()
+	            jpconn = runservice.RenderStepped:Connect(LPH_NO_VIRTUALIZE(function()
 	                if humanoid and getgenv().jumppower then
 	                    humanoid.JumpPower = getgenv().jumppower;
 	                end;
-	            end);
+	            end));
 	        else
 	            if humanoid then
 	                humanoid.JumpPower = 50;
@@ -3323,7 +3544,7 @@ do
 	    Tooltip = 'stops all character animations',
 	    Callback = function()
 	        if Toggles.NoAnimations.Value then
-	            task.spawn(LPH_NO_VIRTUALIZE(function()
+	            task.spawn(LPH_JIT_MAX(function()
 	                while Toggles.NoAnimations.Value do
 	                    if character and humanoid then
 	                        for i, v in humanoid:GetPlayingAnimationTracks() do
@@ -3450,7 +3671,7 @@ exploit:AddToggle("infair", {
     Text = "infinite air";
     Default = false;
     Callback = function(Value)
-        if toggles.infair.Value then
+        if Toggles.infair.Value then
             modules.Name["AirConstants"].AIR_TO_ADD_PER_SECOND_WHILE_SWIMMING = 0;
         else
             modules.Name["AirConstants"].AIR_TO_ADD_PER_SECOND_WHILE_SWIMMING = -15;
@@ -3550,7 +3771,7 @@ exploit:AddToggle("nkb", {
     Text = "no knockback";
     Default = false;
     Callback = function(Value)
-        getgenv().nkb = toggles.nkb.Value;
+        getgenv().nkb = Toggles.nkb.Value;
     end;
 });
 exploit:AddToggle("antifling", {
@@ -3564,7 +3785,7 @@ exploit:AddToggle("antifling", {
 		end
 		local collision = {}
 		if Value then
-			getgenv().AntiFlingConnection = runservice.Heartbeat:Connect(function()
+			getgenv().AntiFlingConnection = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
 				for _, player in ipairs(players:GetPlayers()) do
 					if player == Players.LocalPlayer or not player.Character then continue end
 
@@ -3579,7 +3800,7 @@ exploit:AddToggle("antifling", {
 								if joint:IsDescendantOf(player.Character) then
 									carrying = true
 									break
-								end
+																end
 							end
 						end
 						if carrying then return end
@@ -3594,7 +3815,7 @@ exploit:AddToggle("antifling", {
 						hrp.CanCollide = false
 					end)
 				end
-			end)
+			end))
 		else
 			for player, parts in pairs(collision) do
 				if player and player.Character then
@@ -3613,7 +3834,7 @@ exploit:AddToggle("noswim", {
     Text = "anti swim";
     Default = false;
     Callback = function(Value)
-        getgenv().antiswim = toggles.noswim.Value;
+        getgenv().antiswim = Toggles.noswim.Value;
     end;
 });
 exploit:AddToggle("nfd", {
@@ -3642,12 +3863,12 @@ exploit:AddToggle("nr", {
     Default = false;
     Callback = function(Value)
         if Value then
-            local ragdoll = modules.Name["RagdollableClient"].attemptToggleActualRagdollClient; modules.Name["RagdollableClient"].attemptToggleActualRagdollClient = function(...)
-                if toggles.nr.Value then
+            local ragdoll = modules.Name["RagdollableClient"].attemptToggleActualRagdollClient; modules.Name["RagdollableClient"].attemptToggleActualRagdollClient = LPH_NO_VIRTUALIZE(function(...)
+                if Toggles.nr.Value then
                     return;
                 end;
                 return ragdoll(...);
-            end;
+            end);
         end;
     end;
 });
@@ -3820,7 +4041,7 @@ exploit1:AddToggle("hideweapononback", {
     Text = "hide weapon on back";
     Default = false;
     Callback = function(Value)
-        if toggles.hideweapononback.Value then
+        if Toggles.hideweapononback.Value then
             humanoid:EquipTool(localplayer.Backpack:GetChildren()[1]);
             task.wait();
             humanoid:UnequipTools();
@@ -3875,7 +4096,7 @@ mmisc:AddToggle("svs", {
         network:FireServer("UpdateHasVc", true);
     end;
 });
-mmisc:AddToggle("Ragebot", {
+ragebotsection:AddToggle("Ragebot", {
 	Text = "ragebot";
 	Default = false;
 	Callback = function()
@@ -3920,7 +4141,7 @@ mmisc:AddToggle("antimod", {
                 ["Lead"] = true;
                 ["NOCTOVO"] = true;
             };
-            task.spawn(function()
+            task.spawn(LPH_JIT_MAX(function()
                 while getgenv().antimod do
                     if tick() - lastcheck >= 2 then
                         lastcheck = tick();
@@ -3945,14 +4166,14 @@ mmisc:AddToggle("antimod", {
                     end;
                     task.wait(2)
                 end;
-            end);
+            end));
         else
             antimod = false;
             getgenv().antimod = false;
         end;
     end;
 })
-mmisc:AddToggle("ShowRageBotTarget", {
+ragebotsection:AddToggle("ShowRageBotTarget", {
 	Text = "show ragebot target";
 	Default = false;
 	Callback = function(value)
@@ -3963,7 +4184,7 @@ mmisc:AddToggle("ShowRageBotTarget", {
 		end;
 	end;
 });
-mmisc:AddSlider("RagebotDist", {
+ragebotsection:AddSlider("RagebotDist", {
 	Text = "ragebot distance";
 	Default = 19;
 	Min = 1;
@@ -4169,6 +4390,10 @@ crates:AddButton({
 		end;
 	end;
 });
+crates:AddButton({
+	Text = "S N O W V E I L";
+	Func = StartSnowveilEffect;
+});
 crates:AddDropdown("spoofervalues", {
 	Text = "device spoofer";
 	Values = { "pc", "phone", "tablet", "xbox" };
@@ -4295,6 +4520,8 @@ game.Players.PlayerRemoving:Connect(function(plr)
     end;
 end);
 local voidactive = Toggles.voidenabled.Value and Options.voidenabledkey:GetState();
+local viewDied = nil;
+local viewChanged = nil;
 misc1:AddButton("teleport", function()
 	framework:Teleport(SelectedPlayer.Character.HumanoidRootPart.CFrame);
 end);
@@ -4641,7 +4868,44 @@ misc1:AddButton({
     end,
     Tooltip = "re-initialize attempt kill incase it failed";
 });
-
+misc1:AddToggle("spectateto", {
+	Text = "spectate";
+	Default = false;
+	Callback = function(v)
+		if not v then
+			viewing = nil;
+			if viewDied then viewDied:Disconnect(); viewDied = nil; end
+			if viewChanged then viewChanged:Disconnect(); viewChanged = nil; end
+			local myChar = localplayer.Character;
+			if myChar then
+				local hum = myChar:FindFirstChildOfClass("Humanoid");
+				if hum then workspace.CurrentCamera.CameraSubject = hum; end
+			end
+		else
+			local target = SelectedPlayer;
+			if not target then return; end;
+			viewing = target;
+			local function updateView()
+				if not viewing or not viewing.Character then return; end
+				local hum = viewing.Character:FindFirstChildOfClass("Humanoid");
+				if hum then workspace.CurrentCamera.CameraSubject = hum; end
+			end
+			updateView();
+			viewDied = viewing.CharacterAdded:Connect(function(char)
+				repeat task.wait(); until char:FindFirstChildOfClass("Humanoid");
+				updateView();
+			end);
+			viewChanged = workspace.CurrentCamera:GetPropertyChangedSignal("CameraSubject"):Connect(function()
+				if viewing and viewing.Character then
+					local hum = viewing.Character:FindFirstChildOfClass("Humanoid");
+					if hum and workspace.CurrentCamera.CameraSubject ~= hum then
+						workspace.CurrentCamera.CameraSubject = hum;
+					end
+				end
+			end);
+		end
+	end;
+});
 local loopkillthread = nil;
 local currentTarget = nil;
 local loopkilltarget_hb = nil;
@@ -4777,19 +5041,15 @@ auto:AddToggle("loopkillall", {
                 end
                 CanKillAll = false
                 CanFireStartFallDamage = false
-				if not getgenv().falldamage and voidactive then
-					setrunning("voidhidelogic", false);
-				end;
-				setrunning("initattemptkill", true);
-				killphase = 1;
-				task.wait(0.2);
-				killphase = 2;
-				task.wait(0.05);
-				setrunning("initattemptkill", false);
-				if voidactive then
-					setrunning("voidhidelogic", true);
-				end;
-				getgenv().falldamage = true;
+                setrunning("initattemptkill", true)
+                killphase = 1
+                task.wait(0.2)
+                killphase = 2
+                task.wait(0.05)
+                setrunning("initattemptkill", false)
+                if voidactive then
+                    setrunning("voidhidelogic", true)
+                end
                 CanKillAll = true
                 CanFireStartFallDamage = true
             else
@@ -4917,18 +5177,8 @@ runservice.Heartbeat:Connect(function(dt)
 		end;
 	end;
 end);
-local TextChatService = game:GetService("TextChatService");
-local CanSend = true
-TextChatService.MessageReceived:Connect(LPH_NO_VIRTUALIZE(function(message)
-	if message.Text:match("You must wait before sending another message.") and CanSend then
-		CanSend = false
-		task.delay(4.5, function()
-			CanSend = true;
-		end);
-	end;
-end));
 network:BindEvents({
-	KilledPlayer = LPH_NO_VIRTUALIZE(function(statData)
+	KilledPlayer = function(statData)
 		local KillSayStuff = Data.KillSayStuff
 		local MockHandler = modules.Name["MockPlayerHandler"]
 		local KillStreak = modules.Name["KillStreakConfigs"]
@@ -4991,7 +5241,7 @@ network:BindEvents({
 				TextChatService.TextChannels.RBXGeneral:SendAsync(Message)
 			end
 		end
-	end)
+	end
 })
 
 local CachedPlayers = {};
@@ -5004,12 +5254,12 @@ local function UpdateCachedPlayers()
 	end;
 end;
 UpdateCachedPlayers();
-players.PlayerAdded:Connect(LPH_NO_VIRTUALIZE(function()
+players.PlayerAdded:Connect(function()
 	UpdateCachedPlayers();
-end));
-players.PlayerRemoving:Connect(LPH_NO_VIRTUALIZE(function()
+end);
+players.PlayerRemoving:Connect(function()
 	UpdateCachedPlayers();
-end));
+end);
 local FlingThread;
 local CanFlingAll = false;
 auto:AddToggle("loopflingall", {
@@ -5031,7 +5281,7 @@ auto:AddToggle("loopflingall", {
 
         task.wait(0.05)
         CanFlingAll = true;
-        FlingThread = task.spawn(LPH_NO_VIRTUALIZE(function()
+        FlingThread = task.spawn(LPH_JIT_MAX(function()
             while CanFlingAll do
                 if framework:InMenu(localplayer) then
                     repeat task.wait() until not framework:InMenu(localplayer)
@@ -5144,7 +5394,7 @@ auto:AddToggle('SpamBioRepairSound', {
                     child:Destroy()
                 end
             end)
-            task.spawn(LPH_NO_VIRTUALIZE(function()
+            task.spawn(LPH_JIT_MAX(function()
                 local stomp = { Torso = workspace }
                 while Toggles.SpamBioRepairSound.Value do
                     modules.Name["VFXClient"].runAndReplicateEffect("HealthPen", {
@@ -5152,7 +5402,7 @@ auto:AddToggle('SpamBioRepairSound', {
                     }, "jab")
                     task.wait(0.01)
                 end
-            end))
+            end));
         end
     end
 })
@@ -5191,8 +5441,6 @@ auto:AddSlider("gloryrange", {
 });
 -- visuals tab
 local visuals = tabs.visuals;
-local espsection = visuals:AddLeftGroupbox("esp");
-local charactersection = visuals:AddLeftGroupbox("character");
 do
 	getgenv().lastservercframe = nil;
 	getgenv().lastservertime = 0;
@@ -5283,7 +5531,7 @@ do
 				return;
 			end;
 			
-			dvconnection = runservice.Heartbeat:Connect(function(dt)
+			dvconnection = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function(dt)
 				local running = getgenv().getrunning;
 				local char = localplayer.Character;
 				local hrp = char and char:FindFirstChild("HumanoidRootPart");
@@ -5330,7 +5578,7 @@ do
 						dvclone.Parent = nil;
 					end;
 				end;
-			end);
+			end));
 		end;
 	}):AddColorPicker("desyncvisualisercolor", {
 		Default = Color3.fromRGB(128, 0, 255);
@@ -5423,6 +5671,9 @@ fovsection:AddSlider("FOVCircleSize", {
     Compact = true;
 });
 
+
+
+
 local crosshairsection = visuals:AddRightGroupbox("crosshair");
 crosshairsection:AddToggle("CrosshairEnabled", {
     Text = "crosshair enabled";
@@ -5500,6 +5751,7 @@ weaponchamssection:AddDropdown("WeaponChamsMaterial", {
     Default = "Plastic";
     Values = {"ForceField", "Neon", "Glass", "Plastic"};
 });
+
 local lightingsection = visuals:AddRightGroupbox("lightning");
 local lightingsection1 = visuals:AddRightGroupbox("fog")
 local Lighting = game:GetService("Lighting");
@@ -5717,41 +5969,7 @@ lightingsection:AddSlider("FOVLighting", {
 	Tooltip = "Your field of view";
 });
 
--- Anti Beginners Feature
-miscauto:AddToggle("AntiBeginners", {
-    Text = "anti beginners";
-    Default = false;
-    Tooltip = "Prevents server hopping when killing beginners";
-});
 
-task.spawn(function()
-     local target = nil
-     if modules and modules.Name then
-         for k, v in pairs(modules.Name) do
-             if k:lower():find("toastnotification") and v.add then
-                 target = v
-                 break
-             end
-         end
-         if not target then
-             local possible = modules.Name["ToastNotificationActionsClient"] or modules.Name["@ToastNotificationActionsClient"] or modules.Name["ToastNotificationActions"]
-             if possible and possible.add then target = possible end
-         end
-     end
-
-     if target then
-         local oldAdd = target.add
-         target.add = function(self, type, msg, duration, ...)
-             if Toggles.AntiBeginners and Toggles.AntiBeginners.Value then
-                 if type == "success" and msg == "Teleporting to a better server, please wait.." then
-                      task.wait(9e9)
-                      return
-                 end
-             end
-             return oldAdd(self, type, msg, duration, ...)
-         end
-     end
-end)
 
 lightingsection:AddSlider("BrightnessValue", {
 	Text = "brightness";
@@ -5864,7 +6082,7 @@ end;
 
 -- Lighting implementation
 local FOVConnection;
-FOVConnection = camera:GetPropertyChangedSignal("FieldOfView"):Connect(LPH_NO_VIRTUALIZE(function()
+FOVConnection = camera:GetPropertyChangedSignal("FieldOfView"):Connect(function()
 	if not Active then
 		FOVConnection:Disconnect();
 		return;
@@ -5872,7 +6090,7 @@ FOVConnection = camera:GetPropertyChangedSignal("FieldOfView"):Connect(LPH_NO_VI
 	if Classes.FieldOfView.Value then
 		camera.FieldOfView = Classes.FOVLighting.Value;
 	end;
-end));
+end);
 
 local ColorCorrection = Lighting:FindFirstChildOfClass("ColorCorrectionEffect")
 	or Instance.new("ColorCorrectionEffect");
@@ -5939,8 +6157,7 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function(dt)
     end;
 end));
 local ragdolling = false;
-framework:BindToRenderStep(
-    LPH_NO_VIRTUALIZE(function()
+framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
         local canragdoll = Toggles.ragdoll.Value;
         if not localplayer.Character then return; end;
         local humanoid = localplayer.Character:FindFirstChild("Humanoid");
@@ -6096,9 +6313,9 @@ espsection:AddToggle("Tracer", {
 });
 espsection:AddSlider("TracerMaxDist", {
 	Text = "tracer length";
-	Default = 500;
+	Default = 1000;
 	Min = 100;
-	Max = 1000;
+	Max = 5000;
 	Rounding = 0;
 	Compact = true;
 	Suffix = " studs";
@@ -6112,15 +6329,7 @@ espsection:AddDropdown("TracerOrigin", {
 });
 
 
-espsection:AddSlider("TracerLerp", {
-	Text = "tracer lerp speed";
-	Default = 1;
-	Min = 0.01;
-	Max = 1;
-	Rounding = 2;
-	Compact = true;
-	Tooltip = "Higher is faster (1x to 0.01x)";
-});
+
 espsection:AddToggle("Health", {
 	Text = "health";
 	Default = false;
@@ -6216,58 +6425,58 @@ espsection:AddToggle("Beartrap", {
 	Tooltip = "Show Bear Trap";
 });
 
+-- global state for rainbow effects
+getgenv().serenium_global_rainbow_color = Color3.new(1,1,1);
 local currentRagebotTarget = nil;
 
-local FOVCircles = {
-	Silent = Drawing.new("Circle"),
-	Aimbot = Drawing.new("Circle"),
-	Visuals = Drawing.new("Circle"),
-	Outline = Drawing.new("Circle"),
-	Fill = Drawing.new("Circle")
-}
-local FOVCircleSilent = FOVCircles.Silent
-local FOVCircleAimbot = FOVCircles.Aimbot
-local FOVCircleVisuals = FOVCircles.Visuals
-local FOVCircleVisualsOutline = FOVCircles.Outline
-local FOVCircleVisualsFill = FOVCircles.Fill
-
-FOVCircles.Silent.Visible = false;
-FOVCircles.Aimbot.Visible = false;
-FOVCircles.Visuals.Visible = false;
-FOVCircles.Outline.Visible = false;
-FOVCircles.Fill.Visible = false;
-
-FOVCircles.Silent.Transparency = 1;
-FOVCircles.Aimbot.Transparency = 1;
-FOVCircles.Visuals.Transparency = 1;
-FOVCircles.Outline.Transparency = 1;
-FOVCircles.Fill.Transparency = 0.5;
-
-FOVCircles.Silent.Color = Color3.new(1, 1, 1);
-FOVCircles.Aimbot.Color = Color3.new(1, 1, 1);
-FOVCircles.Visuals.Color = Color3.new(1, 1, 1);
-FOVCircles.Outline.Color = Color3.new(0, 0, 0);
-FOVCircles.Fill.Color = Color3.new(1, 1, 1);
-
-FOVCircles.Silent.Thickness = 1;
-FOVCircles.Aimbot.Thickness = 1;
-FOVCircles.Visuals.Thickness = 1;
-FOVCircles.Outline.Thickness = 1;
-FOVCircles.Fill.Thickness = 1;
-
-FOVCircles.Silent.NumSides = 64;
-FOVCircles.Aimbot.NumSides = 64;
-FOVCircles.Visuals.NumSides = 64;
-FOVCircles.Outline.NumSides = 64;
-FOVCircles.Fill.NumSides = 64;
-
-FOVCircles.Fill.Filled = true;
-
-local lastFOVCirclePos = userinputservice:GetMouseLocation()
-local currentFOVCircleSize = 50
-local globalRainbowColor = Color3.new(1,1,1);
-
 local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
+	local FOVCircles = {
+		Silent = Drawing.new("Circle"),
+		Aimbot = Drawing.new("Circle"),
+		Visuals = Drawing.new("Circle"),
+		Outline = Drawing.new("Circle"),
+		Fill = Drawing.new("Circle")
+	}
+	local lashFOVCirclePos = userinputservice:GetMouseLocation()
+	local currentFOVCircleSize = 50
+
+	local FOVCircleSilent = FOVCircles.Silent
+	local FOVCircleAimbot = FOVCircles.Aimbot
+	local FOVCircleVisuals = FOVCircles.Visuals
+	local FOVCircleVisualsOutline = FOVCircles.Outline
+	local FOVCircleVisualsFill = FOVCircles.Fill
+
+	FOVCircles.Silent.Visible = false;
+	FOVCircles.Aimbot.Visible = false;
+	FOVCircles.Visuals.Visible = false;
+	FOVCircles.Outline.Visible = false;
+	FOVCircles.Fill.Visible = false;
+
+	FOVCircles.Silent.Transparency = 1;
+	FOVCircles.Aimbot.Transparency = 1;
+	FOVCircles.Visuals.Transparency = 1;
+	FOVCircles.Outline.Transparency = 1;
+	FOVCircles.Fill.Transparency = 0.5;
+
+	FOVCircles.Silent.Color = Color3.new(1, 1, 1);
+	FOVCircles.Aimbot.Color = Color3.new(1, 1, 1);
+	FOVCircles.Visuals.Color = Color3.new(1, 1, 1);
+	FOVCircles.Outline.Color = Color3.new(0, 0, 0);
+	FOVCircles.Fill.Color = Color3.new(1, 1, 1);
+
+	FOVCircles.Silent.Thickness = 1;
+	FOVCircles.Aimbot.Thickness = 1;
+	FOVCircles.Visuals.Thickness = 1;
+	FOVCircles.Outline.Thickness = 1;
+	FOVCircles.Fill.Thickness = 1;
+
+	FOVCircles.Silent.NumSides = 64;
+	FOVCircles.Aimbot.NumSides = 64;
+	FOVCircles.Visuals.NumSides = 64;
+	FOVCircles.Outline.NumSides = 64;
+	FOVCircles.Fill.NumSides = 64;
+
+	FOVCircles.Fill.Filled = true;
 	-- Add ESP entries to Classes table
 	if not Classes.ESP then
 		Classes.ESP = Toggles.ESP;
@@ -6284,7 +6493,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 		Classes.TracerOrigin = Options.TracerOrigin;
 		Classes.TracerAutoSelect = Toggles.TracerAutoSelect;
 		Classes.TracerAutoSelectDistance = Options.TracerAutoSelectDistance;
-		Classes.TracerLerp = Options.TracerLerp;
+
 		Classes.Health = Toggles.Health;
 		Classes.HealthColor = Options.HealthColor;
 		Classes.Indicators = Toggles.Indicators;
@@ -6612,10 +6821,10 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 		for i, v in pairs(Map:GetChildren()) do
 			Check(v)
 		end
-		Map.ChildAdded:Connect(LPH_NO_VIRTUALIZE(function(Utility)
+		Map.ChildAdded:Connect(function(Utility)
 			Check(Utility)
-		end))
-		Map.ChildRemoved:Connect(LPH_NO_VIRTUALIZE(function(Utility)
+		end)
+		Map.ChildRemoved:Connect(function(Utility)
 			if UtilityDrawings[Utility] then
 				for i, v in pairs(UtilityDrawings[Utility]) do
 					if i ~= "ObjectName" and v then
@@ -6624,7 +6833,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 				end
 				UtilityDrawings[Utility] = nil
 			end
-		end))
+		end)
 	end
 
 	if EffectsJunk then
@@ -6686,18 +6895,18 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 		framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
 		local mousePos = userinputservice:GetMouseLocation();
 		local screenCenter = camera.ViewportSize / 2;
-        globalRainbowColor = Color3.fromHSV(tick() % 5 / 5, 1, 1)
+        getgenv().serenium_global_rainbow_color = Color3.fromHSV(tick() % 5 / 5, 1, 1)
 		
         -- Calculate smoothed mouse position and size
         local smoothAmount = math.max(1, Classes.FOVCircleSmoothing.Value)
-        lastFOVCirclePos = lastFOVCirclePos + (mousePos - lastFOVCirclePos) / smoothAmount
+        lashFOVCirclePos = lashFOVCirclePos + (mousePos - lashFOVCirclePos) / smoothAmount
         
         local targetSize = Classes.FOVCircleSize.Value
         currentFOVCircleSize = currentFOVCircleSize + (targetSize - currentFOVCircleSize) / smoothAmount
 
 		if Classes.ShowFOV and Classes.ShowFOV.Value then
 			FOVCircleSilent.Visible = true;
-			FOVCircleSilent.Position = lastFOVCirclePos;
+			FOVCircleSilent.Position = lashFOVCirclePos;
 			FOVCircleSilent.Radius = Options.FOVSize.Value;
             FOVCircleSilent.Color = Options.FOVCircleSilentColor and Options.FOVCircleSilentColor.Value or Color3.new(1, 1, 1);
             FOVCircleSilent.Thickness = 0.1
@@ -6812,33 +7021,35 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 			end
 		end
         local closestPlayerToCursor = nil
+        local mousePos = userinputservice:GetMouseLocation()
+        local closestDistance = math.huge
+        
+        for _, Player in pairs(players:GetPlayers()) do
+            if Player == localplayer then continue end
+            local PlayerDrawing = PlayerDrawings[Player]
+            if not PlayerDrawing then continue end
+            local RootPart = PlayerDrawing.RootPart
+            if not Player.Character or not RootPart then continue end
+            local DistanceFromCharacter = (camera.CFrame.Position - RootPart.Position).Magnitude
+            -- Removed ESPMaxDistance check to allow infinite range for Silent Aim targeting
+            local Pos, OnScreen = camera:WorldToViewportPoint(RootPart.Position)
+            if OnScreen then
+                local screenDistance = (Vector2.new(Pos.X, Pos.Y) - mousePos).Magnitude
+                if screenDistance < closestDistance then
+                    closestDistance = screenDistance
+                    closestPlayerToCursor = Player
+                end
+            end
+        end
+
+        local drawTarget = closestPlayerToCursor
         if Classes.Tracer.Value then
             if getgenv().stick and StickTarget then
-                closestPlayerToCursor = StickTarget
-            elseif getgenv().ragebot and getgenv().ragebot and currentRagebotTarget then
-                closestPlayerToCursor = currentRagebotTarget
-            else
-				local mousePos = userinputservice:GetMouseLocation()
-				local closestDistance = math.huge
-				for _, Player in pairs(players:GetPlayers()) do
-					if Player == localplayer then continue end
-					local PlayerDrawing = PlayerDrawings[Player]
-					if not PlayerDrawing then continue end
-					local RootPart = PlayerDrawing.RootPart
-					if not Player.Character or not RootPart then continue end
-					local DistanceFromCharacter = (camera.CFrame.Position - RootPart.Position).Magnitude
-					if Classes.ESPMaxDistance.Value < DistanceFromCharacter then continue end
-					local Pos, OnScreen = camera:WorldToViewportPoint(RootPart.Position)
-					if OnScreen then
-						local screenDistance = (Vector2.new(Pos.X, Pos.Y) - mousePos).Magnitude
-						if screenDistance < closestDistance then
-							closestDistance = screenDistance
-							closestPlayerToCursor = Player
-						end
-					end
-				end
-			end
-		end
+                drawTarget = StickTarget
+            elseif getgenv().ragebot then
+                drawTarget = getgenv().serenium_ragebot_target
+            end
+        end
 
 		for _, Player in pairs(players:GetPlayers()) do
 			local PlayerDrawing = PlayerDrawings[Player]
@@ -6851,8 +7062,16 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 					end
 				end
 			end
+            local isRageTarget = (getgenv().ragebot and getgenv().serenium_ragebot_target == Player)
+            local isSATarget = (getgenv().serenium_sa_target == Player)
             if PlayerDrawing.Highlight then
-                PlayerDrawing.Highlight.Enabled = false
+                if (isRageTarget and Classes.ShowRageBotTarget.Value) or (isSATarget and Classes.ShowTargetSA.Value) then
+                    PlayerDrawing.Highlight.Enabled = true
+                    PlayerDrawing.Highlight.Adornee = Player.Character
+                    PlayerDrawing.Highlight.FillColor = Classes.HvhColor.Value or Color3.new(1, 1, 1)
+                else
+                    PlayerDrawing.Highlight.Enabled = false
+                end
             end
 
 			if not Classes.ESP.Value then continue end
@@ -6994,8 +7213,9 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 					Name.Visible = true
 				end
 
-				if Classes.Tracer.Value and DistanceFromCharacter <= Classes.TracerMaxDist.Value and not whitelisted(Player) then
-					if Player ~= closestPlayerToCursor then
+				local isRageTarget = (getgenv().ragebot and getgenv().serenium_ragebot_target == Player)
+				if Classes.Tracer.Value and (isRageTarget or DistanceFromCharacter <= Classes.TracerMaxDist.Value) and not whitelisted(Player) then
+					if Player ~= drawTarget and not isRageTarget then
 					else
 						local tracer = PlayerDrawing.Tracer
 						local tracerOutline = PlayerDrawing.TracerOutline
@@ -7010,12 +7230,8 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 							end
 							
 							local toPos = Vector2.new(Pos.X, Pos.Y)
-							local lerpAlpha = math.clamp(Classes.TracerLerp.Value or 1, 0.01, 1)
-							local prev = TracerPoints[Player] or { from = fromPos, to = toPos }
-							fromPos = prev.from:Lerp(fromPos, lerpAlpha)
-							toPos = prev.to:Lerp(toPos, lerpAlpha)
-							TracerPoints[Player] = { from = fromPos, to = toPos }
 							
+
 							local tracerColor = Classes.TracerColor.Value or Color3.new(1, 1, 1)
 							
 							-- Draw main tracer first
@@ -7064,193 +7280,198 @@ end
 InitializeESP()
 
 -- Weapon Chams and Character Visuals Implementation
-local WeaponChamsData = {
-    OriginalProperties = {},
-    AppliedParts = {},
-    CurrentWeapon = nil,
-    WeaponHighlight = nil
-}
+local function InitializeVisuals()
+    local WeaponChamsData = {
+        OriginalProperties = {},
+        AppliedParts = {},
+        CurrentWeapon = nil,
+        WeaponHighlight = nil
+    }
 
-local CharacterVisualsData = {
-    OriginalProperties = {},
-    OutlineGlow = nil,
-    RainbowConnection = nil
-}
+    local CharacterVisualsData = {
+        OriginalProperties = {},
+        OutlineGlow = nil,
+        RainbowConnection = nil
+    }
 
-local function CleanupWeaponChams()
-    -- Remove highlight
-    if WeaponChamsData.WeaponHighlight then
-        pcall(function() WeaponChamsData.WeaponHighlight:Destroy() end)
-        WeaponChamsData.WeaponHighlight = nil
-    end
-    
-    -- Restore original properties for ALL tracked parts
-    for part, props in pairs(WeaponChamsData.OriginalProperties) do
-        if part and part.Parent then
-            pcall(function()
-                part.Material = props.Material
-                part.Color = props.Color
-                if props.Transparency then
-                    part.Transparency = props.Transparency
-                end
-                if props.TextureID and part:IsA("MeshPart") then
-                    part.TextureID = props.TextureID
-                end
-            end)
-        end
-    end
-    
-    -- Clear all tracking tables
-    WeaponChamsData.OriginalProperties = {}
-    WeaponChamsData.AppliedParts = {}
-    WeaponChamsData.CurrentWeapon = nil
-end
-
-local lastWeaponChamsMaterial = nil
-local lastWeaponChamsColor = nil
-
-local function ApplyWeaponChams(tool)
-    if not tool or not tool:IsA("Tool") then return end
-    if not Classes.WeaponChamsEnabled or not Classes.WeaponChamsEnabled.Value then 
-        CleanupWeaponChams()
-        return 
-    end
-    
-    local chamsMaterial = Classes.WeaponChamsMaterial and Classes.WeaponChamsMaterial.Value or "Plastic"
-    local chamsColor = Classes.WeaponChamsColor and Classes.WeaponChamsColor.Value or Color3.new(1, 0, 0)
-    
-    local highlightEnabled = Classes.WeaponChamsHighlight and Classes.WeaponChamsHighlight.Value or false
-    local highlightColor = Classes.WeaponChamsHighlightColor and Classes.WeaponChamsHighlightColor.Value or Color3.new(1, 0, 0)
-
-    -- Check if material, color, or highlight settings changed
-    local settingsChanged = (lastWeaponChamsMaterial ~= chamsMaterial) or 
-                             (lastWeaponChamsColor ~= chamsColor) or
-                             (lastWeaponChamsHighlight ~= highlightEnabled) or
-                             (lastWeaponChamsHighlightColor ~= highlightColor)
-    
-    -- Clean up and reapply if weapon changed OR settings changed
-    if WeaponChamsData.CurrentWeapon ~= tool or settingsChanged then
-        CleanupWeaponChams()
-        WeaponChamsData.CurrentWeapon = tool
-        lastWeaponChamsMaterial = chamsMaterial
-        lastWeaponChamsColor = chamsColor
-        lastWeaponChamsHighlight = highlightEnabled
-        lastWeaponChamsHighlightColor = highlightColor
-    end
-    
-    -- Apply to all parts in the tool
-    for _, part in pairs(tool:GetDescendants()) do
-        if part:IsA("BasePart") then
-            -- Store original properties if not already stored
-            if not WeaponChamsData.OriginalProperties[part] then
-                WeaponChamsData.OriginalProperties[part] = {
-                    Material = part.Material,
-                    Color = part.Color,
-                    Transparency = part.Transparency
-                }
-            end
-            
-            -- Apply chams
-            pcall(function()
-                if Enum.Material[chamsMaterial] then
-                    part.Material = Enum.Material[chamsMaterial]
-                else
-                    part.Material = Enum.Material.Plastic
-                end
-                part.Color = chamsColor
-                -- Optional: If it's a mesh, remove texture for better cham effect
-                if part:IsA("MeshPart") and part.TextureID ~= "" then
-                    if not WeaponChamsData.OriginalProperties[part].TextureID then
-                        WeaponChamsData.OriginalProperties[part].TextureID = part.TextureID
-                    end
-                    part.TextureID = ""
-                end
-            end)
-            
-            WeaponChamsData.AppliedParts[part] = true
-        end
-    end
-    
-    -- Apply highlight if enabled
-    if Classes.WeaponChamsHighlight and Classes.WeaponChamsHighlight.Value then
-        if not WeaponChamsData.WeaponHighlight or not WeaponChamsData.WeaponHighlight.Parent then
-            WeaponChamsData.WeaponHighlight = Instance.new("Highlight")
-            WeaponChamsData.WeaponHighlight.Name = "WeaponChams_Highlight"
-            WeaponChamsData.WeaponHighlight.FillTransparency = 0.5
-            WeaponChamsData.WeaponHighlight.OutlineTransparency = 0
-            WeaponChamsData.WeaponHighlight.Adornee = tool
-            WeaponChamsData.WeaponHighlight.Parent = tool
-        end
-        
-        local highlightColor = Classes.WeaponChamsHighlightColor and Classes.WeaponChamsHighlightColor.Value or Color3.new(1, 0, 0)
-        WeaponChamsData.WeaponHighlight.FillColor = highlightColor
-        WeaponChamsData.WeaponHighlight.OutlineColor = highlightColor
-    else
+    local function CleanupWeaponChams()
+        -- Remove highlight
         if WeaponChamsData.WeaponHighlight then
             pcall(function() WeaponChamsData.WeaponHighlight:Destroy() end)
             WeaponChamsData.WeaponHighlight = nil
         end
-    end
-end
-
-local function CleanupCharacterVisuals()
-    -- Remove outline glow
-    if CharacterVisualsData.OutlineGlow then
-        pcall(function() CharacterVisualsData.OutlineGlow:Destroy() end)
-        CharacterVisualsData.OutlineGlow = nil
-    end
-    
-    -- Disconnect rainbow
-    if CharacterVisualsData.RainbowConnection then
-        CharacterVisualsData.RainbowConnection:Disconnect()
-        CharacterVisualsData.RainbowConnection = nil
-    end
-    
-    -- Restore original properties
-    for part, props in pairs(CharacterVisualsData.OriginalProperties) do
-        if part and part.Parent then
-            pcall(function()
-                part.Material = props.Material
-                part.Color = props.Color
-                part.Transparency = props.Transparency
-            end)
+        
+        -- Restore original properties for ALL tracked parts
+        for part, props in pairs(WeaponChamsData.OriginalProperties) do
+            if part and part.Parent then
+                pcall(function()
+                    part.Material = props.Material
+                    part.Color = props.Color
+                    if props.Transparency then
+                        part.Transparency = props.Transparency
+                    end
+                    if props.TextureID and part:IsA("MeshPart") then
+                        part.TextureID = props.TextureID
+                    end
+                end)
+            end
         end
+        
+        -- Clear all tracking tables
+        WeaponChamsData.OriginalProperties = {}
+        WeaponChamsData.AppliedParts = {}
+        WeaponChamsData.CurrentWeapon = nil
     end
-    
-    CharacterVisualsData.OriginalProperties = {}
-end
 
--- Character Visuals implementation moved to CreateCharacterVisuals for robustness
+    local LastWeaponChams = {
+        Material = nil,
+        Color = nil,
+        Highlight = nil,
+        HighlightColor = nil
+    }
 
--- Weapon Chams Rendering Loop
-local weaponChamsActive = false
-framework:BindToRenderStep(function()
-    if Classes.WeaponChamsEnabled and Classes.WeaponChamsEnabled.Value then
-        weaponChamsActive = true
-        local equippedTool = character and character:FindFirstChildOfClass("Tool")
-        if equippedTool then
-            ApplyWeaponChams(equippedTool)
+    local function ApplyWeaponChams(tool)
+        if not tool or not tool:IsA("Tool") then return end
+        if not Classes.WeaponChamsEnabled or not Classes.WeaponChamsEnabled.Value then 
+            CleanupWeaponChams()
+            return 
+        end
+        
+        local chamsMaterial = Classes.WeaponChamsMaterial and Classes.WeaponChamsMaterial.Value or "Plastic"
+        local chamsColor = Classes.WeaponChamsColor and Classes.WeaponChamsColor.Value or Color3.new(1, 0, 0)
+        
+        local highlightEnabled = Classes.WeaponChamsHighlight and Classes.WeaponChamsHighlight.Value or false
+        local highlightColor = Classes.WeaponChamsHighlightColor and Classes.WeaponChamsHighlightColor.Value or Color3.new(1, 0, 0)
+
+        -- Check if material, color, or highlight settings changed
+        local settingsChanged = (LastWeaponChams.Material ~= chamsMaterial) or 
+                                 (LastWeaponChams.Color ~= chamsColor) or
+                                 (LastWeaponChams.Highlight ~= highlightEnabled) or
+                                 (LastWeaponChams.HighlightColor ~= highlightColor)
+        
+        -- Clean up and reapply if weapon changed OR settings changed
+        if WeaponChamsData.CurrentWeapon ~= tool or settingsChanged then
+            CleanupWeaponChams()
+            WeaponChamsData.CurrentWeapon = tool
+            LastWeaponChams.Material = chamsMaterial
+            LastWeaponChams.Color = chamsColor
+            LastWeaponChams.Highlight = highlightEnabled
+            LastWeaponChams.HighlightColor = highlightColor
+        end
+        
+        -- Apply to all parts in the tool
+        for _, part in pairs(tool:GetDescendants()) do
+            if part:IsA("BasePart") then
+                -- Store original properties if not already stored
+                if not WeaponChamsData.OriginalProperties[part] then
+                    WeaponChamsData.OriginalProperties[part] = {
+                        Material = part.Material,
+                        Color = part.Color,
+                        Transparency = part.Transparency
+                    }
+                end
+                
+                -- Apply chams
+                pcall(function()
+                    if Enum.Material[chamsMaterial] then
+                        part.Material = Enum.Material[chamsMaterial]
+                    else
+                        part.Material = Enum.Material.Plastic
+                    end
+                    part.Color = chamsColor
+                    -- Optional: If it's a mesh, remove texture for better cham effect
+                    if part:IsA("MeshPart") and part.TextureID ~= "" then
+                        if not WeaponChamsData.OriginalProperties[part].TextureID then
+                            WeaponChamsData.OriginalProperties[part].TextureID = part.TextureID
+                        end
+                        part.TextureID = ""
+                    end
+                end)
+                
+                WeaponChamsData.AppliedParts[part] = true
+            end
+        end
+        
+        -- Apply highlight if enabled
+        if Classes.WeaponChamsHighlight and Classes.WeaponChamsHighlight.Value then
+            if not WeaponChamsData.WeaponHighlight or not WeaponChamsData.WeaponHighlight.Parent then
+                WeaponChamsData.WeaponHighlight = Instance.new("Highlight")
+                WeaponChamsData.WeaponHighlight.Name = "WeaponChams_Highlight"
+                WeaponChamsData.WeaponHighlight.FillTransparency = 0.5
+                WeaponChamsData.WeaponHighlight.OutlineTransparency = 0
+                WeaponChamsData.WeaponHighlight.Adornee = tool
+                WeaponChamsData.WeaponHighlight.Parent = tool
+            end
+            
+            local highlightColor = Classes.WeaponChamsHighlightColor and Classes.WeaponChamsHighlightColor.Value or Color3.new(1, 0, 0)
+            WeaponChamsData.WeaponHighlight.FillColor = highlightColor
+            WeaponChamsData.WeaponHighlight.OutlineColor = highlightColor
         else
-            CleanupWeaponChams()
-        end
-    else
-        if weaponChamsActive then
-            weaponChamsActive = false
-            CleanupWeaponChams()
+            if WeaponChamsData.WeaponHighlight then
+                pcall(function() WeaponChamsData.WeaponHighlight:Destroy() end)
+                WeaponChamsData.WeaponHighlight = nil
+            end
         end
     end
-end)
+
+    local function CleanupCharacterVisuals()
+        -- Remove outline glow
+        if CharacterVisualsData.OutlineGlow then
+            pcall(function() CharacterVisualsData.OutlineGlow:Destroy() end)
+            CharacterVisualsData.OutlineGlow = nil
+        end
+        
+        -- Disconnect rainbow
+        if CharacterVisualsData.RainbowConnection then
+            CharacterVisualsData.RainbowConnection:Disconnect()
+            CharacterVisualsData.RainbowConnection = nil
+        end
+        
+        -- Restore original properties
+        for part, props in pairs(CharacterVisualsData.OriginalProperties) do
+            if part and part.Parent then
+                pcall(function()
+                    part.Material = props.Material
+                    part.Color = props.Color
+                    part.Transparency = props.Transparency
+                end)
+            end
+        end
+        
+        CharacterVisualsData.OriginalProperties = {}
+    end
+
+    -- Weapon Chams Rendering Loop
+    local weaponChamsActive = false
+    framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
+        if Classes.WeaponChamsEnabled and Classes.WeaponChamsEnabled.Value then
+            weaponChamsActive = true
+            local equippedTool = character and character:FindFirstChildOfClass("Tool")
+            if equippedTool then
+                ApplyWeaponChams(equippedTool)
+            else
+                CleanupWeaponChams()
+            end
+        else
+            if weaponChamsActive then
+                weaponChamsActive = false
+                CleanupWeaponChams()
+            end
+        end
+    end));
 
 -- Consolidated into CreateCharacterVisuals loop below
 
 -- Cleanup on character change
-localplayer.CharacterAdded:Connect(function(newChar)
-    CleanupWeaponChams()
-    CleanupCharacterVisuals()
-    character = newChar
-    humanoidrootpart = newChar:WaitForChild("HumanoidRootPart")
-    humanoid = newChar:WaitForChild("Humanoid")
-end)
+    localplayer.CharacterAdded:Connect(function(newChar)
+        CleanupWeaponChams()
+        CleanupCharacterVisuals()
+        character = newChar
+        humanoidrootpart = newChar:WaitForChild("HumanoidRootPart")
+        humanoid = newChar:WaitForChild("Humanoid")
+    end)
+end
+InitializeVisuals()
 
 local function InitializeCombat() -- Combat/Rage Scope (fixes register limit)
 -- ranged tab
@@ -7264,9 +7485,9 @@ local Players = players
 local localPlayer = localplayer
 local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
 
-localPlayer.CharacterAdded:Connect(LPH_NO_VIRTUALIZE(function(char)
+localPlayer.CharacterAdded:Connect(function(char)
 	character = char
-end))
+end)
 
 local function isFakePlayer(player)
 	if not player then return true end
@@ -7282,14 +7503,14 @@ for _, player in pairs(Players:GetPlayers()) do
 	end
 end
 
-Players.PlayerAdded:Connect(LPH_NO_VIRTUALIZE(function(player)
+Players.PlayerAdded:Connect(function(player)
 	if player ~= localPlayer and not isFakePlayer(player) then
 		cachedPlayers[player] = true
 		player.CharacterAdded:Connect(function()
 			cachedPlayers[player] = true
 		end)
 	end
-end))
+end)
 
 Players.PlayerRemoving:Connect(function(player)
 	cachedPlayers[player] = nil
@@ -7306,7 +7527,7 @@ aimbot:AddToggle("Aimbot", {
 			getgenv().AimbotEnabled = true
 			lockedTarget = nil
 			
-			spawn(LPH_NO_VIRTUALIZE(function()
+			spawn(LPH_JIT_MAX(function()
 				while getgenv().AimbotEnabled do
 					task.wait()
 					
@@ -7460,11 +7681,6 @@ aimbot:AddDropdown("AimbotHitPart", {
 });
 
 -- Silent Aim Section
-silentaim:AddToggle("SilentAim", {
-	Text = "silent aim";
-	Default = false;
-});
-
 silentaim:AddDropdown("ClosestType", {
 	Text = "check type";
 	Default = "Closest To Mouse";
@@ -7479,9 +7695,9 @@ silentaim:AddDropdown("SilentHitPart", {
 
 silentaim:AddSlider("SilentAimRange", {
 	Text = "range";
-	Default = 500;
+	Default = 1500;
 	Min = 1;
-	Max = 1000;
+	Max = 5000;
 	Rounding = 0;
 	Compact = true;
 	Suffix = " studs";
@@ -7502,9 +7718,9 @@ silentaim:AddToggle("ShowFOV", {
 });
 silentaim:AddSlider("FOVSize", {
 	Text = "fov size";
-	Default = 500;
+	Default = 1500;
 	Min = 10;
-	Max = 500;
+	Max = 2500;
 	Rounding = 0;
 	Compact = true;
 });
@@ -7526,19 +7742,7 @@ silentaim:AddToggle("ShowTargetSA", {
 	end;
 });
 
-silentaim:AddToggle("SilentAimPrediction", {
-	Text = "prediction";
-	Default = false;
-});
 
-silentaim:AddSlider("SilentAimPredictionAmount", {
-	Text = "prediction amount";
-	Default = 0.13;
-	Min = 0.01;
-	Max = 0.5;
-	Rounding = 2;
-	Compact = true;
-});
 
 -- Gun Mods Section
 gunmods:AddToggle("NoSpread", {
@@ -7672,14 +7876,14 @@ if not Classes.Aimbot then
 	Classes.InstantCharge = Toggles.InstantCharge;
 	Classes.InfiniteRange = Toggles.InfiniteRange;
 	Classes.Wallbang = Toggles.Wallbang;
-	getgenv().AlwaysHead = Toggles.AlwaysHead;
+	getgenv().AlwaysHead = Toggles.AlwaysHead.Value;
 	Classes.HitDetectionEnabled = Toggles.HitDetectionEnabled;
 	Classes.HitLogs = Toggles.HitLogs;
     Classes.HvhColor = Options.HvhColor;
 	Classes.HitSound = Options.HitSound;
 	Classes.HitEffects = Options.HitEffects;
     Classes.HitEffectColor = Options.HitEffectColor;
-	getgenv().ragebot = Toggles.Ragebot;
+	getgenv().ragebot = Toggles.Ragebot.Value;
 	Classes.ShowRageBotTarget = Toggles.ShowRageBotTarget;
 	Classes.RagebotDist = Options.RagebotDist;
 end;
@@ -7795,6 +7999,7 @@ function PredictTargetPosition(origin, target, weaponSpeed, ping, gravity, drag,
 	local finalPos = ApplyGravityAndDrag(netPos + 0.5 * fAcc * t * t, fVel, gravity, drag or 0, t)
 	return finalPos, state
 end
+
 local HitDetection = {
     ConnectedCasters = {},
     ProcessedCasts = {},
@@ -7886,7 +8091,7 @@ end
 
 local Camera = workspace.CurrentCamera
     -- Active Monitor Loop to ensure Casters are connected even if hook misses
-    framework:BindToRenderStep(function()
+    framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
         local char = localplayer.Character
         if not char then return end
         local tool = char:FindFirstChildOfClass("Tool")
@@ -7912,7 +8117,7 @@ local Camera = workspace.CurrentCamera
                  HitDetection:ConnectToCaster(wrapper._caster)
             end
         end
-    end)
+    end))
 
     HitDetection.Active = true
 do
@@ -8015,7 +8220,7 @@ do -- Silent Aim
         Debris:AddItem(child, 0.7)
     end)
     local Activeragebot = true;
-	task.spawn(function()
+	task.spawn(LPH_JIT_MAX(function()
 		while task.wait() do
 			if not Activeragebot then
 				break
@@ -8182,7 +8387,7 @@ do -- Silent Aim
 									task.wait(fadeTime / steps)
 								end
 								part:Destroy()
-							end)
+							end);
 						end
 						metadata._mainCaster.RayHit:Fire(cast, {
 							Distance = 1,
@@ -8200,7 +8405,8 @@ do -- Silent Aim
 			end;
 			metadata.canShootBulletssss = true;
 		end
-	end)
+	end));
+end
 end
 local snipertext = "";
 local status = sniper:AddLabel("status: idle")
@@ -8234,7 +8440,7 @@ sniper:AddButton({
             end;
         end;
         status:SetText("status: searching");
-        spawn(LPH_NO_VIRTUALIZE(function()
+        spawn(function()
             local Success, InServer, _, PlaceId, JobId = network:InvokeServer("GetPlayerPlaceInstanceInfo", userId);
             if JobId then
                 local serverInfo;
@@ -8264,7 +8470,7 @@ sniper:AddButton({
                 wait(0.8);
                 status:SetText("status: target not playing cw");
             end;
-        end));
+        end);
     end;
 });
 settings:AddLabel("menu bind"):AddKeyPicker("menubind", {Default = "RightAlt", NoUI = true, Text = "toggle ui"});
@@ -8318,7 +8524,7 @@ do
     local FrameCounter = 0
     local FPS = 60
     
-    runservice.RenderStepped:Connect(function()
+    runservice.RenderStepped:Connect(LPH_NO_VIRTUALIZE(function()
         FrameCounter = FrameCounter + 1
         if (tick() - FrameTimer) >= 1 then
             FPS = FrameCounter
@@ -8327,10 +8533,10 @@ do
         end
         
         if Toggles.WatermarkEnabled and Toggles.WatermarkEnabled.Value then
-            local ping = math.floor(game:GetService('Stats').Network.ServerStatsItem['Data Ping']:GetValue())
+            local ping = math.floor(localplayer:GetNetworkPing() * 1000)
             library:SetWatermark(('serenium.hvh | %s fps | %s ms'):format(math.floor(FPS), ping))
         end
-    end)
+    end));
 end
 library.Watermark.AnchorPoint = Vector2.new(1, 1)
 library.Watermark.Position = UDim2.new(1, -20, 0.05, 0)
@@ -8532,7 +8738,7 @@ local function CreateCharacterVisuals()
         -- Outline Glow
         if outlineGlow then
             charHighlight.Parent = char
-            charHighlight.OutlineColor = isRainbow and globalRainbowColor or glowColor
+            charHighlight.OutlineColor = isRainbow and getgenv().serenium_global_rainbow_color or glowColor
         else
             charHighlight.Parent = nil
         end
@@ -8627,17 +8833,16 @@ local function CreateCharacterVisuals()
         if isRainbow then
             for part, _ in pairs(originalData.Parts) do
                 if part and part.Parent and part:IsA("BasePart") then
-                    part.Color = globalRainbowColor
+                    part.Color = getgenv().serenium_global_rainbow_color
                 end
             end
             if charHighlight.Parent then
                 charHighlight.OutlineColor = globalRainbowColor
             end
         end
-    end))
+    end));
 end
 task.spawn(CreateCharacterVisuals)
-end
 
 local function CreateMoreVisuals()
     local fovCircle = Drawing.new("Circle")
@@ -8670,7 +8875,7 @@ local function CreateMoreVisuals()
     local lastTool = nil
     local lastChamSettings = { Material = nil, Color = nil, Highlight = nil, HighlightColor = nil }
 
-    runservice.RenderStepped:Connect(function(dt)
+    runservice.RenderStepped:Connect(LPH_NO_VIRTUALIZE(function(dt)
         -- Redundant FOV logic removed to prevent conflicts with Unified FOV handling in ESP section.
 
         -- Crosshair
@@ -8730,7 +8935,7 @@ local function CreateMoreVisuals()
             chLine1.Visible = false; chLine2.Visible = false; chLine3.Visible = false; chLine4.Visible = false
             chOut1.Visible = false; chOut2.Visible = false; chOut3.Visible = false; chOut4.Visible = false
         end
-    end)
+    end));
 end
 task.spawn(CreateMoreVisuals)
 end
@@ -8756,3 +8961,5 @@ if not getgenv().falldamage then
     end;
 	getgenv().falldamage = true;
 end;
+end
+InitializeSerenium()
