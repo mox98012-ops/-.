@@ -137,8 +137,8 @@ if not Data then
 	};
 end;
 -- variables
-local modules; local framework;
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/linoria-fork/refs/heads/main/linoria.lua"))();
+local modules, framework;
+local library = loadstring(readfile("lua1.lua"))();
 local savemanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/savemanager/refs/heads/main/linoria.lua"))();
 local thememanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/refs/heads/main/addons/ThemeManager.lua"))();
 local window = library:CreateWindow({Title = "			 nil.solutions - discord.gg/serenium   <font color=\"#ff0000\">combat warriors</font>", Center = true, AutoShow = true, TabPadding = 8, MenuFadeTime = 0});
@@ -171,50 +171,45 @@ local espsection = tabs.visuals:AddLeftGroupbox("esp");
 
 -- others
 local whitelist = {};
-local viewing = nil;
+local viewing, driver, AttachRoot = nil;
 local camera = workspace.CurrentCamera;
-    local boostmultiplier = 2;
-    local updown = true;
-    local flying = false;
-    local keys = {w=false, a=false, s=false, d=false, space=false, ctrl=false, lshift=false};
-    local driver = nil;
-    local runservice = game:GetService("RunService");
-    local repstorage = game:GetService("ReplicatedStorage");
-    local userinputservice = cloneref(game:GetService("UserInputService"));
-    local httpservice = game:GetService("HttpService");
-    local localplayer = game:GetService("Players").LocalPlayer;
-    local players = game:GetService("Players");
-    local character = localplayer.Character or localplayer.CharacterAdded:Wait();
-    local humanoidrootpart = character:WaitForChild("HumanoidRootPart");
-    local humanoid = character:WaitForChild("Humanoid");
-    local workspace = game:GetService("Workspace");
-    
-    local function GetPlayerCharacters()
-        return workspace:FindFirstChild("PlayerCharacters") or workspace:FindFirstChild("Characters") or workspace;
+local boostmultiplier = 2;
+local updown = true;
+local flying = false;
+local keys = {w=false, a=false, s=false, d=false, space=false, ctrl=false, lshift=false};
+local runservice = game:GetService("RunService");
+local repstorage = game:GetService("ReplicatedStorage");
+local userinputservice = cloneref(game:GetService("UserInputService"));
+local httpservice = game:GetService("HttpService");
+local localplayer = game:GetService("Players").LocalPlayer;
+local players = game:GetService("Players");
+local character = localplayer.Character or localplayer.CharacterAdded:Wait();
+local humanoidrootpart = character:WaitForChild("HumanoidRootPart");
+local humanoid = character:WaitForChild("Humanoid");
+local workspace = game:GetService("Workspace");
+function GetPlayerCharacters()
+    return workspace:FindFirstChild("PlayerCharacters") or workspace:FindFirstChild("Characters") or workspace;
+end;
+PlayerCharacters = GetPlayerCharacters();
+local ParryingCharacters = {};
+library.IgnoreWhileTyping = true;
+local spinspeed = 10;
+local spineabled = false;
+local KADebounce = false;
+local OnTp = false;
+local Active = true;
+local vector3new = Vector3.new;
+local cframenew = CFrame.new;
+local cframeangles = CFrame.Angles;
+local mathrandom = math.random;
+local Ignored = {};
+local Classes = setmetatable({}, {
+    __index = function(t, k)
+        return Toggles[k] or Options[k];
     end;
-    
-    local PlayerCharacters = GetPlayerCharacters()
-    local ParryingCharacters = {};
-    library.IgnoreWhileTyping = true;
-    local spinspeed = 10;
-    local spineabled = false;
-    local KADebounce = false;
-    local OnTp = false;
-    local Active = true;
-    local AttachRoot = nil;
-    local Ignored = {};
-    local R6BodyParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"};
-    
-    local Classes = setmetatable({}, {
-        __index = function(t, k)
-            return Toggles[k] or Options[k];
-        end;
-    });
-    
-    local originalDashCooldown = nil;
-
-    --getgenv variables
-    getgenv().antifling = false;
+});
+--getgenv variables
+getgenv().antifling = false;
 getgenv().infstamina = false;
 getgenv().canalwaysjump = false;
 getgenv().nnt = false;
@@ -293,15 +288,15 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/serverpos/re
 local function targetcframe(cf)
     local basepos = cf.Position;
     local x = basepos.X;
-    local y = math.random(-1000, 0);
+    local y = mathrandom(-1000, 0);
     local z = basepos.Z;
-    return CFrame.new(x, y, z);
+    return cframenew(x, y, z);
 end;
-serverposition("heartbeat", "voidhidelogic", function(cf)
+serverposition("heartbeat", "voidhidelogic", LPH_NO_VIRTUALIZE(function(cf)
     if getgenv().voidenabled then
         return targetcframe(cf);
     end;
-end, 15);
+end), 15);
 setrunning("voidhidelogic", true);
 runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
     local hum = localplayer.Character and localplayer.Character:FindFirstChild("Humanoid");
@@ -314,11 +309,6 @@ local function connect(newchar)
     character = newchar;
     humanoidrootpart = character:WaitForChild("HumanoidRootPart");
 	humanoid = character:WaitForChild("Humanoid");
-	LockedTarget = nil;
-    if getgenv().lastmetadata and getgenv().lastmetadata.canShootBulletssss ~= nil then
-        getgenv().lastmetadata.canShootBulletssss = true;
-	end;
-    getgenv().lastmetadata = nil;
 end;
 localplayer.CharacterAdded:Connect(connect);
 userinputservice.InputBegan:Connect(function(input, gpe)
@@ -340,7 +330,7 @@ runservice.Heartbeat:Connect(newcclosure(LPH_NO_VIRTUALIZE(function(dt)
             runservice.RenderStepped:Wait();
             humanoidrootpart.Anchored = false;
             driver = Instance.new("Part");
-            driver.Size = Vector3.new(1,1,1);
+            driver.Size = vector3new(1,1,1);
             driver.Transparency = 1;
             driver.Anchored = true;
             driver.CanCollide = false;
@@ -360,7 +350,7 @@ runservice.Heartbeat:Connect(newcclosure(LPH_NO_VIRTUALIZE(function(dt)
     if not bv then
 		bv = AntiCheatHandler.createBodyMover("BodyVelocity");
     	bv.Parent = humanoidrootpart;
-    	bv.MaxForce = Vector3.new(1e9, 1e9, 1e9);
+    	bv.MaxForce = vector3new(1e9, 1e9, 1e9);
     	bv.Velocity = Vector3.zero;
 	end;
 	humanoidrootpart.Velocity = Vector3.zero;
@@ -377,7 +367,7 @@ runservice.Heartbeat:Connect(newcclosure(LPH_NO_VIRTUALIZE(function(dt)
     if move.Magnitude > 0 then move = move.Unit; end;
     local speed = getgenv().flyspeed * (keys.lshift and boostmultiplier or 1);
     driver.CFrame = driver.CFrame + move * speed * dt;
-    driver.CFrame = CFrame.new(driver.Position, driver.Position + camera.CFrame.LookVector);
+    driver.CFrame = cframenew(driver.Position, driver.Position + camera.CFrame.LookVector);
     bv.Velocity = move * speed;
     humanoidrootpart.CFrame = driver.CFrame;
 end)));
@@ -388,10 +378,10 @@ runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
     if getgenv().velocityenabled and getgenv().velocityspeed then
         local moveDir = humanoid.MoveDirection;
         if moveDir.Magnitude > 0 then
-            local horizontal = Vector3.new(moveDir.X, 0, moveDir.Z).Unit;
-            humanoidrootpart.AssemblyLinearVelocity = Vector3.new(horizontal.X * getgenv().velocityspeed, velocity.Y, horizontal.Z * getgenv().velocityspeed);
+            local horizontal = vector3new(moveDir.X, 0, moveDir.Z).Unit;
+            humanoidrootpart.AssemblyLinearVelocity = vector3new(horizontal.X * getgenv().velocityspeed, velocity.Y, horizontal.Z * getgenv().velocityspeed);
         else
-            humanoidrootpart.AssemblyLinearVelocity = Vector3.new(0, velocity.Y, 0);
+            humanoidrootpart.AssemblyLinearVelocity = vector3new(0, velocity.Y, 0);
         end;
     end;
 end));
@@ -418,14 +408,14 @@ task.spawn(LPH_JIT_MAX(function()
 		end;
 		local vel, movel = nil, 0.1;
 		vel = humanoidrootpart.Velocity;
-		humanoidrootpart.Velocity = Vector3.new(math.random(-1500, 1500), math.random(-300, 300), math.random(-1500, 1500));
+		humanoidrootpart.Velocity = vector3new(mathrandom(-1500, 1500), mathrandom(-300, 300), mathrandom(-1500, 1500));
 		runservice.RenderStepped:Wait();
 		if character and character.Parent and humanoidrootpart and humanoidrootpart.Parent then
 			humanoidrootpart.Velocity = vel;
 		end;
 		runservice.Stepped:Wait();
 		if character and character.Parent and humanoidrootpart and humanoidrootpart.Parent then
-			humanoidrootpart.Velocity = vel + Vector3.new(0, movel, 0);
+			humanoidrootpart.Velocity = vel + vector3new(0, movel, 0);
 			movel = movel * -1;
 		end;
 	end;
@@ -653,7 +643,7 @@ HitDetectionImpl.CreateEffect = LPH_NO_VIRTUALIZE(function(effectType, part, col
         local lpChar = localplayer.Character
         if lpChar and lpChar:FindFirstChild("HumanoidRootPart") then
             local root = lpChar.HumanoidRootPart
-            clone:PivotTo(targetChar:GetPivot() + Vector3.new(root.CFrame.LookVector.X * 1.5, 0, root.CFrame.LookVector.Z * 1.5))
+            clone:PivotTo(targetChar:GetPivot() + vector3new(root.CFrame.LookVector.X * 1.5, 0, root.CFrame.LookVector.Z * 1.5))
         end
         
         -- Catch any parts added AFTER we process (shouldn't happen but just in case)
@@ -708,7 +698,7 @@ HitDetectionImpl.CreateEffect = LPH_NO_VIRTUALIZE(function(effectType, part, col
         local pulsePart = Instance.new("Part")
         pulsePart.Name = "HitEffect_Impact"
         pulsePart.Shape = Enum.PartType.Ball
-        pulsePart.Size = Vector3.new(1, 1, 1)
+        pulsePart.Size = vector3new(1, 1, 1)
         pulsePart.Position = part.Position
         pulsePart.Anchored = true
         pulsePart.CanCollide = false
@@ -718,7 +708,7 @@ HitDetectionImpl.CreateEffect = LPH_NO_VIRTUALIZE(function(effectType, part, col
         pulsePart.Color = mainColor
         pulsePart.Transparency = 0.5
         pulsePart.Parent = workspace.Terrain -- Parent after anchored=true
-        local tween = game:GetService("TweenService"):Create(pulsePart, TweenInfo.new(0.4), {Transparency = 1, Size = Vector3.new(6, 6, 6)})
+        local tween = game:GetService("TweenService"):Create(pulsePart, TweenInfo.new(0.4), {Transparency = 1, Size = vector3new(6, 6, 6)})
         tween:Play()
         tween.Completed:Connect(function() pulsePart:Destroy() end)
     elseif effectType == "Fortnite" then
@@ -732,8 +722,8 @@ HitDetectionImpl.CreateEffect = LPH_NO_VIRTUALIZE(function(effectType, part, col
             targetPart = targetPart.Parent:FindFirstChild("Head") or targetPart.Parent:FindFirstChild("Torso") or targetPart.Parent:FindFirstChild("HumanoidRootPart") or targetPart
         end
 
-        local startWorldPos = targetPart.Position + Vector3.new(math.random(-10, 10) / 10, 2, math.random(-10, 10) / 10)
-        local floatOffset = Vector3.new(math.random(-5, 5) / 10, 3, 0)
+        local startWorldPos = targetPart.Position + vector3new(mathrandom(-10, 10) / 10, 2, mathrandom(-10, 10) / 10)
+        local floatOffset = vector3new(mathrandom(-5, 5) / 10, 3, 0)
         
         -- Dual-label stacking for "Super Bold" look without being messy
         local function createLabel()
@@ -1568,7 +1558,7 @@ local function ApplyHitbox(Character)
     
     if Character:FindFirstChild("FakeHitbox") then return end
     local FakeHitbox = Instance.new("Part")
-    FakeHitbox.Size = Vector3.new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize)
+    FakeHitbox.Size = vector3new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize)
     FakeHitbox.CanCollide = false
     FakeHitbox.Transparency = Config.ShowHitbox and 0.7 or 1
     FakeHitbox.Name  = "FakeHitbox"
@@ -1619,7 +1609,7 @@ runservice.RenderStepped:Connect(LPH_NO_VIRTUALIZE(function()
 
         v.Transparency = (Config.HitboxExpand and Config.ShowHitbox) and 0.7 or 1
         v.Color        = Config.HitboxColor
-        v.Size         = Vector3.new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize)
+        v.Size         = vector3new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize)
         v:SetAttribute("IsCharacterHitbox", Config.HitboxExpand)
         
         if not Config.HitboxExpand then
@@ -1641,7 +1631,7 @@ if modules.Name["RangedHitVisuals"] and modules.Name["RangedHitVisuals"].default
         
         if Config.HitboxExpand and hitpart and hitpart.Name == "FakeHitbox" then
             local part = hitpart.Parent:FindFirstChild(
-                Config.HBEPart == "Random" and R6BodyParts[math.random(1, #R6BodyParts)] or Config.HBEPart
+                Config.HBEPart == "Random" and R6BodyParts[mathrandom(1, #R6BodyParts)] or Config.HBEPart
             ) or hitpart.Parent:FindFirstChild("Torso")
             
             if part then
@@ -1652,10 +1642,10 @@ if modules.Name["RangedHitVisuals"] and modules.Name["RangedHitVisuals"].default
                 
                 newHitCf = part.CFrame
                     * cosmetic.CFrame.Rotation
-                    * CFrame.new(
-                        math.random(-1,1) * (part.Size.X / 2),
-                        math.random(-1,1) * (part.Size.Y / 2),
-                        math.random(-1,1) * (part.Size.Z / 2)
+                    * cframenew(
+                        mathrandom(-1,1) * (part.Size.X / 2),
+                        mathrandom(-1,1) * (part.Size.Y / 2),
+                        mathrandom(-1,1) * (part.Size.Z / 2)
                     )
             end
         end
@@ -1693,15 +1683,15 @@ if network and network.FireServer then
 		if remoteName == "MeleeDamage" then
 			if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
 				local part = args[2].Parent:FindFirstChild(
-					Config.HBEPart == "Random" and R6BodyParts[math.random(1, #R6BodyParts)] or Config.HBEPart
+					Config.HBEPart == "Random" and R6BodyParts[mathrandom(1, #R6BodyParts)] or Config.HBEPart
 				) or args[2].Parent:FindFirstChild("Torso")
 				
 				if part then
 					args[2] = part
-					args[5] = CFrame.new(
-						(math.random() * math.random(-1, 1)) * (part.Size.X / 2),
-						(math.random() * math.random(-1, 1)) * (part.Size.Y / 2),
-						(math.random() * math.random(-1, 1)) * (part.Size.Z / 2)
+					args[5] = cframenew(
+						(mathrandom() * mathrandom(-1, 1)) * (part.Size.X / 2),
+						(mathrandom() * mathrandom(-1, 1)) * (part.Size.Y / 2),
+						(mathrandom() * mathrandom(-1, 1)) * (part.Size.Z / 2)
 					)
 				end
 			end
@@ -1710,7 +1700,7 @@ if network and network.FireServer then
 		if remoteName == "MeleeFinish" then
 			if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
 				local part = args[2].Parent:FindFirstChild(
-					Config.HBEPart == "Random" and R6BodyParts[math.random(1, #R6BodyParts)] or Config.HBEPart
+					Config.HBEPart == "Random" and R6BodyParts[mathrandom(1, #R6BodyParts)] or Config.HBEPart
 				) or args[2].Parent:FindFirstChild("Torso")
 				
 				if part then
@@ -1721,16 +1711,16 @@ if network and network.FireServer then
 		if remoteName == "RangedHit" then
 			if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
 				local part = args[2].Parent:FindFirstChild(
-					Config.HBEPart == "Random" and R6BodyParts[math.random(1, #R6BodyParts)] or Config.HBEPart
+					Config.HBEPart == "Random" and R6BodyParts[mathrandom(1, #R6BodyParts)] or Config.HBEPart
 				) or args[2].Parent:FindFirstChild("Torso")
 				
 				if part then
 					args[2] = part
 					args[4] = part.Position
-					args[5] = CFrame.Angles(args[5]:ToEulerAnglesYXZ()) * CFrame.new(
-						(math.random() * math.random(-1, 1)) * (part.Size.X / 2),
-						(math.random() * math.random(-1, 1)) * (part.Size.Y / 2),
-						(math.random() * math.random(-1, 1)) * (part.Size.Z / 2)
+					args[5] = cframeangles(args[5]:ToEulerAnglesYXZ()) * cframenew(
+						(mathrandom() * mathrandom(-1, 1)) * (part.Size.X / 2),
+						(mathrandom() * mathrandom(-1, 1)) * (part.Size.Y / 2),
+						(mathrandom() * mathrandom(-1, 1)) * (part.Size.Z / 2)
 					)
 				end
 			end
@@ -1745,16 +1735,16 @@ if network and network.FireServer then
 		if remoteName == "RangedExplode" then
 			if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
 				local part = args[2].Parent:FindFirstChild(
-					Config.HBEPart == "Random" and R6BodyParts[math.random(1, #R6BodyParts)] or Config.HBEPart
+					Config.HBEPart == "Random" and R6BodyParts[mathrandom(1, #R6BodyParts)] or Config.HBEPart
 				) or args[2].Parent:FindFirstChild("Torso")
 				
 				if part then
 					args[2] = part
 					args[4] = part.Position
-					args[5] = CFrame.Angles(args[5]:ToEulerAnglesYXZ()) * CFrame.new(
-						(math.random() * math.random(-1, 1)) * (part.Size.X / 2),
-						(math.random() * math.random(-1, 1)) * (part.Size.Y / 2),
-						(math.random() * math.random(-1, 1)) * (part.Size.Z / 2)
+					args[5] = cframeangles(args[5]:ToEulerAnglesYXZ()) * cframenew(
+						(mathrandom() * mathrandom(-1, 1)) * (part.Size.X / 2),
+						(mathrandom() * mathrandom(-1, 1)) * (part.Size.Y / 2),
+						(mathrandom() * mathrandom(-1, 1)) * (part.Size.Z / 2)
 					)
 				end
 			end
@@ -1889,12 +1879,6 @@ do
 	hook("OpenBearTrapPartClient", "new", function(oldfunc, ...)
 		if getgenv().nut then
 			return;
-		end;
-		return oldfunc(...);
-	end);
-	hook("AdminHandlerClient", "getIsAdmin", function(oldfunc, ...)
-		if not checkcaller() then
-			return true;
 		end;
 		return oldfunc(...);
 	end);
@@ -2067,7 +2051,7 @@ local connection; connection = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(fu
     if not getgenv().spinenabled then return; end;
     if not humanoidrootpart then return; end;
     local radians = math.rad(getgenv().spinspeed) * dt * 60;
-    humanoidrootpart.CFrame = humanoidrootpart.CFrame * CFrame.Angles(0, radians, 0);
+    humanoidrootpart.CFrame = humanoidrootpart.CFrame * cframeangles(0, radians, 0);
 end));
 local function connect(char)
     character = char;
@@ -2097,17 +2081,24 @@ network:BindEvents({
 });
 
 -- ui setup
-local function UpdateFeature(toggleName, keyName, setter)
-    local toggleOn = Toggles[toggleName].Value;
-    local keyOn = Options[keyName]:GetState();
-    setter(toggleOn and keyOn);
+local activeloops = {};
+local function updatefeature(togglename, keyname, setter)
+    if activeloops[togglename] then return; end;
+    activeloops[togglename] = true;
+    task.spawn(LPH_JIT_MAX(function()
+        while task.wait() do
+            local toggleon = Toggles[togglename].Value;
+            local keyon = Options[keyname]:GetState();
+            setter(toggleon and keyon);
+        end;
+    end));
 end;
 -- main combat
 main:AddToggle("KillAura", {
 	Text = "kill aura";
 	Default = false;
     Callback = function()
-        UpdateFeature("KillAura", "killaurabind", function(state)
+        updatefeature("KillAura", "killaurabind", function(state)
             getgenv().killaura = state;
         end);
     end;
@@ -2116,7 +2107,7 @@ main:AddToggle("KillAura", {
 	Default = "B";
 	NoUi = true;
     Callback = function()
-        UpdateFeature("KillAura", "killaurabind", function(state)
+        updatefeature("KillAura", "killaurabind", function(state)
             getgenv().killaura = state;
         end);
     end;
@@ -2129,7 +2120,7 @@ silentaim:AddToggle("stickyaim", {
 	Text = "sticky aim";
 	Default = false;
 	Callback = function()
-		UpdateFeature("stickyaim", "stickbind", function(state)
+		updatefeature("stickyaim", "stickbind", function(state)
 			getgenv().stick = state;
 		end);
 	end;
@@ -2138,7 +2129,7 @@ silentaim:AddToggle("stickyaim", {
 	Default = "T";
 	NoUi = true;
 	Callback = function()
-		UpdateFeature("stickyaim", "stickbind", function(state)
+		updatefeature("stickyaim", "stickbind", function(state)
 			getgenv().stick = state;
 		end);
 	end;
@@ -2165,7 +2156,7 @@ main:AddToggle("tpenemy", {
 	Text = "strafe enemy";
 	Default = false;
     Callback = function()
-        UpdateFeature("tpenemy", "tpenemybind", function(state)
+        updatefeature("tpenemy", "tpenemybind", function(state)
             getgenv().tpenemy = state;
         end);
     end;
@@ -2174,7 +2165,7 @@ main:AddToggle("tpenemy", {
 	Default = "T";
 	NoUi = true;
     Callback = function()
-        UpdateFeature("tpenemy", "tpenemybind", function(state)
+        updatefeature("tpenemy", "tpenemybind", function(state)
             getgenv().tpenemy = state;
         end);
     end;
@@ -2183,7 +2174,7 @@ main:AddToggle("spectateneemy", {
 	Text = "spectate enemy";
 	Default = false;
 	Callback = function()
-		UpdateFeature("spectateneemy", "spectateneemybind", function(state)
+		updatefeature("spectateneemy", "spectateneemybind", function(state)
 			getgenv().spectateneemy = state;
 		end);
 	end;
@@ -2192,7 +2183,7 @@ main:AddToggle("spectateneemy", {
 	Default = "N";
 	NoUi = true;
 	Callback = function()
-		UpdateFeature("spectateneemy", "spectateneemybind", function(state)
+		updatefeature("spectateneemy", "spectateneemybind", function(state)
 			getgenv().spectateneemy = state;
 		end);
 	end;
@@ -2380,10 +2371,10 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
                 if not onCooldown then
                     KADebounce = true;
                     if not Classes.PlayAnimation.Value then
-                        local slash = math.random(1, #metadata._itemConfig.slashMetadata);
+                        local slash = mathrandom(1, #metadata._itemConfig.slashMetadata);
                         network:FireServer("MeleeSwing", weapon, slash);
                         metadata._lastSlashTick = tick();
-                        task.wait(0.1);
+						task.wait(0.1);
 						for i, v in hitboxes do
 							for playername, health in closest do
 								local targetPlayer = players:FindFirstChild(playername);
@@ -2393,7 +2384,6 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
 									and health ~= 0
 									and framework:Check(targetPlayer.Character)
 								then
-
 									local character = targetPlayer.Character;
 									local hitpart = gethitpart(character);
 									local root = character:FindFirstChild("HumanoidRootPart");
@@ -2419,7 +2409,7 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
 												i,
 												hitpart.Position,
 												hitpart.CFrame:ToObjectSpace(
-													CFrame.new(hitpart.Position)
+													cframenew(hitpart.Position)
 												),
 												myHRP.CFrame.LookVector,
 												(hitpart.Position - hitpart.Position).Unit,
@@ -2527,7 +2517,7 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
 							network:InvokeServer(
 								"PlaceBearTrap",
 								CurrentTool,
-								targetHRP.CFrame * CFrame.new(0, -1, 0)
+								targetHRP.CFrame * cframenew(0, -1, 0)
 							);
 						end;
 				end;
@@ -2553,7 +2543,6 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
 			end);
 		end;
 	end;
-	modules.Name["RoduxStore"].store:getState().admin.is = true;
 end));
 framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
     if getgenv().fastrespawn then
@@ -2576,7 +2565,7 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
     if weapon and metadata then
         if getgenv().fakeswing and not Debounce then
             Debounce = true;
-            metadata.animations.slashes[math.random(1, #metadata.animations.slashes)]:Play();
+            metadata.animations.slashes[mathrandom(1, #metadata.animations.slashes)]:Play();
             task.delay(0.5, function()
                 Debounce = false;
             end);
@@ -2643,12 +2632,12 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
                 and targetPlayer.Character:FindFirstChild("Humanoid")
                 and targetPlayer.Character.Humanoid.Health <= 20
             then
-                network:FireServer("StartGloryKill", tool, targetPlayer.Character, CFrame.new(), Vector3.new())
+                network:FireServer("StartGloryKill", tool, targetPlayer.Character, cframenew(), vector3new())
             end
         end
     end
 end), nil, Enum.RenderPriority.Character);
-local StartSnowveilEffect = function()
+local StartSnowveilEffect = LPH_NO_VIRTUALIZE(function()
     if SnowveilActive then return end
     
     local char = localplayer.Character
@@ -2708,7 +2697,7 @@ local StartSnowveilEffect = function()
         end))
         table.insert(emotionalEffects, noclipConn)
 
-        npc:PivotTo(root.CFrame * CFrame.new(0, 0, 30))
+        npc:PivotTo(root.CFrame * cframenew(0, 0, 30))
 
         local dog = nil
         local objects = game:GetObjects("rbxassetid://17105403700")
@@ -2734,7 +2723,7 @@ local StartSnowveilEffect = function()
                 end
             end
             
-            dog:PivotTo(root.CFrame * CFrame.new(3.5, -1.1, 0))
+            dog:PivotTo(root.CFrame * cframenew(3.5, -1.1, 0))
         end
         
         if npc and dog then 
@@ -2756,7 +2745,7 @@ local StartSnowveilEffect = function()
             pcall(function()
                 local grabPart = npc:FindFirstChild("Right Arm") or npc:FindFirstChild("RightHand") or npcRoot
                 
-                dog:PivotTo(grabPart.CFrame * CFrame.new(0, -1, 0))
+                dog:PivotTo(grabPart.CFrame * cframenew(0, -1, 0))
                 
                 for _, v in pairs(dog:GetDescendants()) do
                     if v:IsA("BasePart") then v.Anchored = false end
@@ -2803,22 +2792,21 @@ local StartSnowveilEffect = function()
     root.Anchored = false
     SnowveilActive = false
     library:Notify("S N O W V E I L completed.", 2)
-end;
+end);
 local angle = 0;
-local orbitCF = CFrame.new();
+local orbitCF = cframenew();
 local Connection;
 local StickTarget;
-CurrentTarget = nil
+CurrentTarget = nil;
 Connection = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function(dt)
 	if not Active then
 		return;
 	end;
 	local tpSpeedVal = (Classes.TPSpeed and Classes.TPSpeed.Value) or (getgenv().tpspeed) or 10;
 	angle = (angle + dt * tpSpeedVal) % (2 * math.pi);
-	orbitCF = CFrame.new(math.cos(angle) * Classes.TPRange.Value, 0, math.sin(angle) * Classes.TPRange.Value);
+	orbitCF = cframenew(math.cos(angle) * Classes.TPRange.Value, 0, math.sin(angle) * Classes.TPRange.Value);
 end));
-
-serverposition("heartbeat", "CombatTeleport", function(realCF)
+serverposition("heartbeat", "CombatTeleport", LPH_NO_VIRTUALIZE(function(realCF)
 	if getgenv().voidenabled then return end
 	local Character = localplayer.Character
 	if not Character then return end
@@ -2829,37 +2817,37 @@ serverposition("heartbeat", "CombatTeleport", function(realCF)
 	local targetHRP = target.Character:FindFirstChild("HumanoidRootPart")
 	if not targetHRP then return end
 	if not getgenv().tpenemy then return end
-	local targetVel = targetHRP.Velocity or Vector3.new()
+	local targetVel = targetHRP.Velocity or vector3new()
 	local multiplier = getgenv().multiplier or 0.15
 	local base = getgenv().base or 0
-	local predictedCF = targetHRP.CFrame + targetVel * multiplier + Vector3.new(0, base, 0)
+	local predictedCF = targetHRP.CFrame + targetVel * multiplier + vector3new(0, base, 0)
 	sethiddenproperty(hrp, "PhysicsRepRootPart", targetHRP)
 	local tpSpeedVal = (Classes.TPSpeed and Classes.TPSpeed.Value) or (getgenv().tpspeed) or 10;
 	local Type = Classes.TPType.Value
 	if Type == "Behind" then
 		local look = -targetHRP.CFrame.LookVector
-		return CFrame.new(
+		return cframenew(
 			predictedCF.Position + look * Classes.TPRange.Value,
 			predictedCF.Position
 		)
 	elseif Type == "Orbit" then
-		return CFrame.new(predictedCF.Position) * orbitCF
+		return cframenew(predictedCF.Position) * orbitCF
 	elseif Type == "Above" then
-		return CFrame.new(predictedCF.Position + Vector3.new(0, Classes.TPRange.Value, 0))
+		return cframenew(predictedCF.Position + vector3new(0, Classes.TPRange.Value, 0))
 	elseif Type == "Below" then
-		return CFrame.new(predictedCF.Position + Vector3.new(0, -Classes.TPRange.Value, 0))
+		return cframenew(predictedCF.Position + vector3new(0, -Classes.TPRange.Value, 0))
 	elseif Type == "Attach" then
-		return CFrame.new(predictedCF.Position)
+		return cframenew(predictedCF.Position)
 	else
 		local range = Classes.TPRange.Value
-		local X, Y, Z = math.random(-range, range), math.random(-range, range), math.random(-range, range)
+		local X, Y, Z = mathrandom(-range, range), mathrandom(-range, range), mathrandom(-range, range)
 		local factor = tpSpeedVal / 10;
-		local XA, YA, ZA = math.random(-180,180) * factor, math.random(-180,180) * factor, math.random(-180,180) * factor
-		return CFrame.new(predictedCF.Position)
-			* CFrame.new(X, Y, Z)
-			* CFrame.Angles(math.rad(XA), math.rad(YA), math.rad(ZA))
+		local XA, YA, ZA = mathrandom(-180,180) * factor, mathrandom(-180,180) * factor, mathrandom(-180,180) * factor
+		return cframenew(predictedCF.Position)
+			* cframenew(X, Y, Z)
+			* cframeangles(math.rad(XA), math.rad(YA), math.rad(ZA))
 	end
-end, 16)
+end), 16)
 function canTeleportToTarget(player)
 	if not player then return false end
 	if player.Parent ~= players then return false end
@@ -2873,78 +2861,78 @@ function canTeleportToTarget(player)
 	return true
 end
 runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
-	local Character = localplayer.Character
-	if not Character then
-		CurrentTarget = nil
-		setrunning("CombatTeleport", false)
-		return
-	end
-	local CameraSubject
-	if Character:GetAttribute("CameraSubject") then
-		CameraSubject = Character:FindFirstChild(Character:GetAttribute("CameraSubject"))
-	else
-		CameraSubject = Character:FindFirstChildOfClass("Humanoid")
-	end
-	if not getgenv().stick and not getgenv().targeting_player then
-		StickTarget = nil
-		getgenv().stickTarget = nil
-	end
-	local closestPlayer = nil
-	if getgenv().killaura or getgenv().tpenemy or getgenv().stick
-		or getgenv().targeting_player or getgenv().spectateneemy then
-		local closestDist = math.huge
-		local mousePos = userinputservice:GetMouseLocation()
-		if (getgenv().stick or getgenv().targeting_player) and StickTarget then
-			closestPlayer = StickTarget
-		elseif getgenv().targeting_player then
-			closestPlayer = SelectedPlayer
-		else
-			for _, player in ipairs(players:GetPlayers()) do
-				if player ~= localplayer then
-					local char = player.Character
-					if char then
-						local hrp = char:FindFirstChild("HumanoidRootPart")
-						local hum = char:FindFirstChildOfClass("Humanoid")
+    local Character = localplayer.Character
+    if not Character then
+        CurrentTarget = nil
+        setrunning("CombatTeleport", false)
+        return
+    end
+    local CameraSubject
+    if Character:GetAttribute("CameraSubject") then
+        CameraSubject = Character:FindFirstChild(Character:GetAttribute("CameraSubject"))
+    else
+        CameraSubject = Character:FindFirstChildOfClass("Humanoid")
+    end
+    if not getgenv().stick and not getgenv().targeting_player then
+        StickTarget = nil
+        getgenv().stickTarget = nil
+    end
+    
+    local closestPlayer = nil
+    if getgenv().killaura or getgenv().tpenemy or getgenv().stick or getgenv().targeting_player or getgenv().spectateneemy then
+        local closestDist = math.huge
+        local mousePos = userinputservice:GetMouseLocation()
 
-						if hrp and hum and hum.Health > 0 then
-							local screenPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
-							if onScreen then
-								local dist =
-									(Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
-								if dist < closestDist then
-									closestDist = dist
-									closestPlayer = player
-								end
-							end
-						end
-					end
-				end
-			end
-			if getgenv().stick and closestPlayer then
-				StickTarget = closestPlayer
-				getgenv().stickTarget = closestPlayer
-			end
-		end
-	end
-	CurrentTarget = closestPlayer
-	if CurrentTarget and canTeleportToTarget(CurrentTarget) and not getgenv().voidhide then
-		setrunning("CombatTeleport", true)
-	else
-		setrunning("CombatTeleport", false)
-	end
-	if getgenv().spectateneemy and CurrentTarget then
-		local targetChar = CurrentTarget.Character
-		local targetHumanoid = targetChar and targetChar:FindFirstChildOfClass("Humanoid")
+        if (getgenv().stick or getgenv().targeting_player) and StickTarget then
+            closestPlayer = StickTarget
+        elseif getgenv().targeting_player then
+            closestPlayer = SelectedPlayer
+        else
+            for _, player in ipairs(players:GetPlayers()) do
+                if player ~= localplayer
+                    and not whitelisted(player)
+                    and player.Character
+                    and player.Character:FindFirstChild("HumanoidRootPart")
+                    and player.Character:FindFirstChildOfClass("Humanoid").Health > 0
+                    and not framework:InMenu(player) then
 
-		if targetHumanoid and targetHumanoid.Health > 0 then
-			camera.CameraSubject = targetHumanoid
-		else
-			camera.CameraSubject = CameraSubject
-		end
-	else
-		camera.CameraSubject = CameraSubject
-	end
-end));
+                    local hrp = player.Character.HumanoidRootPart
+                    local screenPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+
+                    if onScreen then
+                        local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                        if dist < closestDist then
+                            closestDist = dist
+                            closestPlayer = player
+                        end
+                    end
+                end
+            end
+            
+            if getgenv().stick and closestPlayer then
+                StickTarget = closestPlayer
+                getgenv().stickTarget = closestPlayer
+            end
+        end
+    end
+    CurrentTarget = closestPlayer
+    if CurrentTarget and canTeleportToTarget(CurrentTarget) and not getgenv().voidenabled and not whitelisted(CurrentTarget) then
+        setrunning("CombatTeleport", true)
+    else
+        setrunning("CombatTeleport", false)
+    end
+
+    if getgenv().spectateneemy and CurrentTarget and not whitelisted(CurrentTarget) and CurrentTarget.Character.Humanoid.Health > 0 and not framework:InMenu(CurrentTarget) then
+        local targetHumanoid = CurrentTarget.Character:FindFirstChildOfClass("Humanoid")
+        if targetHumanoid then
+            camera.CameraSubject = targetHumanoid
+        else
+            camera.CameraSubject = CameraSubject
+        end
+    else
+        camera.CameraSubject = CameraSubject
+    end
+end))
 local function Parry(metadata)
     local apdelay = math.round(Classes.APDelay.Value or 0);
     if apdelay > 0 then
@@ -3219,7 +3207,7 @@ userinputservice.InputBegan:Connect(LPH_NO_VIRTUALIZE(function(i, gp)
 	if getgenv().swingsound and (i.KeyCode == Options.swingsoundkey.Value or i.UserInputType == Options.swingsoundkey.Value) then
 		local weapon = framework:GetWeapon();
 		if weapon then
-			network:FireServer("MeleeSwing", weapon, math.random(1, 3));
+			network:FireServer("MeleeSwing", weapon, mathrandom(1, 3));
 		end;
 	end;
 end));
@@ -3285,7 +3273,7 @@ if modules.Name["SoundHandler"] and modules.Name["SoundHandler"].playSound then
                                 local OtherRoot = Other.HumanoidRootPart
                                 
                                 local range = isRage and 25 or Classes.APRange.Value
-                                local chance = isRage and true or framework:Chance(Classes.RandomChance.Value and math.random(1, 100) or Classes.APChance.Value)
+                                local chance = isRage and true or framework:Chance(Classes.RandomChance.Value and mathrandom(1, 100) or Classes.APChance.Value)
 
                                 if Other ~= localplayer.Character and framework:IsPartClose(OtherRoot, range) 
                                    and chance 
@@ -3395,7 +3383,7 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
             end
             if anim.TimePosition >= math.clamp(hitMarker - Classes.Threshold.Value, 0, math.huge)
                 and anim.TimePosition <= hitMarker
-                and framework:Chance(Classes.RandomChance.Value and math.random(1, 100) or Classes.APChance.Value)
+                and framework:Chance(Classes.RandomChance.Value and mathrandom(1, 100) or Classes.APChance.Value)
             then
                 local CanParry = false;
                 if Classes.LookCheck.Value then
@@ -3460,7 +3448,7 @@ charactertab:AddToggle("fly", {
     Text = "fly";
     Default = false;
     Callback = function()
-        UpdateFeature("fly", "flybind", function(state)
+        updatefeature("fly", "flybind", function(state)
             getgenv().flyenabled = state;
         end);
     end;
@@ -3469,7 +3457,7 @@ charactertab:AddToggle("fly", {
     Default = "X";
     Mode = "Toggle";
     Callback = function()
-        UpdateFeature("fly", "flybind", function(state)
+        updatefeature("fly", "flybind", function(state)
             getgenv().flyenabled = state;
         end);
     end;
@@ -3478,7 +3466,7 @@ charactertab:AddToggle("velocity", {
     Text = "velocity",
     Default = false,
     Callback = function()
-        UpdateFeature("velocity", "velocitybind", function(state)
+        updatefeature("velocity", "velocitybind", function(state)
             getgenv().velocityenabled = state
         end)
     end
@@ -3487,7 +3475,7 @@ charactertab:AddToggle("velocity", {
     Default = "C";
     Mode = "Toggle";
     Callback = function()
-        UpdateFeature("velocity", "velocitybind", function(state)
+        updatefeature("velocity", "velocitybind", function(state)
             getgenv().velocityenabled = state;
         end);
     end;
@@ -3696,6 +3684,7 @@ exploit:AddToggle("nojumpcd", {
         end;
     end;
 });
+originalDashCooldown = nil;
 exploit:AddToggle("nodashcd", {
     Text = "no dash cooldown";
     Default = false;
@@ -3969,7 +3958,7 @@ exploit1:AddToggle("desync", {
     Text = "desync";
     Default = false;
     Callback = function()
-        UpdateFeature("desync", "desyncbind", function(state)
+        updatefeature("desync", "desyncbind", function(state)
             getgenv().desyncenabled = state;
         end);
     end;
@@ -3978,7 +3967,7 @@ exploit1:AddToggle("desync", {
     Default = "F1";
     Mode = "Toggle";
     Callback = function()
-        UpdateFeature("desync", "desyncbind", function(state)
+        updatefeature("desync", "desyncbind", function(state)
             getgenv().desyncenabled = state;
         end);
     end;
@@ -3987,7 +3976,7 @@ exploit1:AddToggle("voidenabled", {
     Text = "void",
     Default = false,
     Callback = function()
-        UpdateFeature("voidenabled", "voidenabledkey", function(state)
+        updatefeature("voidenabled", "voidenabledkey", function(state)
 			getgenv().voidenabled = state;
         end)
     end
@@ -3996,7 +3985,7 @@ exploit1:AddToggle("voidenabled", {
     Default = "Y";
     Mode = "Toggle";
     Callback = function()
-        UpdateFeature("voidenabled", "voidenabledkey", function(state)
+        updatefeature("voidenabled", "voidenabledkey", function(state)
             getgenv().voidenabled = state;
         end);
     end;
@@ -4005,7 +3994,7 @@ exploit1:AddToggle("noclip", {
     Text = "noclip";
     Default = false;
     Callback = function()
-        UpdateFeature("noclip", "noclipbind", function(state)
+        updatefeature("noclip", "noclipbind", function(state)
             getgenv().noclipenabled = state;
         end);
     end;
@@ -4014,7 +4003,7 @@ exploit1:AddToggle("noclip", {
     Default = "Z";
     Mode = "Toggle";
     Callback = function()
-        UpdateFeature("noclip", "noclipbind", function(state)
+        updatefeature("noclip", "noclipbind", function(state)
             getgenv().noclipenabled = state;
         end);
     end;
@@ -4023,7 +4012,7 @@ exploit1:AddToggle("fakeposition", {
     Text = "fake position";
     Default = false;
     Callback = function()
-        UpdateFeature("fakeposition", "fakeposkey", function(state)
+        updatefeature("fakeposition", "fakeposkey", function(state)
             setfflag("NextGenReplicatorEnabledWrite4", tostring(state));
         end);
     end;
@@ -4032,7 +4021,7 @@ exploit1:AddToggle("fakeposition", {
     Default = "M";
     Mode = "Toggle";
     Callback = function()
-        UpdateFeature("fakeposition", "fakeposkey", function(state)
+        updatefeature("fakeposition", "fakeposkey", function(state)
             setfflag("NextGenReplicatorEnabledWrite4", tostring(state));
         end);
     end;
@@ -4100,7 +4089,7 @@ ragebotsection:AddToggle("Ragebot", {
 	Text = "ragebot";
 	Default = false;
 	Callback = function()
-		UpdateFeature("Ragebot", "ragebotkey", function(state)
+		updatefeature("Ragebot", "ragebotkey", function(state)
 			getgenv().ragebot = state;
 		end);
 	end;
@@ -4108,7 +4097,7 @@ ragebotsection:AddToggle("Ragebot", {
 	Text = "ragebot";
 	Default = "H";
 	Callback = function()
-		UpdateFeature("Ragebot", "ragebotkey", function(state)
+		updatefeature("Ragebot", "ragebotkey", function(state)
 			getgenv().ragebot = state;
 		end);
 	end;
@@ -4127,52 +4116,33 @@ mmisc:AddToggle("antimod", {
     Callback = function(Value)
         getgenv().antimod = Value;
         if Value then
-            antimod = true;
             lastcheck = 0;
-            local groupid = 5192826;
-            local roles = {
-                ["Community Senior"] = true;
-                ["Community Moderator"] = true;
-                ["Game Moderator"] = true;
-                ["Senior Moderator"] = true;
-                ["Developer"] = true;
-                ["Analytics"] = true;
-                ["Studio Developer"] = true;
-                ["Lead"] = true;
-                ["NOCTOVO"] = true;
-            };
             task.spawn(LPH_JIT_MAX(function()
                 while getgenv().antimod do
                     if tick() - lastcheck >= 2 then
                         lastcheck = tick();
                         for _, player in ipairs(players:GetPlayers()) do
                             if player ~= localplayer then
-                                local success, role = pcall(function()
-                                    return player:GetRoleInGroup(groupid);
-                                end);
-                                if success and roles[role] then
-                                    localplayer:Kick(
-                                        "staff detected\n"
-                                        .. player.DisplayName
-                                        .. " (@"
-                                        .. player.Name
-                                        .. ") - "
-                                        .. role
-                                    );
+                                local ismod = modules.Name["ModHandler"].getIsMod(player);
+                                local isadmin = modules.Name["AdminHandler"].getIsAdmin(player);
+                                if ismod then
+                                    localplayer:Kick("staff detected\n" .. player.DisplayName .. " (@" .. player.Name .. ")");
                                     return;
-                                end;
-                            end;
-                        end;
-                    end;
-                    task.wait(2)
-                end;
+                                elseif isadmin then
+                                    localplayer:Kick("admin detected\n" .. player.DisplayName .. " (@" .. player.Name .. ")");
+                                    return;
+                                end
+                            end
+                        end
+                    end
+                    task.wait(2);
+                end
             end));
         else
-            antimod = false;
             getgenv().antimod = false;
-        end;
+        end
     end;
-})
+});
 ragebotsection:AddToggle("ShowRageBotTarget", {
 	Text = "show ragebot target";
 	Default = false;
@@ -4270,7 +4240,7 @@ misc:AddToggle("ip", {
 						else
 							teleportposition = humanoidrootpart.Position;
 						end;
-						teleport(CFrame.new(teleportposition));
+						teleport(cframenew(teleportposition));
 						hasteleported = true;
 						task.delay(0.1, function()
 							if toolonloss and toolonloss:IsDescendantOf(character) and humanoid then
@@ -4528,10 +4498,10 @@ end);
 local killphase = 0
 serverposition("heartbeat", "initattemptkill", function(cf)
     if killphase == 1 then
-        return cf + Vector3.new(0, 1000, 0);
+        return cf + vector3new(0, 1000, 0);
     elseif killphase == 2 then
         network:FireServer("StartFallDamage");
-        return cf + Vector3.new(0, -1000, 0);
+        return cf + vector3new(0, -1000, 0);
     end;
     return cf;
 end, 20);
@@ -4591,14 +4561,14 @@ misc1:AddButton("attempt kill", function()
 			while desync and rootpart and rootpart.Parent do
 				runservice.Heartbeat:Wait();
 				local prevel = rootpart.AssemblyLinearVelocity;
-				rootpart.AssemblyLinearVelocity = Vector3.new(math.random(-1500,1500), math.random(-300,300), math.random(-1500,1500));
+				rootpart.AssemblyLinearVelocity = vector3new(mathrandom(-1500,1500), mathrandom(-300,300), mathrandom(-1500,1500));
 				runservice.RenderStepped:Wait();
 				if rootpart.Parent then
 					rootpart.AssemblyLinearVelocity = prevel;
 				end;
 				runservice.Stepped:Wait();
 				if rootpart.Parent then
-					rootpart.AssemblyLinearVelocity = prevel + Vector3.new(0, verticaloffset, 0);
+					rootpart.AssemblyLinearVelocity = prevel + vector3new(0, verticaloffset, 0);
 					verticaloffset = -verticaloffset;
 				end;
 			end;
@@ -4662,7 +4632,7 @@ task.spawn(LPH_NO_VIRTUALIZE(function()
 			for i = 1, 50 do
 				if framework:InMenu(localplayer) then break; end;
 				if targetroot and targetroot.Parent then
-					network:FireServer("TakeFallDamage",math.huge,Vector3.new(0, -1, 0),targetroot.Position);
+					network:FireServer("TakeFallDamage",math.huge,vector3new(0, -1, 0),targetroot.Position);
 				end;
 				task.wait();
 			end;
@@ -4731,9 +4701,9 @@ misc1:AddButton("attempt fling", function()
             if not fling then return; end;
             if humanoidrootpart and humanoidrootpart.Parent then
                 local vel = humanoidrootpart.Velocity;
-                humanoidrootpart.Velocity = vel * 10000 + Vector3.new(0, 10000, 0);
+                humanoidrootpart.Velocity = vel * 10000 + vector3new(0, 10000, 0);
                 runservice.RenderStepped:Wait();
-                humanoidrootpart.Velocity = vel + Vector3.new(0, 0.1, 0);
+                humanoidrootpart.Velocity = vel + vector3new(0, 0.1, 0);
             end;
         end)));
     end;
@@ -4770,10 +4740,10 @@ local function Jitter(rootPart)
 		while Desync and rootPart and rootPart.Parent do
 			runservice.Heartbeat:Wait();
 			local previousVelocity = rootPart.AssemblyLinearVelocity;
-			rootPart.AssemblyLinearVelocity = Vector3.new(
-				math.random(-1500, 1500),
-				math.random(-300, 300),
-				math.random(-1500, 1500)
+			rootPart.AssemblyLinearVelocity = vector3new(
+				mathrandom(-1500, 1500),
+				mathrandom(-300, 300),
+				mathrandom(-1500, 1500)
 			);
 			runservice.RenderStepped:Wait();
 			if rootPart.Parent then
@@ -4782,7 +4752,7 @@ local function Jitter(rootPart)
 
 			runservice.Stepped:Wait();
 			if rootPart.Parent then
-				rootPart.AssemblyLinearVelocity = previousVelocity + Vector3.new(0, verticalOffset, 0);
+				rootPart.AssemblyLinearVelocity = previousVelocity + vector3new(0, verticalOffset, 0);
 				verticalOffset = -verticalOffset;
 			end;
 		end;
@@ -4829,7 +4799,7 @@ local function AttemptKillTarget(targetPlayer)
 				break;
 			end;
 			if targetroot and targetroot.Parent then
-				network:FireServer("TakeFallDamage", math.huge, Vector3.new(0, -1, 0), targetroot.Position);
+				network:FireServer("TakeFallDamage", math.huge, vector3new(0, -1, 0), targetroot.Position);
 			end;
 			task.wait();
 		end;
@@ -5075,7 +5045,7 @@ local function onspace(actionName, inputState)
 	end;
 	return Enum.ContextActionResult.Sink;
 end;
-runservice.RenderStepped:Connect(function()
+runservice.Heartbeat:Connect(function()
 	local menu = framework:InMenu(localplayer);
 	local alive = alive(localplayer);
 	if menu and alive and not bound then
@@ -5222,7 +5192,7 @@ network:BindEvents({
 			end
 			local Message
 			repeat
-				Message = PickFrom[math.random(1, #PickFrom)]
+				Message = PickFrom[mathrandom(1, #PickFrom)]
 				task.wait()
 			until typeof(Message) == "string"
 			Message = Message:gsub("%%Died%%", diedPlayer.DisplayName)
@@ -5308,7 +5278,7 @@ auto:AddToggle("loopflingall", {
 
                     local targetpos = targetroot.Position;
                     if targetpos.Y > 280 then continue; end;
-                    if (targetpos * Vector3.new(1, 0, 1)).Magnitude > 1200 then continue; end;
+                    if (targetpos * vector3new(1, 0, 1)).Magnitude > 1200 then continue; end;
 
                     playercount = playercount + 1;
                     local movel = 0.1;
@@ -5321,12 +5291,12 @@ auto:AddToggle("loopflingall", {
                         sethiddenproperty(LocalRoot, "PhysicsRepRootPart", targetroot);
 
                         local vel = LocalRoot.Velocity;
-                        LocalRoot.Velocity = vel * 150000 + Vector3.new(0, 150000, 0);
+                        LocalRoot.Velocity = vel * 150000 + vector3new(0, 150000, 0);
 
                         runservice.RenderStepped:Wait();
                         if not CanFlingAll then break; end;
 
-                        LocalRoot.Velocity = vel + Vector3.new(0, movel, 0);
+                        LocalRoot.Velocity = vel + vector3new(0, movel, 0);
                         movel = -movel;
 
                         runservice.Heartbeat:Wait();
@@ -5629,7 +5599,7 @@ charactersection:AddToggle("RemoveAccessories", {
     Default = false;
 });
 
-local fovsection = visuals:AddLeftGroupbox("fov");
+fovsection = visuals:AddLeftGroupbox("fov");
 fovsection:AddToggle("ShowFOVCircle", {
     Text = "show fov circle";
     Default = false;
@@ -5670,10 +5640,6 @@ fovsection:AddSlider("FOVCircleSize", {
     Rounding = 0;
     Compact = true;
 });
-
-
-
-
 local crosshairsection = visuals:AddRightGroupbox("crosshair");
 crosshairsection:AddToggle("CrosshairEnabled", {
     Text = "crosshair enabled";
@@ -6999,7 +6965,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 			local Pos, OnScreen = camera:WorldToViewportPoint(RootPos)
 			-- Only draw if on screen
 			if OnScreen and Pos.Z > 0 then
-				local Size = (camera:WorldToViewportPoint(RootPos - Vector3.new(0, 3, 0)).Y - camera:WorldToViewportPoint(RootPos + Vector3.new(0, 2.6, 0)).Y) / 2
+				local Size = (camera:WorldToViewportPoint(RootPos - vector3new(0, 3, 0)).Y - camera:WorldToViewportPoint(RootPos + vector3new(0, 2.6, 0)).Y) / 2
 				local BoxSize = Vector2.new(math.floor(Size), math.floor(Size))
 				local BoxPos = Vector2.new(math.floor(Pos.X - Size / 2), math.floor(Pos.Y - Size / 2))
 				local Name = v.Name
@@ -7119,7 +7085,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 					end
 				end
 			else
-				local Size = (camera:WorldToViewportPoint(RootPart.Position - Vector3.new(0, 3, 0)).Y - camera:WorldToViewportPoint(RootPart.Position + Vector3.new(0, 2.6, 0)).Y) / 2
+				local Size = (camera:WorldToViewportPoint(RootPart.Position - vector3new(0, 3, 0)).Y - camera:WorldToViewportPoint(RootPart.Position + vector3new(0, 2.6, 0)).Y) / 2
 				local BoxSize = Vector2.new(math.floor(Size * 1.5), math.floor(Size * 1.9))
 				local BoxPos = Vector2.new(math.floor(Pos.X - Size * 1.5 / 2), math.floor(Pos.Y - Size * 1.6 / 2))
 
@@ -7585,7 +7551,7 @@ aimbot:AddToggle("Aimbot", {
 							if not inMenu then
                                 local hitPartName = hitPartName
                                 if hitPartName == "Random" then
-                                    hitPartName = R6BodyParts[math.random(1, #R6BodyParts)]
+                                    hitPartName = R6BodyParts[mathrandom(1, #R6BodyParts)]
                                 end
 								local targetPart = lockedTarget.Character:FindFirstChild(hitPartName) or lockedTarget.Character:FindFirstChild("HumanoidRootPart")
 								
@@ -7595,7 +7561,7 @@ aimbot:AddToggle("Aimbot", {
 									if Toggles.Prediction.Value then
                                         local hrp = lockedTarget.Character:FindFirstChild("HumanoidRootPart")
                                         if hrp then
-                                            local targetVelocity = hrp.Velocity or Vector3.new(0, 0, 0)
+                                            local targetVelocity = hrp.Velocity or vector3new(0, 0, 0)
                                             local predictionAmount = Options.PredictionAmount.Value or 0.13
                                             aimPos = aimPos + (targetVelocity * predictionAmount)
                                         end
@@ -7604,10 +7570,10 @@ aimbot:AddToggle("Aimbot", {
 									if Toggles.Smooth.Value then
 										local smoothAmount = Options.SmoothAmount.Value or 0.15
 										local currentCFrame = camera.CFrame
-										local targetCFrame = CFrame.new(camera.CFrame.Position, aimPos)
+										local targetCFrame = cframenew(camera.CFrame.Position, aimPos)
 										camera.CFrame = currentCFrame:Lerp(targetCFrame, smoothAmount)
 									else
-										camera.CFrame = CFrame.new(camera.CFrame.Position, aimPos)
+										camera.CFrame = cframenew(camera.CFrame.Position, aimPos)
 									end
 								end
 							else
@@ -7776,7 +7742,7 @@ gunmods:AddToggle("NoGravity", {
 	Default = false;
 	Callback = function(value)
 		if value then
-			modifyranged("gravity", Vector3.new(0, 0, 0));
+			modifyranged("gravity", vector3new(0, 0, 0));
 		else
 			revertranged("gravity");
 		end;
@@ -7971,7 +7937,7 @@ local function NetworkCompensate(pos, vel, pingMs)
 	return pos + vel * (pingMs * 0.001)
 end
 local function ApplyGravityAndDrag(pos, vel, gravity, drag, t)
-	local gravityOffset = Vector3.new(0, -0.5 * gravity * t * t, 0)
+	local gravityOffset = vector3new(0, -0.5 * gravity * t * t, 0)
 	local dragFactor = math.exp(-drag * t)
 	return pos + vel * t * dragFactor + gravityOffset
 end
@@ -7979,7 +7945,7 @@ local function SolveInterceptTime(origin, pos, vel, acc, speed, gravity)
 	local t = (pos - origin).Magnitude / speed
 	t = math.clamp(t, 0.01, 3)
 	for _ = 1, 6 do
-		local predicted = pos + vel * t + 0.5 * acc * t * t - Vector3.new(0, 0.5 * gravity * t * t, 0)
+		local predicted = pos + vel * t + 0.5 * acc * t * t - vector3new(0, 0.5 * gravity * t * t, 0)
 		local newT = (predicted - origin).Magnitude / speed
 		if math.abs(newT - t) < 1e-3 then
 			break
@@ -8173,7 +8139,7 @@ do -- Silent Aim
                             Classes.Resolver.Value and humanoid.MoveDirection or hitPart.Velocity
                         aimPos = aimPos + (targetVelocity * predictionAmount)
                     end
-                    args[1] = CFrame.lookAt(Vector3.new(), (aimPos - cheatedOrigin).Unit)
+                    args[1] = CFrame.lookAt(vector3new(), (aimPos - cheatedOrigin).Unit)
                     local oldParams = metadata._mainCasterBehavior.RaycastParams
                     local newParams = RaycastParams.new()
                     newParams.FilterType = Enum.RaycastFilterType.Blacklist
@@ -8311,7 +8277,7 @@ do -- Silent Aim
 
 			local origin = metadata:getCheatedBackOriginIfInObject(metadata._mainCasterBehavior.RaycastParams)
 			local projectileSpeed = metadata._itemConfig.speed or 200
-			local projectileGravity = metadata._itemConfig.gravity or Vector3.new(0, 0, 0)
+			local projectileGravity = metadata._itemConfig.gravity or vector3new(0, 0, 0)
 
 			local finalPos = PredictTargetPosition(
 				origin,
@@ -8321,12 +8287,12 @@ do -- Silent Aim
 				projectileGravity
 			)
 
-			local CF = CFrame.new(Vector3.new(), (finalPos - origin).Unit)
+			local CF = cframenew(vector3new(), (finalPos - origin).Unit)
 			local dir = OldCalculateFire(CF, 0, 0, 5000)
 
 			local fakeBehavior = {
 				RaycastParams = metadata._mainCasterBehavior.RaycastParams,
-				Acceleration = Vector3.new(),
+				Acceleration = vector3new(),
 				MaxDistance = 5000,
 				HighFidelityBehavior = 1,
 				HighFidelitySegmentSize = 0.5,
@@ -8374,9 +8340,9 @@ do -- Silent Aim
 							part.CanCollide = false
 							part.Material = Enum.Material.Neon
 							part.Color = Options.linecolor.Value
-							part.Size = Vector3.new(0.1, 0.1, (Head.Position - HumanoidRootPart.Position).Magnitude)
-							part.CFrame = CFrame.new(HumanoidRootPart.Position, Head.Position)
-								* CFrame.new(0, 0, -part.Size.Z / 2)
+							part.Size = vector3new(0.1, 0.1, (Head.Position - HumanoidRootPart.Position).Magnitude)
+							part.CFrame = cframenew(HumanoidRootPart.Position, Head.Position)
+								* cframenew(0, 0, -part.Size.Z / 2)
 							part.Transparency = 0
 							part.Parent = workspace
 							task.spawn(function()
