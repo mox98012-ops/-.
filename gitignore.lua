@@ -201,7 +201,12 @@ local Active = true;
 local vector3new = Vector3.new;
 local cframenew = CFrame.new;
 local cframeangles = CFrame.Angles;
+local drawingnew = Drawing.new;
 local mathrandom = math.random;
+local mathsin = math.sin;
+local mathcos = math.cos;
+local mathfloor = math.floor;
+local vector2new = Vector2.new;
 local Ignored = {};
 local Classes = setmetatable({}, {
     __index = function(t, k)
@@ -457,7 +462,7 @@ HitDetectionImpl.CreateLog = LPH_NO_VIRTUALIZE(function(text)
     local textSize = 19
     local textFont = 2 -- Bold-ish Monospace
 
-    local labelBase = Drawing.new("Text")
+    local labelBase = drawingnew("Text")
     labelBase.Text = prefixBase
     labelBase.Size = textSize
     labelBase.Font = textFont
@@ -467,7 +472,7 @@ HitDetectionImpl.CreateLog = LPH_NO_VIRTUALIZE(function(text)
     labelBase.Transparency = 0
     labelBase.ZIndex = 15
     
-    local labelHvh = Drawing.new("Text")
+    local labelHvh = drawingnew("Text")
     labelHvh.Text = prefixHvh
     labelHvh.Size = textSize
     labelHvh.Font = textFont
@@ -477,7 +482,7 @@ HitDetectionImpl.CreateLog = LPH_NO_VIRTUALIZE(function(text)
     labelHvh.Transparency = 0
     labelHvh.ZIndex = 15
 
-    local labelRest = Drawing.new("Text")
+    local labelRest = drawingnew("Text")
     labelRest.Text = restOfText
     labelRest.Size = textSize
     labelRest.Font = textFont
@@ -493,9 +498,9 @@ HitDetectionImpl.CreateLog = LPH_NO_VIRTUALIZE(function(text)
     local offsetFromCenter = totalWidth / 2
     
     local function setPos(currentX)
-        labelBase.Position = Vector2.new(currentX - offsetFromCenter, finalY)
-        labelHvh.Position = Vector2.new(labelBase.Position.X + labelBase.TextBounds.X, finalY)
-        labelRest.Position = Vector2.new(labelHvh.Position.X + labelHvh.TextBounds.X, finalY)
+        labelBase.Position = vector2new(currentX - offsetFromCenter, finalY)
+        labelHvh.Position = vector2new(labelBase.Position.X + labelBase.TextBounds.X, finalY)
+        labelRest.Position = vector2new(labelHvh.Position.X + labelHvh.TextBounds.X, finalY)
     end
     
     -- Initial Pos (shifted left)
@@ -713,7 +718,7 @@ HitDetectionImpl.CreateEffect = LPH_NO_VIRTUALIZE(function(effectType, part, col
         tween.Completed:Connect(function() pulsePart:Destroy() end)
     elseif effectType == "Fortnite" then
         local dmgValue = damage or 0
-        local dmgText = tostring(math.floor(dmgValue))
+        local dmgText = tostring(mathfloor(dmgValue))
         local targetPart = part
         if not targetPart or not targetPart.Parent then return end
         
@@ -727,7 +732,7 @@ HitDetectionImpl.CreateEffect = LPH_NO_VIRTUALIZE(function(effectType, part, col
         
         -- Dual-label stacking for "Super Bold" look without being messy
         local function createLabel()
-            local l = Drawing.new("Text")
+            local l = drawingnew("Text")
             l.Text = dmgText
             l.Color = color
             l.Center = true
@@ -757,8 +762,8 @@ HitDetectionImpl.CreateEffect = LPH_NO_VIRTUALIZE(function(effectType, part, col
                 if onScreen then
                     label1.Visible = true
                     label2.Visible = true
-                    label1.Position = Vector2.new(screenPos.X, screenPos.Y)
-                    label2.Position = Vector2.new(screenPos.X + 0.5, screenPos.Y + 0.5) -- Tiny offset for boldness
+                    label1.Position = vector2new(screenPos.X, screenPos.Y)
+                    label2.Position = vector2new(screenPos.X + 0.5, screenPos.Y + 0.5) -- Tiny offset for boldness
                     
                     -- Dynamic Size for Sharpness
                     local size = 45
@@ -1057,8 +1062,15 @@ function framework:GetClosest(Distance, Priority, CheckFunction)
         if not checkSuccess or not checkResult then
             continue;
         end;
-		if Toggles.WhitelistFriends.Value and localplayer:IsFriendsWith(v.UserId) then
-			continue;
+		if Toggles.WhitelistFriends.Value then
+			local success, isFriend = xpcall(function()
+				return localplayer:IsFriendsWith(v.UserId);
+			end, function()
+				return false;
+			end);
+			if success and isFriend then
+				continue;
+			end;
 		end;
         if framework:InMenu(v) then
             continue;
@@ -1175,7 +1187,7 @@ function framework:GetClosestToMouse(Distance, Priority, CheckFunction, MaxDist3
             end
         end
 		if onScreen then
-			local Magnitude = (MousePosition - Vector2.new(vector.X, vector.Y)).Magnitude;
+			local Magnitude = (MousePosition - vector2new(vector.X, vector.Y)).Magnitude;
 			if Magnitude < Distance then
 				Distance = Magnitude;
 				ClosestPlayer = v;
@@ -1295,7 +1307,7 @@ function framework:GetClosestCharactersToOrigin(Origin, Dist)
 end;
 
 function framework:Chance(number)
-	return (math.floor(Random.new():NextNumber(0, 1) * 100) / 100) <= math.floor(number) / 100;
+	return (mathfloor(Random.new():NextNumber(0, 1) * 100) / 100) <= mathfloor(number) / 100;
 end;
 
 function framework:IsPartClose(Part, Distance)
@@ -2804,7 +2816,7 @@ Connection = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function(dt)
 	end;
 	local tpSpeedVal = (Classes.TPSpeed and Classes.TPSpeed.Value) or (getgenv().tpspeed) or 10;
 	angle = (angle + dt * tpSpeedVal) % (2 * math.pi);
-	orbitCF = cframenew(math.cos(angle) * Classes.TPRange.Value, 0, math.sin(angle) * Classes.TPRange.Value);
+	orbitCF = cframenew(mathcos(angle) * Classes.TPRange.Value, 0, math.sin(angle) * Classes.TPRange.Value);
 end));
 serverposition("heartbeat", "CombatTeleport", LPH_NO_VIRTUALIZE(function(realCF)
 	if getgenv().voidenabled then return end
@@ -2900,7 +2912,7 @@ runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
                     local screenPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
 
                     if onScreen then
-                        local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                        local dist = (vector2new(screenPos.X, screenPos.Y) - mousePos).Magnitude
                         if dist < closestDist then
                             closestDist = dist
                             closestPlayer = player
@@ -4277,53 +4289,41 @@ misc:AddToggle("ip", {
 		end;
 	end;
 });
-local Crates = {
-	["Skins"] = "skinsCase",
-	["Enchants"] = "enchantsCase",
-	["Kill Effects"] = "killEffectsCase",
-	["Bundles"] = "case4",
-	["Character Auras"] = "case5",
-	["Parry Shields"] = "case6",
-	["Emotes"] = "case7",
-	["Emotes Icon"] = "case8",
-	["Matatibi"] = "case9",
-	["Christmas 2022"] = "case10",
-	["Energy (Credits)"] = "case11",
-	["Energy (Robux)"] = "case12",
-	["Adoration"] = "case13",
-	["Winter 2024 Event Energy"] = "case14",
-};
+local casemt = modules.Name["CaseMetadata"];
 local cratenames = {};
-for name, id in pairs(Crates) do
-	table.insert(cratenames, name);
+local displayid = {}
+for caseid, casedata in pairs(casemt) do
+    local displayname = casedata.displayName or caseid;
+    table.insert(cratenames, displayname);
+    displayid[displayname] = caseid;
 end;
 table.sort(cratenames);
 local SelectedCrateName = cratenames[1] or "";
 local selectedamount = 1;
 crates:AddDropdown("crates", {
-	Text = "crates";
-	Values = cratenames;
-	Default = SelectedCrateName;
-	Multi = false;
-	Callback = function(v)
-		SelectedCrateName = v;
-	end;
+    Text = "crates";
+    Values = cratenames;
+    Default = SelectedCrateName;
+    Multi = false;
+    Callback = function(v)
+        SelectedCrateName = v
+    end;
 });
 crates:AddSlider("amount", {
-	Text = "amount";
-	Default = 1;
-	Min = 1;
-	Max = 10;
-	Rounding = 0;
-	Compact = true;
-	Callback = function(value)
-		selectedamount = math.floor(value);
-	end;
-})
+    Text = "amount";
+    Default = 1;
+    Min = 1;
+    Max = 10;
+    Rounding = 0;
+    Compact = true;
+    Callback = function(value)
+        selectedamount = mathfloor(value)
+    end;
+});
 crates:AddButton({
-	Text = "Open Case";
+	Text = "open case";
 	Func = function()
-		local caseid = Crates[SelectedCrateName];
+		local caseid = displayid[SelectedCrateName];
 		if caseid then
 			local success, response = network:InvokeServer("PurchaseCase", caseid, selectedamount);
 			if success then
@@ -6397,11 +6397,11 @@ local currentRagebotTarget = nil;
 
 local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 	local FOVCircles = {
-		Silent = Drawing.new("Circle"),
-		Aimbot = Drawing.new("Circle"),
-		Visuals = Drawing.new("Circle"),
-		Outline = Drawing.new("Circle"),
-		Fill = Drawing.new("Circle")
+		Silent = drawingnew("Circle"),
+		Aimbot = drawingnew("Circle"),
+		Visuals = drawingnew("Circle"),
+		Outline = drawingnew("Circle"),
+		Fill = drawingnew("Circle")
 	}
 	local lashFOVCirclePos = userinputservice:GetMouseLocation()
 	local currentFOVCircleSize = 50
@@ -6586,7 +6586,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 	ParryImage = base64.decode(ParryImage)
 
 	function New(Type, Outline, Name)
-		local drawing = Drawing.new(Type)
+		local drawing = drawingnew(Type)
 		for i, v in pairs(ESPSettings[Type]) do
 			drawing[i] = v
 		end
@@ -6823,9 +6823,9 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 
 	local function Rotate(point, center, angle)
 		angle = math.rad(angle)
-		return Vector2.new(
-			math.floor(math.cos(angle) * (point.X - center.X) - math.sin(angle) * (point.Y - center.Y) + center.X),
-			math.floor(math.sin(angle) * (point.X - center.X) + math.cos(angle) * (point.Y - center.Y) + center.Y)
+		return vector2new(
+			mathfloor(mathcos(angle) * (point.X - center.X) - mathsin(angle) * (point.Y - center.Y) + center.X),
+			mathfloor(math.sin(angle) * (point.X - center.X) + mathcos(angle) * (point.Y - center.Y) + center.Y)
 		)
 	end
 
@@ -6833,7 +6833,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 		local utilColor = UtilityColors[ClassName] or ESPSettings.Square.Color
 		
 		Name.Text = ObjectName
-		Name.Position = Vector2.new(BoxSize.X / 2 + BoxPos.X, BoxPos.Y - 16)
+		Name.Position = vector2new(BoxSize.X / 2 + BoxPos.X, BoxPos.Y - 16)
 		Name.Color = utilColor
 		Name.Size = ESPSettings.Text.Size
 		Name.Visible = true
@@ -6850,8 +6850,8 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 		BoxOutline.Visible = true
 		BoxOutline.ZIndex = 0
 
-		Distance.Text = math.floor(Dist) .. "m"
-		Distance.Position = Vector2.new(BoxSize.X / 2 + BoxPos.X, BottomOffset)
+		Distance.Text = mathfloor(Dist) .. "m"
+		Distance.Position = vector2new(BoxSize.X / 2 + BoxPos.X, BottomOffset)
 		Distance.Color = utilColor
 		Distance.Size = ESPSettings.Text.Size
 		Distance.Visible = true
@@ -6966,8 +6966,8 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 			-- Only draw if on screen
 			if OnScreen and Pos.Z > 0 then
 				local Size = (camera:WorldToViewportPoint(RootPos - vector3new(0, 3, 0)).Y - camera:WorldToViewportPoint(RootPos + vector3new(0, 2.6, 0)).Y) / 2
-				local BoxSize = Vector2.new(math.floor(Size), math.floor(Size))
-				local BoxPos = Vector2.new(math.floor(Pos.X - Size / 2), math.floor(Pos.Y - Size / 2))
+				local BoxSize = vector2new(mathfloor(Size), mathfloor(Size))
+				local BoxPos = vector2new(mathfloor(Pos.X - Size / 2), mathfloor(Pos.Y - Size / 2))
 				local Name = v.Name
 				local Box = v.Box
 				local BoxOutline = v.BoxOutline
@@ -7000,7 +7000,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
             -- Removed ESPMaxDistance check to allow infinite range for Silent Aim targeting
             local Pos, OnScreen = camera:WorldToViewportPoint(RootPart.Position)
             if OnScreen then
-                local screenDistance = (Vector2.new(Pos.X, Pos.Y) - mousePos).Magnitude
+                local screenDistance = (vector2new(Pos.X, Pos.Y) - mousePos).Magnitude
                 if screenDistance < closestDistance then
                     closestDistance = screenDistance
                     closestPlayerToCursor = Player
@@ -7067,17 +7067,17 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 						local FOV = 800 - Classes.OutFOVOffset.Value
 						local Size = Classes.OutFOVSize.Value
 						local Center = camera.ViewportSize / 2
-						local Direction = (Vector2.new(ScreenPos.X, ScreenPos.Y) - Center).Unit
+						local Direction = (vector2new(ScreenPos.X, ScreenPos.Y) - Center).Unit
 						local Radian = math.atan2(Direction.X, Direction.Y)
 						local Angle = (((math.pi * 2) / FOV) * Radian)
-						local ClampedPosition = Center + (Direction * math.min(math.abs(((Center.Y - FOV) / math.sin(Angle)) * FOV), math.abs((Center.X - FOV) / (math.cos(Angle)) / 2)))
-						local Point = Vector2.new(math.floor(ClampedPosition.X - (Size / 2)), math.floor((ClampedPosition.Y - (Size / 2) - 15)))
+						local ClampedPosition = Center + (Direction * math.min(math.abs(((Center.Y - FOV) / math.sin(Angle)) * FOV), math.abs((Center.X - FOV) / (mathcos(Angle)) / 2)))
+						local Point = vector2new(mathfloor(ClampedPosition.X - (Size / 2)), mathfloor((ClampedPosition.Y - (Size / 2) - 15)))
 
 						local OFFSettings = Classes.OFFSettings.Value
-						local Rotation = math.floor(-math.deg(Radian)) - 47
-						Drawing.PointA = Rotate(Point + Vector2.new(Size, Size), Point, Rotation)
-						Drawing.PointB = Rotate(Point + Vector2.new(-Size, -Size), Point, Rotation)
-						Drawing.PointC = Rotate(Point + Vector2.new(-Size, Size), Point, Rotation)
+						local Rotation = mathfloor(-math.deg(Radian)) - 47
+						Drawing.PointA = Rotate(Point + vector2new(Size, Size), Point, Rotation)
+						Drawing.PointB = Rotate(Point + vector2new(-Size, -Size), Point, Rotation)
+						Drawing.PointC = Rotate(Point + vector2new(-Size, Size), Point, Rotation)
 						Drawing.Color = ESPSettings.Triangle.Color
 						Drawing.Filled = not ((OFFSettings == "Outline" or OFFSettings == "Both") or false)
 						Drawing.Transparency = ((OFFSettings == "Blinking" or OFFSettings == "Both") or false) and (math.sin(tick() * 5) + 1) / 2 or 1
@@ -7086,8 +7086,8 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 				end
 			else
 				local Size = (camera:WorldToViewportPoint(RootPart.Position - vector3new(0, 3, 0)).Y - camera:WorldToViewportPoint(RootPart.Position + vector3new(0, 2.6, 0)).Y) / 2
-				local BoxSize = Vector2.new(math.floor(Size * 1.5), math.floor(Size * 1.9))
-				local BoxPos = Vector2.new(math.floor(Pos.X - Size * 1.5 / 2), math.floor(Pos.Y - Size * 1.6 / 2))
+				local BoxSize = vector2new(mathfloor(Size * 1.5), mathfloor(Size * 1.9))
+				local BoxPos = vector2new(mathfloor(Pos.X - Size * 1.5 / 2), mathfloor(Pos.Y - Size * 1.6 / 2))
 
 				local Name = PlayerDrawing.Name
 				local Tool = PlayerDrawing.Tool
@@ -7143,37 +7143,37 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 					LastSwing.Visible = true
 					local SwingCooldown = Player:GetAttribute("SwingCooldown") or 1
 					local Cooldown = Player:GetAttribute("LastSwing") and tick() - Player:GetAttribute("LastSwing") or false
-					LastSwing.Position = Vector2.new((BoxSize.X + BoxPos.X + 5), BoxPos.Y)
+					LastSwing.Position = vector2new((BoxSize.X + BoxPos.X + 5), BoxPos.Y)
 					LastSwing.Transparency = (Cooldown and (Cooldown / SwingCooldown)) or 1
-					LastSwing.Size = Vector2.new(BoxSize.X * 0.2, BoxSize.Y * 0.1579)
+					LastSwing.Size = vector2new(BoxSize.X * 0.2, BoxSize.Y * 0.1579)
 				end
 
 				if Classes.ParryCooldown.Value then
 					if Classes.SwingCooldown.Value then
-						LastParry.Position = Vector2.new((BoxSize.X + BoxPos.X + 5), (BoxPos.Y + LastSwing.Size.Y + 5))
+						LastParry.Position = vector2new((BoxSize.X + BoxPos.X + 5), (BoxPos.Y + LastSwing.Size.Y + 5))
 					else
-						LastParry.Position = Vector2.new((BoxSize.X + BoxPos.X + 5), BoxPos.Y)
+						LastParry.Position = vector2new((BoxSize.X + BoxPos.X + 5), BoxPos.Y)
 					end
 					local parryTime = (State.parry and State.parry.lastParrySucceeded) and 0.33 or 3
 					LastParry.Transparency = math.clamp((tick() - (Player:GetAttribute("LastParry") or 1)) / parryTime, 0, 1)
-					LastParry.Size = Vector2.new(BoxSize.X * 0.2, BoxSize.Y * 0.1579)
+					LastParry.Size = vector2new(BoxSize.X * 0.2, BoxSize.Y * 0.1579)
 					LastParry.Visible = true
 				end
 
 				if Classes.Health.Value then
 					local healthPercent = Humanoid.Health / Humanoid.MaxHealth
-					Health.From = Vector2.new((BoxPos.X - 5), BoxPos.Y + BoxSize.Y)
-					Health.To = Vector2.new(Health.From.X, Health.From.Y - healthPercent * BoxSize.Y)
+					Health.From = vector2new((BoxPos.X - 5), BoxPos.Y + BoxSize.Y)
+					Health.To = vector2new(Health.From.X, Health.From.Y - healthPercent * BoxSize.Y)
 					Health.Color = Classes.HealthColor.Value or Color3.new(0, 1, 0)
 					Health.Visible = true
-					HealthOutline.From = Vector2.new(Health.From.X, BoxPos.Y + BoxSize.Y + 1)
-					HealthOutline.To = Vector2.new(Health.From.X, Health.From.Y - BoxSize.Y - 1)
+					HealthOutline.From = vector2new(Health.From.X, BoxPos.Y + BoxSize.Y + 1)
+					HealthOutline.To = vector2new(Health.From.X, Health.From.Y - BoxSize.Y - 1)
 					HealthOutline.Visible = true
 				end
 
 				if Classes.Names.Value then
 					Name.Text = Player.Name
-					Name.Position = Vector2.new(BoxSize.X / 2 + BoxPos.X, BoxPos.Y - 16)
+					Name.Position = vector2new(BoxSize.X / 2 + BoxPos.X, BoxPos.Y - 16)
 					Name.Color = Classes.NameColor.Value or Color3.new(1, 1, 1)
 					Name.Size = ESPSettings.Text.Size
 					Name.Visible = true
@@ -7192,10 +7192,10 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 							if origin == "Cursor" then
 								fromPos = userinputservice:GetMouseLocation()
 							else
-								fromPos = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
+								fromPos = vector2new(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
 							end
 							
-							local toPos = Vector2.new(Pos.X, Pos.Y)
+							local toPos = vector2new(Pos.X, Pos.Y)
 							
 
 							local tracerColor = Classes.TracerColor.Value or Color3.new(1, 1, 1)
@@ -7225,15 +7225,15 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 					if ESPType == "Tool" or ESPType == "Both" then
 						local tool = Player.Character:FindFirstChildOfClass("Tool")
 						Tool.Text = tool and tool.Name or "None"
-						Tool.Position = Vector2.new(BoxSize.X / 2 + BoxPos.X, BottomOffset)
+						Tool.Position = vector2new(BoxSize.X / 2 + BoxPos.X, BottomOffset)
 						Tool.Color = ESPSettings.Text.Color
 						Tool.Size = ESPSettings.Text.Size
 						Tool.Visible = true
 						BottomOffset = BottomOffset + 15
 					end
 					if ESPType == "Distance" or ESPType == "Both" then
-						Distance.Text = math.floor(DistanceFromCharacter) .. "m"
-						Distance.Position = Vector2.new(BoxSize.X / 2 + BoxPos.X, BottomOffset)
+						Distance.Text = mathfloor(DistanceFromCharacter) .. "m"
+						Distance.Position = vector2new(BoxSize.X / 2 + BoxPos.X, BottomOffset)
 						Distance.Color = ESPSettings.Text.Color
 						Distance.Size = ESPSettings.Text.Size
 						Distance.Visible = true
@@ -7526,8 +7526,8 @@ aimbot:AddToggle("Aimbot", {
 											local screenPos, onScreen = camera:WorldToViewportPoint(targetPart.Position)
 											
 											if onScreen then
-												local mousePos = Vector2.new(mouse.X, mouse.Y)
-												local targetPos = Vector2.new(screenPos.X, screenPos.Y)
+												local mousePos = vector2new(mouse.X, mouse.Y)
+												local targetPos = vector2new(screenPos.X, screenPos.Y)
 												local distance = (mousePos - targetPos).Magnitude
 												
 												if distance < fovRadius and distance < closestDistance then
@@ -8499,12 +8499,12 @@ do
         end
         
         if Toggles.WatermarkEnabled and Toggles.WatermarkEnabled.Value then
-            local ping = math.floor(localplayer:GetNetworkPing() * 1000)
-            library:SetWatermark(('serenium.hvh | %s fps | %s ms'):format(math.floor(FPS), ping))
+            local ping = mathfloor(localplayer:GetNetworkPing() * 1000)
+            library:SetWatermark(('serenium.hvh | %s fps | %s ms'):format(mathfloor(FPS), ping))
         end
     end));
 end
-library.Watermark.AnchorPoint = Vector2.new(1, 1)
+library.Watermark.AnchorPoint = vector2new(1, 1)
 library.Watermark.Position = UDim2.new(1, -20, 0.05, 0)
 thememanager:SetLibrary(library);
 thememanager:SetFolder("serenium");
@@ -8811,25 +8811,25 @@ end
 task.spawn(CreateCharacterVisuals)
 
 local function CreateMoreVisuals()
-    local fovCircle = Drawing.new("Circle")
+    local fovCircle = drawingnew("Circle")
     fovCircle.Thickness = 1
     fovCircle.NumSides = 100
     fovCircle.Visible = false
     
-    local fovCircleOutline = Drawing.new("Circle")
+    local fovCircleOutline = drawingnew("Circle")
     fovCircleOutline.Thickness = 1
     fovCircleOutline.NumSides = 100
     fovCircleOutline.Visible = false
     
-    local chOut1 = Drawing.new("Line")
-    local chOut2 = Drawing.new("Line")
-    local chOut3 = Drawing.new("Line")
-    local chOut4 = Drawing.new("Line")
+    local chOut1 = drawingnew("Line")
+    local chOut2 = drawingnew("Line")
+    local chOut3 = drawingnew("Line")
+    local chOut4 = drawingnew("Line")
     
-    local chLine1 = Drawing.new("Line")
-    local chLine2 = Drawing.new("Line")
-    local chLine3 = Drawing.new("Line")
-    local chLine4 = Drawing.new("Line")
+    local chLine1 = drawingnew("Line")
+    local chLine2 = drawingnew("Line")
+    local chLine3 = drawingnew("Line")
+    local chLine4 = drawingnew("Line")
     
     local weaponHighlight = Instance.new("Highlight")
     weaponHighlight.Name = "WeaponCham"
@@ -8863,9 +8863,9 @@ local function CreateMoreVisuals()
             end
 
             local function getRotated(offset)
-                local cos = math.cos(currentRotation)
+                local cos = mathcos(currentRotation)
                 local sin = math.sin(currentRotation)
-                return Vector2.new(
+                return vector2new(
                     (offset.X * cos) - (offset.Y * sin),
                     (offset.X * sin) + (offset.Y * cos)
                 )
@@ -8893,10 +8893,10 @@ local function CreateMoreVisuals()
                 line.Visible = true
             end
 
-            updateLine(chLine1, chOut1, Vector2.new(0, gap), Vector2.new(0, gap + size))
-            updateLine(chLine2, chOut2, Vector2.new(0, -gap), Vector2.new(0, -(gap + size)))
-            updateLine(chLine3, chOut3, Vector2.new(gap, 0), Vector2.new(gap + size, 0))
-            updateLine(chLine4, chOut4, Vector2.new(-gap, 0), Vector2.new(-(gap + size), 0))
+            updateLine(chLine1, chOut1, vector2new(0, gap), vector2new(0, gap + size))
+            updateLine(chLine2, chOut2, vector2new(0, -gap), vector2new(0, -(gap + size)))
+            updateLine(chLine3, chOut3, vector2new(gap, 0), vector2new(gap + size, 0))
+            updateLine(chLine4, chOut4, vector2new(-gap, 0), vector2new(-(gap + size), 0))
         else
             chLine1.Visible = false; chLine2.Visible = false; chLine3.Visible = false; chLine4.Visible = false
             chOut1.Visible = false; chOut2.Visible = false; chOut3.Visible = false; chOut4.Visible = false
