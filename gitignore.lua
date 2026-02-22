@@ -207,6 +207,7 @@ local mathsin = math.sin;
 local mathcos = math.cos;
 local mathfloor = math.floor;
 local vector2new = Vector2.new;
+local taskspawn = task.spawn;
 local Ignored = {};
 local Classes = setmetatable({}, {
     __index = function(t, k)
@@ -392,7 +393,7 @@ runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
 end));
 -- desync
 local active = true;
-task.spawn(LPH_JIT_MAX(function()
+taskspawn(LPH_JIT_MAX(function()
 	while true do
 		runservice.Heartbeat:Wait()
 		if not active then
@@ -509,7 +510,7 @@ HitDetectionImpl.CreateLog = LPH_NO_VIRTUALIZE(function(text)
     table.insert(HitDetectionImpl.Labels, {labelBase, labelHvh, labelRest})
     HitDetectionImpl.YOffset = HitDetectionImpl.YOffset + 22
 
-    task.spawn(function()
+    taskspawn(function()
         -- Slide In + Fade In
         local slideSteps = 10
         for i = 1, slideSteps do
@@ -748,7 +749,7 @@ HitDetectionImpl.CreateEffect = LPH_NO_VIRTUALIZE(function(effectType, part, col
         local label1 = createLabel()
         local label2 = createLabel()
 
-        task.spawn(function()
+        taskspawn(function()
             local startTime = tick()
             local duration = 0.8
             
@@ -825,7 +826,7 @@ local OnHit = LPH_NO_VIRTUALIZE(function(targetPlayer, hitPart, damage, hitType)
             local color = Options.HitEffectColor and Options.HitEffectColor.Value or Color3.new(1, 1, 1);
             for effectType, enabled in pairs(Options.HitEffects.Value) do 
                 if enabled then 
-                    task.spawn(function()
+                    taskspawn(function()
                         HitDetectionImpl.CreateEffect(effectType, hitPart, color, damage)
                     end)
                 end;
@@ -847,7 +848,7 @@ local OnHit = LPH_NO_VIRTUALIZE(function(targetPlayer, hitPart, damage, hitType)
     local humanoid = targetPlayer.Character and targetPlayer.Character:FindFirstChild("Humanoid")
     if humanoid then
         local oldHp = humanoid.Health
-        task.spawn(function()
+        taskspawn(function()
             local start = tick()
             while tick() - start < 0.6 do -- Wait up to 600ms for damage to replicate
                  game:GetService("RunService").RenderStepped:Wait()
@@ -1394,7 +1395,7 @@ function framework:BindToRenderStep(toBind, delayTime, priority)
 					return;
 				end;
 				isDelayed = true;
-				task.spawn(toBind);
+				taskspawn(toBind);
 				task.wait(delayTime);
 				isDelayed = false;
 			end)
@@ -1605,7 +1606,7 @@ end
 Players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(ApplyHitbox);
 end)
-runservice.RenderStepped:Connect(LPH_NO_VIRTUALIZE(function()
+taskspawn(LPH_JIT_MAX(function()
     for i = #FakeHitboxes, 1, -1 do
         local v = FakeHitboxes[i]
 
@@ -1987,7 +1988,7 @@ do
 				getgenv().parrystununtil = tick() + 0.35;
 				if getgenv().voidonparry and (tick() - (getgenv().last_void_parry or 0) > 3) then
 					getgenv().last_void_parry = tick();
-					task.spawn(LPH_JIT_MAX(function()
+					taskspawn(LPH_JIT_MAX(function()
 						pcall(function()
 							if Toggles.voidenabled.Value and Options.voidenabledkey:GetState() then
 								getgenv().voidenabled = true;
@@ -1995,7 +1996,7 @@ do
 								local old = getgenv().voidenabled;
 								getgenv().void_lock = true;
 								getgenv().voidenabled = true;
-								task.spawn(function()
+								taskspawn(function()
 									while getgenv().void_lock do
 										getgenv().voidenabled = true;
 										task.wait();
@@ -2019,7 +2020,7 @@ do
 						local WSContainer = Walkspeed.getValueContainer();
 						local JPContainer = JumpPower.getJumpPowerValueContainer();
 						local ARContainer = AutoRotate.getAutoRotateToggleCounter();
-						task.spawn(LPH_JIT_MAX(function()
+						taskspawn(LPH_JIT_MAX(function()
 							task.wait(0.1);
 							modules.Name["CoreGuiHandlerClient"].toggleBackpack(true);
 							modules.Name["CoreGuiHandlerClient"].toggleResetButton(true);
@@ -2097,7 +2098,7 @@ local activeloops = {};
 local function updatefeature(togglename, keyname, setter)
     if activeloops[togglename] then return; end;
     activeloops[togglename] = true;
-    task.spawn(LPH_JIT_MAX(function()
+    taskspawn(LPH_JIT_MAX(function()
         while task.wait() do
             local toggleon = Toggles[togglename].Value;
             local keyon = Options[keyname]:GetState();
@@ -2368,139 +2369,146 @@ if map then
 end;
 effectsjunk.DescendantAdded:Connect(processPart);
 -- Combat Section
+local KA_INTERVAL = 0.08;
+local lastKATick = 0;
+
 framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
-	if getgenv().killaura and not KADebounce then
-		local weapon, metadata = framework:GetWeapon();
-		local hitboxes = meleehitboxes(metadata);
-		if weapon and metadata then
-			local closest = framework:GetClosest(Classes.KillAuraRange.Value, true);
-			if closest and next(closest) then
-                local threshold = 0.765;
-                local buffer = (1 - threshold) * metadata._itemConfig.cooldown;
-                local now = tick();
-                local last = metadata._lastSlashTick;
-                local onCooldown = (now - last) < (metadata._itemConfig.cooldown - buffer);
-                if not onCooldown then
-                    KADebounce = true;
-                    if not Classes.PlayAnimation.Value then
-                        local slash = mathrandom(1, #metadata._itemConfig.slashMetadata);
-                        network:FireServer("MeleeSwing", weapon, slash);
-                        metadata._lastSlashTick = tick();
-						task.wait(0.1);
-						for i, v in hitboxes do
-							for playername, health in closest do
-								local targetPlayer = players:FindFirstChild(playername);
-								if
-									targetPlayer
-									and targetPlayer.Character
-									and health ~= 0
-									and framework:Check(targetPlayer.Character)
-								then
-									local character = targetPlayer.Character;
-									local hitpart = gethitpart(character);
-									local root = character:FindFirstChild("HumanoidRootPart");
-									local session = framework:GetSessionData(targetPlayer);
+    if not getgenv().killaura or KADebounce then
+        return;
+    end;
+    local now = tick();
+    if now - lastKATick < KA_INTERVAL then
+        return;
+    end;
+    lastKATick = now;
+    local weapon, metadata = framework:GetWeapon();
+    if not weapon or not metadata then
+        return;
+    end;
+    local itemConfig = metadata._itemConfig;
+    local cooldown = itemConfig.cooldown;
+    local threshold = 0.765;
+    local buffer = (1 - threshold) * cooldown;
+    local lastSlash = metadata._lastSlashTick or 0;
+    if (now - lastSlash) < (cooldown - buffer) then
+        return;
+    end;
+    local closest = framework:GetClosest(Classes.KillAuraRange.Value, true);
+    if not closest or not next(closest) then
+        return;
+    end;
+    KADebounce = true;
+    if not Classes.PlayAnimation.Value then
+        local hitboxes = meleehitboxes(metadata);
+        if not hitboxes then
+            KADebounce = false;
+            return;
+        end;
+        local myChar = localplayer.Character;
+        local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart");
+        if not myHRP then
+            KADebounce = false;
+            return;
+        end;
+        local slashIndex = mathrandom(1, #itemConfig.slashMetadata);
+        network:FireServer("MeleeSwing", weapon, slashIndex);
+        metadata._lastSlashTick = now;
+        task.defer(function()
+            for i, hitbox in hitboxes do
+                for playerName, health in closest do
+                    if health == 0 then
+                        continue;
+                    end;
+                    local targetPlayer = players:FindFirstChild(playerName);
+                    if not targetPlayer then
+                        continue;
+                    end;
+                    local character = targetPlayer.Character;
+                    if not character or not framework:Check(character) then
+                        continue;
+                    end;
+                    local session = framework:GetSessionData(targetPlayer);
+                    if not session or session:getState().parry.isParrying then
+                        continue;
+                    end;
+                    local hitpart = gethitpart(character);
+                    if not hitpart then
+                        continue;
+                    end;
+                    network:FireServer(
+                        "MeleeDamage",
+                        weapon,
+                        hitpart,
+                        i,
+                        hitpart.Position,
+                        hitpart.CFrame:ToObjectSpace(CFrame.new(hitpart.Position)),
+                        myHRP.CFrame.LookVector,
+                        Vector3.zero,
+                        Vector3.yAxis,
+                        now - metadata._lastSlashTick
+                    );
+                    if Classes.KillAuraType.Value == "single person" then
+                        break;
+                    end;
+                end;
+                break;
+            end;
+            KADebounce = false;
+        end);
+    else
+        if metadata:getShouldSlash() then
+            metadata._activateSignal:Fire();
+            local anim = metadata.animations.slashes[metadata._currSlashCount];
+            local success, response = pcall(function()
+                return waitUntilTimeout(anim:GetMarkerReachedSignal("startHitDetection"), 2);
+            end);
+            if success
+                and response ~= "Timed out"
+                and response ~= "Wait failed"
+                and response ~= "Signal creation failed" then
+                for i, v in metadata.meleeHitboxes do
+                    v.HitboxStopTime = 1;
+                    for playername, health in closest do
+                        local targetPlayer = players:FindFirstChild(playername);
+                        if targetPlayer
+                            and targetPlayer.Character
+                            and targetPlayer.Character:FindFirstChild("Head")
+                            and health ~= 0
+                            and framework:Check(targetPlayer.Character) then
 
-									if hitpart and root and session and not session:getState().parry.isParrying then
-										local data = metadata._humanoidsAlreadyHit[character];
-										if not data then
-											metadata._humanoidsAlreadyHit[character] = {
-												["hitDetectionStage"] = 0,
-												["amountOfTimesHit"] = 0,
-												["lastHitTick"] = 0,
-											};
-											data = metadata._humanoidsAlreadyHit[character];
-										end;
-
-										local myHRP = metadata._character:FindFirstChild("HumanoidRootPart");
-										if myHRP then
-											network:FireServer(
-												"MeleeDamage",
-												weapon,
-												hitpart,
-												i,
-												hitpart.Position,
-												hitpart.CFrame:ToObjectSpace(
-													cframenew(hitpart.Position)
-												),
-												myHRP.CFrame.LookVector,
-												(hitpart.Position - hitpart.Position).Unit,
-												Vector3.yAxis,
-												tick() - metadata._lastSlashTick
-											);
-										end;
-										data.hitDetectionStage = metadata.hitDetectionStage or 1;
-										data.amountOfTimesHit += 1;
-										data.lastHitTick = tick();
-
-										if Classes.KillAuraType.Value == "single person" then
-											break;
-										end;
-									end;
-								end;
-							end;
-							break;
-						end;
-						KADebounce = false;
-                    else
-                        if metadata:getShouldSlash() then
-							metadata._activateSignal:Fire();
-                            local anim = metadata.animations.slashes[metadata._currSlashCount];
-                            task.spawn(function()
-                                local success, response = pcall(function()
-                                    return waitUntilTimeout(anim:GetMarkerReachedSignal("startHitDetection"), 2);
-                                end);
-                                if
-                                    success
-                                    and response ~= "Timed out"
-                                    and response ~= "Wait failed"
-                                    and response ~= "Signal creation failed"
-                                then
-                                    for i, v in metadata.meleeHitboxes do
-                                        v.HitboxStopTime = 1;
-                                        for playername, health in closest do
-                                            local targetPlayer = players:FindFirstChild(playername);
-                                            if
-                                                targetPlayer
-                                                and targetPlayer.Character
-                                                and targetPlayer.Character:FindFirstChild("Head")
-                                                and health ~= 0
-                                                and framework:Check(targetPlayer.Character)
-                                            then
-                                                if table.find(whitelist, playername) then
-                                                    continue;
-                                                end;
-                                                local character = targetPlayer.Character;
-                                                local data = framework:GetSessionData(targetPlayer);
-                                                if data and not data:getState().parry.isParrying then
-                                                    local head = character:FindFirstChild("Head")
-                                                    local targetHum = character:FindFirstChildOfClass("Humanoid")
-                                                    if head and targetHum then
-                                                        v.OnHit:Fire(head, targetHum, {
-                                                            Distance = 1,
-                                                            Instance = head,
-                                                            Material = Enum.Material.SmoothPlastic,
-                                                            Position = head.Position,
-                                                            Normal = Vector3.yAxis,
-                                                        }, head.Position, head.Position);
-                                                    end;
-                                                    if Classes.KillAuraType.Value == "single person" then
-                                                        break;
-                                                    end;
-                                                end;
-                                            end;
-                                        end;
-                                    end;
+                            if table.find(whitelist, playername) then
+                                continue;
+                            end;
+                            local character = targetPlayer.Character;
+                            local data = framework:GetSessionData(targetPlayer);
+                            if data and not data:getState().parry.isParrying then
+                                local head = character:FindFirstChild("Head");
+                                local targetHum = character:FindFirstChildOfClass("Humanoid");
+                                if head and targetHum then
+                                    v.OnHit:Fire(
+                                        head,
+                                        targetHum,
+                                        {
+                                            Distance = 1,
+                                            Instance = head,
+                                            Material = Enum.Material.SmoothPlastic,
+                                            Position = head.Position,
+                                            Normal = Vector3.yAxis,
+                                        },
+                                        head.Position,
+                                        head.Position
+                                    );
                                 end;
-                            end);
-                            KADebounce = false;
-                        else
-                            KADebounce = false;
+                                if Classes.KillAuraType.Value == "single person" then
+                                    break;
+                                end;
+                            end;
                         end;
                     end;
                 end;
             end;
         end;
+        KADebounce = false;
     end;
 end));
 framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
@@ -2556,7 +2564,7 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
 		end;
 	end;
 end));
-framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
+runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
     if getgenv().fastrespawn then
         if humanoid.Health == 0 then
             network:FireServer("StartFastRespawn");
@@ -2583,6 +2591,8 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
             end);
         end;
     end;
+end));
+framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
     if getgenv().autostompshove then
         local character = localplayer.Character
         local closest = framework:GetClosest(getgenv().stompshoverange, true)
@@ -3318,7 +3328,7 @@ if modules.Name["SoundHandler"] and modules.Name["SoundHandler"].playSound then
                                                     if Weapon and Metadata then
                                                         local parryCount = isRage and 3 or 1
                                                         for _ = 1, parryCount do
-                                                            task.spawn(Parry, Metadata);
+                                                            taskspawn(Parry, Metadata);
                                                         end
                                                     end
                                                 end;
@@ -3413,7 +3423,7 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
                     CanParry = true;
                 end
                 if CanParry then
-                    task.spawn(Parry, metadata);
+                    taskspawn(Parry, metadata);
                 end
             end
         end
@@ -3525,11 +3535,13 @@ do
 	            jpconn = nil;
 	        end;
 	        if enabled then
-	            jpconn = runservice.RenderStepped:Connect(LPH_NO_VIRTUALIZE(function()
-	                if humanoid and getgenv().jumppower then
-	                    humanoid.JumpPower = getgenv().jumppower;
-	                end;
-	            end));
+	            if humanoid then
+	                jpconn = humanoid:GetPropertyChangedSignal("JumpPower"):Connect(function()
+	                    if getgenv().jumppowerenabled then
+	                        humanoid.JumpPower = getgenv().jumppower or 50;
+	                    end
+	                end);
+	            end
 	        else
 	            if humanoid then
 	                humanoid.JumpPower = 50;
@@ -3544,7 +3556,7 @@ do
 	    Tooltip = 'stops all character animations',
 	    Callback = function()
 	        if Toggles.NoAnimations.Value then
-	            task.spawn(LPH_JIT_MAX(function()
+	            taskspawn(LPH_JIT_MAX(function()
 	                while Toggles.NoAnimations.Value do
 	                    if character and humanoid then
 	                        for i, v in humanoid:GetPlayingAnimationTracks() do
@@ -3553,7 +3565,7 @@ do
 	                            end
 	                        end
 	                    end
-	                    runservice.RenderStepped:Wait()
+	                    runservice.Heartbeat:Wait()
 	                end
 	            end))
 	        end
@@ -3922,7 +3934,7 @@ exploit:AddToggle("speedyboi", {
                 animator = Instance.new("Animator");
                 animator.Parent = humanoid;
             end;
-            animcon = runservice.RenderStepped:Connect(LPH_NO_VIRTUALIZE(function()
+            animcon = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
                 local speed = Options.AnimSpeed and Options.AnimSpeed.Value or 5;
                 for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do
                     track:AdjustSpeed(speed);
@@ -4129,7 +4141,7 @@ mmisc:AddToggle("antimod", {
         getgenv().antimod = Value;
         if Value then
             lastcheck = 0;
-            task.spawn(LPH_JIT_MAX(function()
+            taskspawn(LPH_JIT_MAX(function()
                 while getgenv().antimod do
                     if tick() - lastcheck >= 2 then
                         lastcheck = tick();
@@ -4557,7 +4569,7 @@ misc1:AddButton("attempt kill", function()
 		if not rootpart or desyncthreadref then return; end;
 		desync = true;
 		local verticaloffset = 0.1;
-		desyncthreadref = task.spawn(LPH_NO_VIRTUALIZE(function()
+		desyncthreadref = taskspawn(LPH_NO_VIRTUALIZE(function()
 			while desync and rootpart and rootpart.Parent do
 				runservice.Heartbeat:Wait();
 				local prevel = rootpart.AssemblyLinearVelocity;
@@ -4621,7 +4633,7 @@ local heartbeatconn; heartbeatconn = runservice.Heartbeat:Connect(LPH_NO_VIRTUAL
         startjitter(rootToUse);
     end;
 end));
-task.spawn(LPH_NO_VIRTUALIZE(function()
+taskspawn(LPH_NO_VIRTUALIZE(function()
 	while attachactive do
 		if framework:InMenu(localplayer) then break; end;
 		local _, myroot, myhumanoid = getmychar();
@@ -4736,7 +4748,7 @@ local function Jitter(rootPart)
 	end;
 	Desync = true;
 	local verticalOffset = 0.1;
-	desyncThreadRef = task.spawn(LPH_NO_VIRTUALIZE(function()
+	desyncThreadRef = taskspawn(LPH_NO_VIRTUALIZE(function()
 		while Desync and rootPart and rootPart.Parent do
 			runservice.Heartbeat:Wait();
 			local previousVelocity = rootPart.AssemblyLinearVelocity;
@@ -4943,7 +4955,7 @@ auto:AddToggle("loopkilltarget", {
             task.cancel(loopkillthread);
             loopkillthread = nil;
         end
-        loopkillthread = task.spawn(LPH_NO_VIRTUALIZE(function()
+        loopkillthread = taskspawn(LPH_NO_VIRTUALIZE(function()
             while getgenv().loopkilltarget and attachactive do
                 local targetPlayer = SelectedPlayer;
                 local lpChar = localplayer.Character;
@@ -5001,7 +5013,7 @@ auto:AddToggle("loopkillall", {
     Default = false,
     Callback = function(Value)
         getgenv().loopkillall = Value
-        task.spawn(function()
+        taskspawn(function()
             if Value then
                 if framework:InMenu(localplayer) then
                     repeat task.wait() until not framework:InMenu(localplayer)
@@ -5064,7 +5076,7 @@ local function StartKillLoop(character)
 	characterHumanoid.Died:Connect(LPH_NO_VIRTUALIZE(function()
 		isAliveFlag = false;
 	end));
-	task.spawn(LPH_NO_VIRTUALIZE(function()
+	taskspawn(LPH_NO_VIRTUALIZE(function()
 		while isAliveFlag and characterHumanoid.Health > 0 do
 			if not CanKillAll then
 				AttachRoot = nil;
@@ -5108,7 +5120,7 @@ local function StartKillLoop(character)
 				if targetChar:FindFirstChildOfClass("ForceField") then
 					continue;
 				end;
-				task.spawn(LPH_NO_VIRTUALIZE(function()
+				taskspawn(LPH_NO_VIRTUALIZE(function()
 					while
 						isAliveFlag
 						and getgenv().loopkillall
@@ -5251,7 +5263,7 @@ auto:AddToggle("loopflingall", {
 
         task.wait(0.05)
         CanFlingAll = true;
-        FlingThread = task.spawn(LPH_JIT_MAX(function()
+        FlingThread = taskspawn(LPH_JIT_MAX(function()
             while CanFlingAll do
                 if framework:InMenu(localplayer) then
                     repeat task.wait() until not framework:InMenu(localplayer)
@@ -5364,7 +5376,7 @@ auto:AddToggle('SpamBioRepairSound', {
                     child:Destroy()
                 end
             end)
-            task.spawn(LPH_JIT_MAX(function()
+            taskspawn(LPH_JIT_MAX(function()
                 local stomp = { Torso = workspace }
                 while Toggles.SpamBioRepairSound.Value do
                     modules.Name["VFXClient"].runAndReplicateEffect("HealthPen", {
@@ -6858,7 +6870,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 		Distance.ZIndex = 1
 	end
 
-		framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
+		runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
 		local mousePos = userinputservice:GetMouseLocation();
 		local screenCenter = camera.ViewportSize / 2;
         getgenv().serenium_global_rainbow_color = Color3.fromHSV(tick() % 5 / 5, 1, 1)
@@ -6941,7 +6953,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 
 	end));
 
-	framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
+	runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
         local utilEnabled = Classes.UtilityESP.Value
 		for i, v in pairs(UtilityDrawings) do
 			if not v then continue end
@@ -7409,7 +7421,7 @@ local function InitializeVisuals()
 
     -- Weapon Chams Rendering Loop
     local weaponChamsActive = false
-    framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
+    runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
         if Classes.WeaponChamsEnabled and Classes.WeaponChamsEnabled.Value then
             weaponChamsActive = true
             local equippedTool = character and character:FindFirstChildOfClass("Tool")
@@ -8056,7 +8068,6 @@ function HitDetection:ConnectToCaster(caster)
 end
 
 local Camera = workspace.CurrentCamera
-    -- Active Monitor Loop to ensure Casters are connected even if hook misses
     framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
         local char = localplayer.Character
         if not char then return end
@@ -8186,7 +8197,7 @@ do -- Silent Aim
         Debris:AddItem(child, 0.7)
     end)
     local Activeragebot = true;
-	task.spawn(LPH_JIT_MAX(function()
+	taskspawn(LPH_JIT_MAX(function()
 		while task.wait() do
 			if not Activeragebot then
 				break
@@ -8345,7 +8356,7 @@ do -- Silent Aim
 								* cframenew(0, 0, -part.Size.Z / 2)
 							part.Transparency = 0
 							part.Parent = workspace
-							task.spawn(function()
+							taskspawn(function()
 								local fadeTime = 2
 								local steps = 30
 								for i = 1, steps do
@@ -8808,7 +8819,7 @@ local function CreateCharacterVisuals()
         end
     end));
 end
-task.spawn(CreateCharacterVisuals)
+taskspawn(CreateCharacterVisuals)
 
 local function CreateMoreVisuals()
     local fovCircle = drawingnew("Circle")
@@ -8841,7 +8852,7 @@ local function CreateMoreVisuals()
     local lastTool = nil
     local lastChamSettings = { Material = nil, Color = nil, Highlight = nil, HighlightColor = nil }
 
-    runservice.RenderStepped:Connect(LPH_NO_VIRTUALIZE(function(dt)
+    runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function(dt)
         -- Redundant FOV logic removed to prevent conflicts with Unified FOV handling in ESP section.
 
         -- Crosshair
@@ -8903,7 +8914,7 @@ local function CreateMoreVisuals()
         end
     end));
 end
-task.spawn(CreateMoreVisuals)
+taskspawn(CreateMoreVisuals)
 end
 InitializeCombat()
 
