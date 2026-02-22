@@ -1606,7 +1606,7 @@ end
 Players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(ApplyHitbox);
 end)
-taskspawn(LPH_JIT_MAX(function()
+runservice.RenderStepped:Connect(LPH_NO_VIRTUALIZE(function()
     for i = #FakeHitboxes, 1, -1 do
         local v = FakeHitboxes[i]
 
@@ -3535,13 +3535,11 @@ do
 	            jpconn = nil;
 	        end;
 	        if enabled then
-	            if humanoid then
-	                jpconn = humanoid:GetPropertyChangedSignal("JumpPower"):Connect(function()
-	                    if getgenv().jumppowerenabled then
-	                        humanoid.JumpPower = getgenv().jumppower or 50;
-	                    end
-	                end);
-	            end
+	            jpconn = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
+	                if humanoid and getgenv().jumppower then
+	                    humanoid.JumpPower = getgenv().jumppower;
+	                end;
+	            end));
 	        else
 	            if humanoid then
 	                humanoid.JumpPower = 50;
