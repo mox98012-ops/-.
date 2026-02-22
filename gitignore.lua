@@ -951,10 +951,10 @@ function framework:hookclient(Table, Name, NewFunction)
 	return OldHook;
 end;
 function framework:getmetadata(ItemName, ItemId)
-	if not weaponids[ItemName:lower():gsub(" ", "")] then
-		return;
-	end;
-	return ItemName and modules.Name["WeaponMetadata"][weaponids[ItemName:lower():gsub(" ", "")]] or modules.Name["WeaponMetadata"][ItemId];
+	local key = ItemName:lower():gsub(" ", ""):gsub("_","");
+	local id = weaponids[key] or ItemId;
+	if not id then return; end;
+	return modules.Name["WeaponMetadata"][id];
 end;
 function framework:getutility(ItemName, ItemId)
 	if not utilityids[ItemName:lower():gsub(" ", "")] then
@@ -1488,9 +1488,10 @@ local ranged = {};
 for i, v in pairs(modules.Name["WeaponsInOrder"]) do
 	weaponorder[v.id] = v;
 end;
-for i, v in pairs(modules.Name["WeaponIds"]) do
-	if weaponorder[v] and weaponorder[v].class == "ranged" then
-		table.insert(ranged, i);
+for name, id in pairs(modules.Name["WeaponIds"]) do
+	local meta = modules.Name["WeaponMetadata"][id];
+	if meta and meta.class == "ranged" then
+		table.insert(ranged, name);
 	end;
 end;
 for i, v in pairs(ranged) do
@@ -1499,19 +1500,45 @@ for i, v in pairs(ranged) do
 		table.insert(rangedog, { name = v, og = table.clone(m) });
 	end;
 end;
+local function deepmodify(tbl, key, val)
+	if type(tbl) ~= "table" then
+		return;
+	end;
+	if tbl[key] ~= nil then
+		tbl[key] = val;
+	end;
+	for _, v in pairs(tbl) do
+		if type(v) == "table" then
+			deepmodify(v, key, val);
+		end;
+	end;
+end;
 function modifyranged(name, val)
-	for i, v in pairs(rangedog) do
+	for _, v in pairs(rangedog) do
 		local m = framework:getmetadata(v.name) or framework:getutility(v.name);
-		if m[name] then
-			m[name] = val;
+		if m then
+			deepmodify(m, name, val);
+		end;
+	end;
+end;
+local function revert(tbl, original, key)
+	if type(tbl) ~= "table" then
+		return;
+	end;
+	if original[key] ~= nil then
+		tbl[key] = original[key];
+	end;
+	for k, v in pairs(tbl) do
+		if type(v) == "table" and type(original[k]) == "table" then
+			revert(v, original[k], key);
 		end;
 	end;
 end;
 function revertranged(name)
-	for i, v in pairs(rangedog) do
+	for _, v in pairs(rangedog) do
 		local m = framework:getmetadata(v.name) or framework:getutility(v.name);
-		if m[name] then
-			m[name] = v.og[name];
+		if m then
+			revert(m, v.og, name);
 		end;
 	end;
 end;
@@ -7718,8 +7745,6 @@ silentaim:AddToggle("ShowTargetSA", {
 	end;
 });
 
-
-
 -- Gun Mods Section
 gunmods:AddToggle("NoSpread", {
 	Text = "no spread";
@@ -8938,3 +8963,5 @@ if not getgenv().falldamage then
 end;
 end
 InitializeSerenium()
+print(modules.Name["WeaponMetadata"][weaponids["cupidslongbow"]])
+print(weaponorder[weaponids["cupidslongbow"]])
