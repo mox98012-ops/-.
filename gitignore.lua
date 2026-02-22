@@ -2155,6 +2155,7 @@ main:AddToggle("KillAura", {
 silentaim:AddToggle("SilentAim", {
 	Text = "silent aim";
 	Default = false;
+	Tooltip = "use hitbox expander for more accuracy"
 });
 silentaim:AddToggle("stickyaim", {
 	Text = "sticky aim";
