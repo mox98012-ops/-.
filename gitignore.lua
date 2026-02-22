@@ -8963,5 +8963,3 @@ if not getgenv().falldamage then
 end;
 end
 InitializeSerenium()
-print(modules.Name["WeaponMetadata"][weaponids["cupidslongbow"]])
-print(weaponorder[weaponids["cupidslongbow"]])
