@@ -8164,15 +8164,9 @@ do -- Silent Aim
 
                 if cheatedOrigin then
                     currentSilentAimTarget = target.Character
-
-                    local aimPos = hitPart.Position
-                    if Toggles.SilentAimPrediction and Toggles.SilentAimPrediction.Value then
-                        local predictionAmount =
-                            Options.SilentAimPredictionAmount and Options.SilentAimPredictionAmount.Value or 0.13
-                        local targetVelocity =
-                            Classes.Resolver.Value and humanoid.MoveDirection or hitPart.Velocity
-                        aimPos = aimPos + (targetVelocity * predictionAmount)
-                    end
+                    local predictionAmount = 2.6
+                    local targetVelocity = Classes.Resolver.Value and humanoid.MoveDirection or hitPart.Velocity
+                    local aimPos = hitPart.Position + (targetVelocity * predictionAmount)
                     args[1] = CFrame.lookAt(vector3new(), (aimPos - cheatedOrigin).Unit)
                     local oldParams = metadata._mainCasterBehavior.RaycastParams
                     local newParams = RaycastParams.new()
