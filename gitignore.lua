@@ -3,6 +3,7 @@ info = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId);
 if (info.Creator.CreatorType ~= "Group" or info.Creator.CreatorTargetId ~= 5192826 or getgenv().serenium_LOADED) then
 	return;
 end;
+getgenv().serenium_LOADED = true;
 if (not game:GetService("Players").LocalPlayer) then
     repeat task.wait() until game:GetService("Players").LocalPlayer;
 end;
@@ -25,9 +26,8 @@ end);
 game:GetService("Players").LocalPlayer:WaitForChild("CharacterLoaded");
 game:GetService("Players").LocalPlayer:WaitForChild("DataLoadedClient");
 game:GetService("Players").LocalPlayer:WaitForChild("DataLoaded");
-getgenv().serenium_LOADED = true;
 if not LPH_OBFUSCATED then
-    getgenv().LPH_NO_VIRTUALIZE = function(f) return f end
+    getgenv().LPH_JIT_MAX = function(f) return f end
     getgenv().LPH_JIT = function(f) return f end
     getgenv().LPH_JIT_MAX = function(f) return f end
     getgenv().LPH_NO_UPVALUES = function(f) return f end
@@ -181,8 +181,8 @@ local runservice = game:GetService("RunService");
 local repstorage = game:GetService("ReplicatedStorage");
 local userinputservice = cloneref(game:GetService("UserInputService"));
 local httpservice = game:GetService("HttpService");
-local localplayer = game:GetService("Players").LocalPlayer;
 local players = game:GetService("Players");
+local localplayer = players.LocalPlayer;
 local character = localplayer.Character or localplayer.CharacterAdded:Wait();
 local humanoidrootpart = character:WaitForChild("HumanoidRootPart");
 local humanoid = character:WaitForChild("Humanoid");
@@ -280,15 +280,15 @@ getgenv().teleport = function(CFrame)
 	game:GetService("TweenService"):Create(humanoidrootpart,TweenInfo.new(0),{ CFrame = CFrame }):Play();
 end;
 local function whitelisted(player)
-	if not player then return false end
+	if not player then return false; end;
 	if table.find(whitelist, player.Name) then
-		return true
-	end
+		return true;
+	end;
 	if Toggles and Toggles.WhitelistFriends and Toggles.WhitelistFriends.Value and getgenv().whitelistfriends then
-		return localplayer:IsFriendsWith(player.UserId)
-	end
-	return false
-end
+		return localplayer:IsFriendsWith(player.UserId);
+	end;
+	return false;
+end;
 -- void hide
 loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/serverpos/refs/heads/main/library.lua"))(); -- doing loadstring because it is extremely annoying to escape local register errors
 local function targetcframe(cf)
@@ -298,13 +298,13 @@ local function targetcframe(cf)
     local z = basepos.Z;
     return cframenew(x, y, z);
 end;
-serverposition("heartbeat", "voidhidelogic", LPH_NO_VIRTUALIZE(function(cf)
+serverposition("heartbeat", "voidhidelogic", LPH_JIT_MAX(function(cf)
     if getgenv().voidenabled then
         return targetcframe(cf);
     end;
 end), 15);
 setrunning("voidhidelogic", true);
-runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
+runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
     local hum = localplayer.Character and localplayer.Character:FindFirstChild("Humanoid");
     if hum and getgenv().voidenabled then
         hum:ChangeState(Enum.HumanoidStateType.Freefall);
@@ -328,7 +328,7 @@ userinputservice.InputEnded:Connect(function(input, gpe)
     local n = input.KeyCode.Name:lower();
     if keys[n] ~= nil then keys[n] = false; end;
 end);
-runservice.Heartbeat:Connect(newcclosure(LPH_NO_VIRTUALIZE(function(dt)
+runservice.Heartbeat:Connect(newcclosure(LPH_JIT_MAX(function(dt)
     if getgenv().flyenabled ~= flying then
         flying = getgenv().flyenabled;
         if flying then
@@ -379,7 +379,7 @@ runservice.Heartbeat:Connect(newcclosure(LPH_NO_VIRTUALIZE(function(dt)
 end)));
 
 -- velocity
-runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
+runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
     local velocity = humanoidrootpart.AssemblyLinearVelocity;
     if getgenv().velocityenabled and getgenv().velocityspeed then
         local moveDir = humanoid.MoveDirection;
@@ -427,7 +427,7 @@ taskspawn(LPH_JIT_MAX(function()
 	end;
 end));
 -- noclip
-runservice.Stepped:Connect(LPH_NO_VIRTUALIZE(function()
+runservice.Stepped:Connect(LPH_JIT_MAX(function()
     if not getgenv().noclipenabled then return; end;
     if not character then return; end;
     for _, v in ipairs(character:GetDescendants()) do
@@ -453,7 +453,7 @@ local HitDetectionImpl = {
     YOffset = 0,
     LastCloneTime = 0
 };
-HitDetectionImpl.CreateLog = LPH_NO_VIRTUALIZE(function(text)
+HitDetectionImpl.CreateLog = LPH_JIT_MAX(function(text)
     local screen = workspace.CurrentCamera.ViewportSize
     local prefixBase = "serenium"
     local prefixHvh = ".hvh"
@@ -563,7 +563,7 @@ HitDetectionImpl.PlaySound = function(soundName, volume)
     sound:Play();
     sound.Ended:Connect(function() sound:Destroy(); end);
 end;
-HitDetectionImpl.CreateEffect = LPH_NO_VIRTUALIZE(function(effectType, part, color, damage)
+HitDetectionImpl.CreateEffect = LPH_JIT_MAX(function(effectType, part, color, damage)
     if not part or not part.Position or part.Name == "FakeHitbox" then return end
     local mainColor = color or Color3.new(1, 1, 1)
 
@@ -799,67 +799,65 @@ HitDetectionImpl.CreateEffect = LPH_NO_VIRTUALIZE(function(effectType, part, col
     end;
 end);
 local LastHits = {}
-local OnHit = LPH_NO_VIRTUALIZE(function(targetPlayer, hitPart, damage, hitType)
+local OnHit = LPH_JIT_MAX(function(targetPlayer, hitPart, damage, hitType)
     if not targetPlayer then return end
-    
-    -- Smart Part Resolver: Detect FakeHitbox and find real part for logs/effects
-    if hitPart and hitPart.Name == "FakeHitbox" then
-        hitPart = hitPart.Parent:FindFirstChild("Head") or hitPart.Parent:FindFirstChild("Torso") or hitPart.Parent:FindFirstChild("HumanoidRootPart") or hitPart
+    if not Toggles or not Toggles.HitDetectionEnabled or not Toggles.HitDetectionEnabled.Value then
+        return
+    end
+    local wantedType = Options.HitDetectionType and Options.HitDetectionType.Value or "Both"
+    if wantedType ~= "Both" and hitType and wantedType ~= hitType then
+        return
+    end
+    if hitPart and hitPart.Name == "FakeHitbox" and hitPart.Parent then
+        hitPart =
+            hitPart.Parent:FindFirstChild("Head")
+            or hitPart.Parent:FindFirstChild("Torso")
     end
     local now = tick()
-    local hitId = tostring(targetPlayer.UserId) -- Debounce per character to prevent double hits on FakeHitbox + Real Parts
-    if LastHits[hitId] and now - LastHits[hitId] < 0.15 then return end
+    local hitId = tostring(targetPlayer.UserId)
+    if LastHits[hitId] and now - LastHits[hitId] < 0.12 then
+        return
+    end
     LastHits[hitId] = now
-
-    if not Toggles or not Toggles.HitDetectionEnabled or not Toggles.HitDetectionEnabled.Value then return end;
-    
-    local wantedType = Options.HitDetectionType and Options.HitDetectionType.Value or "Both";
-    if wantedType ~= "Both" and hitType and wantedType ~= hitType then return end;
-
-    -- Helper to trigger effects
     local function triggerEffects()
-        if Options.HitSound and Options.HitSound.Value ~= "None" then 
-            local volume = Options.HitSoundVolume and Options.HitSoundVolume.Value or 1;
-            HitDetectionImpl.PlaySound(Options.HitSound.Value, volume);
-        end;
-        if Options.HitEffects and Options.HitEffects.Value then 
-            local color = Options.HitEffectColor and Options.HitEffectColor.Value or Color3.new(1, 1, 1);
-            for effectType, enabled in pairs(Options.HitEffects.Value) do 
-                if enabled then 
-                    taskspawn(function()
-                        HitDetectionImpl.CreateEffect(effectType, hitPart, color, damage)
-                    end)
-                end;
-            end;
-        end;
-        if Toggles.HitLogs and Toggles.HitLogs.Value then
-            local headshot = hitPart and hitPart.Name == "Head"
-            local displayDamage = damage
-            -- Apply headshot multiplier for display if not already applied
-            if headshot and displayDamage > 0 then
-                displayDamage = displayDamage * 1.75
-            end
-            local dmgText = string.format("%.0f", displayDamage)
-            HitDetectionImpl.CreateLog("serenium.hvh | hit " .. targetPlayer.Name .. " for " .. dmgText .. " damage (" .. (headshot and "head" or hitPart.Name) .. ")")
-        end;
-    end
+        if Options.HitSound and Options.HitSound.Value ~= "None" then
+            local volume = Options.HitSoundVolume and Options.HitSoundVolume.Value or 1
+            HitDetectionImpl.PlaySound(Options.HitSound.Value, volume)
+        end
 
-    -- Damage Verification: Wait for Health to drop
-    local humanoid = targetPlayer.Character and targetPlayer.Character:FindFirstChild("Humanoid")
-    if humanoid then
-        local oldHp = humanoid.Health
-        taskspawn(function()
-            local start = tick()
-            while tick() - start < 0.6 do -- Wait up to 600ms for damage to replicate
-                 game:GetService("RunService").RenderStepped:Wait()
-                 if humanoid.Health < oldHp - 0.1 then
-                     triggerEffects()
-                     return
-                 end
+        if Options.HitEffects and Options.HitEffects.Value and hitPart then
+            local color = Options.HitEffectColor and Options.HitEffectColor.Value or Color3.new(1,1,1)
+
+            for effectType, enabled in pairs(Options.HitEffects.Value) do
+                if enabled then
+                    task.spawn(function()
+                        if hitPart and hitPart.Parent then
+                            HitDetectionImpl.CreateEffect(effectType, hitPart, color, damage)
+                        end
+                    end)
+                end
             end
-        end);
+        end
+        if Toggles.HitLogs and Toggles.HitLogs.Value then
+            local partName = hitPart and hitPart.Name or "Unknown"
+            local headshot = partName == "Head"
+            local displayDamage = damage or 0
+
+            local dmgText = string.format("%.0f", displayDamage)
+
+            HitDetectionImpl.CreateLog(
+                "serenium.hvh | hit "
+                .. targetPlayer.Name
+                .. " for "
+                .. dmgText
+                .. " damage ("
+                .. (headshot and "head" or partName)
+                .. ")"
+            )
+        end
     end
-end);
+    triggerEffects()
+end)
 
 -- game exploit setup
 modules = { Name = {}, Id = {} };
@@ -892,7 +890,7 @@ local hooks = {};
 local modify = {};
 local signal = modules.Name["Signal"];
 local onfireserver = network.FireServer;
-handle = LPH_NO_VIRTUALIZE(function(_, Name, ...)
+handle = LPH_JIT_MAX(function(_, Name, ...)
 	local Args = { ... };
 	if modify[Name] then
 		local shouldhook = modify[Name].Check(Name, unpack(Args));
@@ -916,11 +914,11 @@ handle = LPH_NO_VIRTUALIZE(function(_, Name, ...)
 	end;
 	return onfireserver(_, Name, unpack(Args));
 end);
-network.fireserver = function(_, Name, ...)
+network.FireServer = function(_, Name, ...)
 	return handle(_, Name, ...);
 end;
 function framework:addhook(Name, Function)
-	hooks[Name] = LPH_NO_VIRTUALIZE(Function);
+	hooks[Name] = LPH_JIT_MAX(Function);
 end;
 function framework:argmodify(Name, ToModify, Check)
 	modify[Name] = { Args = { ToModify }, Check = Check }
@@ -1018,24 +1016,24 @@ function framework:InMenu(Player)
 	end
 	return IsMenu
 end
-local cachedplayers = {}
-local function updatecached()
-	cachedplayers = {};
-	for _, v in pairs(players:GetPlayers()) do
-		if v ~= localplayer then
-			table.insert(cachedplayers, v);
-		end;
-	end;
-end;
-updatecached()
-players.PlayerAdded:Connect(function()
-	updatecached();
-end);
-players.PlayerRemoving:Connect(function()
-	updatecached();
-end);
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+cachedplayers = {}
+local function updateCached()
+    for i = #cachedplayers, 1, -1 do
+        cachedplayers[i] = nil
+    end
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= localPlayer then
+            table.insert(cachedplayers, player)
+        end
+    end
+end
+Players.PlayerAdded:Connect(updateCached)
+Players.PlayerRemoving:Connect(updateCached)
+updateCached()
 function framework:GetClosest(Distance, Priority, CheckFunction)
-    local n = LPH_NO_VIRTUALIZE(function(Player)
+    local n = LPH_JIT_MAX(function(Player)
         if 
             Player.Character
             and Player.Character:FindFirstChild("HumanoidRootPart")
@@ -1095,7 +1093,7 @@ function framework:GetClosest(Distance, Priority, CheckFunction)
 end;
 
 function framework:GetClosest2(Distance, CheckFunction)
-    local n = LPH_NO_VIRTUALIZE(function(Player)
+    local n = LPH_JIT_MAX(function(Player)
 		if
 			Player.Character
 			and Player.Character:FindFirstChild("HumanoidRootPart")
@@ -1143,7 +1141,7 @@ function framework:GetClosest2(Distance, CheckFunction)
 end;
 
 function framework:GetClosestToMouse(Distance, Priority, CheckFunction, MaxDist3D)
-	local n = LPH_NO_VIRTUALIZE(function(Player)
+	local n = LPH_JIT_MAX(function(Player)
 		if
 			Player.Character
 			and Player.Character:FindFirstChild("HumanoidRootPart")
@@ -1390,7 +1388,7 @@ function framework:BindToRenderStep(toBind, delayTime, priority)
 		name,
 		(priority and priority or Enum.RenderPriority.First).Value,
 		delayTime
-			and LPH_NO_VIRTUALIZE(function()
+			and LPH_JIT_MAX(function()
 				if isDelayed then
 					return;
 				end;
@@ -1422,7 +1420,7 @@ function framework:InMenu(Player)
 	end;
 	return IsMenu;
 end;
-framework.Check = LPH_NO_VIRTUALIZE(function(self, Character)
+framework.Check = LPH_JIT_MAX(function(self, Character)
 	local success, result = pcall(function()
 		if not Character or table.find(ParryingCharacters, Character) then
 			return false;
@@ -1550,10 +1548,20 @@ end;
 -- stamina
 local applied = false;
 local appliedmultiplier = nil;
-runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
-    local stamina = modules.Name.DefaultStaminaHandlerClient.getDefaultStamina();
+local originalRegen = nil;
+local originalDelay = nil;
+runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
+    local stamina = modules.Name["DefaultStaminaHandlerClient"].getDefaultStamina();
     if not stamina then return; end;
-    if not getgenv().infstamina then
+    if not originalRegen then
+        originalRegen = stamina.gainPerSecond;
+    end;
+    if not originalDelay then
+        originalDelay = stamina.gainDelay;
+    end;
+    if not getgenv().stamenabled then
+        stamina.gainPerSecond = originalRegen;
+        stamina.gainDelay = originalDelay;
         if applied and appliedmultiplier then
             stamina:removeMaxStaminaMultiplier(appliedmultiplier);
             stamina:setStamina(stamina:getMaxStamina());
@@ -1562,15 +1570,33 @@ runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
         end;
         return;
     end;
-    if not applied then
-        local constants = modules.Name.DefaultStaminaConstants;
-        local defaultMax = constants.MAX_STAMINA;
-        local multiplier = 1e6 / defaultMax;
-        stamina:addMaxStaminaMultiplier(multiplier);
-        appliedmultiplier = multiplier;
-        applied = true;
+    if getgenv().infstamina then
+        if not applied then
+            local defaultMax = stamina._baseMaxStamina;
+            local multiplier = 1e6 / defaultMax;
+            stamina:addMaxStaminaMultiplier(multiplier);
+            appliedmultiplier = multiplier;
+            applied = true;
+        end;
+        stamina:setStamina(stamina:getMaxStamina());
+    else
+        if applied and appliedmultiplier then
+            stamina:removeMaxStaminaMultiplier(appliedmultiplier);
+            stamina:setStamina(stamina:getMaxStamina());
+            applied = false;
+            appliedmultiplier = nil;
+        end;
     end;
-    stamina:setStamina(stamina:getMaxStamina());
+    if getgenv().stamregentoggle then
+        stamina.gainPerSecond = getgenv().stamregenrate or originalRegen;
+    else
+        stamina.gainPerSecond = originalRegen;
+    end;
+    if getgenv().stamdelaystate then
+        stamina.gainDelay = getgenv().stamindelayamount or originalDelay;
+    else
+        stamina.gainDelay = originalDelay;
+    end;
 end));
 
 -- major toggles
@@ -1593,9 +1619,9 @@ local R6BodyParts = {
     "Head", "Torso",
     "Left Arm", "Right Arm",
     "Left Leg", "Right Leg",
-}
+	"Random";
+};
 local function ApplyHitbox(Character)
-    
     if Character:FindFirstChild("FakeHitbox") then return end
     local FakeHitbox = Instance.new("Part")
     FakeHitbox.Size = vector3new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize)
@@ -1621,7 +1647,7 @@ for _, v in PlayerCharacters:GetChildren() do
         ApplyHitbox(v)
     end
 end
-for _, player in Players:GetPlayers() do
+for _, player in cachedplayers do
     if player ~= localplayer then
         if player.Character then
             ApplyHitbox(player.Character)
@@ -1633,7 +1659,7 @@ end
 Players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(ApplyHitbox);
 end)
-runservice.RenderStepped:Connect(LPH_NO_VIRTUALIZE(function()
+runservice.RenderStepped:Connect(LPH_JIT_MAX(function()
     for i = #FakeHitboxes, 1, -1 do
         local v = FakeHitboxes[i]
 
@@ -1666,7 +1692,7 @@ end));
 if modules.Name["RangedHitVisuals"] and modules.Name["RangedHitVisuals"].defaultHit then
     local old = modules.Name["RangedHitVisuals"].defaultHit
     
-    modules.Name["RangedHitVisuals"].defaultHit = LPH_NO_VIRTUALIZE(function(player, tool, cfg, hitpart, hitcf, normal, material, cosmetic)
+    modules.Name["RangedHitVisuals"].defaultHit = LPH_JIT_MAX(function(player, tool, cfg, hitpart, hitcf, normal, material, cosmetic)
         local newHitCf = hitcf
         
         if Config.HitboxExpand and hitpart and hitpart.Name == "FakeHitbox" then
@@ -1694,7 +1720,7 @@ if modules.Name["RangedHitVisuals"] and modules.Name["RangedHitVisuals"].default
     end);
 end
 if modules.Name["RangedWeaponClient"] and modules.Name["RangedWeaponClient"].updateIgnoreList then
-    modules.Name["RangedWeaponClient"].updateIgnoreList = LPH_NO_VIRTUALIZE(function(rangedData)
+    modules.Name["RangedWeaponClient"].updateIgnoreList = LPH_JIT_MAX(function(rangedData)
         if tick() - (rangedData._lastIgnoreListUpdateTick or 0) < 5 then
             return rangedData._ignoreList
         end
@@ -1713,93 +1739,7 @@ if modules.Name["RangedWeaponClient"] and modules.Name["RangedWeaponClient"].upd
         rangedData._ignoreList = tagged
         return tagged
     end);
-end
-if network and network.FireServer then
-	local OldFireServer = network.FireServer
-	
-	network.FireServer = LPH_NO_VIRTUALIZE(function(self, remoteName, ...)
-		local args = {...}
-		
-		if remoteName == "MeleeDamage" then
-			if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
-				local part = args[2].Parent:FindFirstChild(
-					Config.HBEPart == "Random" and R6BodyParts[mathrandom(1, #R6BodyParts)] or Config.HBEPart
-				) or args[2].Parent:FindFirstChild("Torso")
-				
-				if part then
-					args[2] = part
-					args[5] = cframenew(
-						(mathrandom() * mathrandom(-1, 1)) * (part.Size.X / 2),
-						(mathrandom() * mathrandom(-1, 1)) * (part.Size.Y / 2),
-						(mathrandom() * mathrandom(-1, 1)) * (part.Size.Z / 2)
-					)
-				end
-			end
-		end
-		
-		if remoteName == "MeleeFinish" then
-			if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
-				local part = args[2].Parent:FindFirstChild(
-					Config.HBEPart == "Random" and R6BodyParts[mathrandom(1, #R6BodyParts)] or Config.HBEPart
-				) or args[2].Parent:FindFirstChild("Torso")
-				
-				if part then
-					args[2] = part
-				end
-			end
-		end
-		if remoteName == "RangedHit" then
-			if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
-				local part = args[2].Parent:FindFirstChild(
-					Config.HBEPart == "Random" and R6BodyParts[mathrandom(1, #R6BodyParts)] or Config.HBEPart
-				) or args[2].Parent:FindFirstChild("Torso")
-				
-				if part then
-					args[2] = part
-					args[4] = part.Position
-					args[5] = cframeangles(args[5]:ToEulerAnglesYXZ()) * cframenew(
-						(mathrandom() * mathrandom(-1, 1)) * (part.Size.X / 2),
-						(mathrandom() * mathrandom(-1, 1)) * (part.Size.Y / 2),
-						(mathrandom() * mathrandom(-1, 1)) * (part.Size.Z / 2)
-					)
-				end
-			end
-			
-			if getgenv().AlwaysHead and args[2] and args[2].Parent then
-				local head = args[2].Parent:FindFirstChild("Head")
-				if head then
-					args[2] = head
-				end
-			end
-		end
-		if remoteName == "RangedExplode" then
-			if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
-				local part = args[2].Parent:FindFirstChild(
-					Config.HBEPart == "Random" and R6BodyParts[mathrandom(1, #R6BodyParts)] or Config.HBEPart
-				) or args[2].Parent:FindFirstChild("Torso")
-				
-				if part then
-					args[2] = part
-					args[4] = part.Position
-					args[5] = cframeangles(args[5]:ToEulerAnglesYXZ()) * cframenew(
-						(mathrandom() * mathrandom(-1, 1)) * (part.Size.X / 2),
-						(mathrandom() * mathrandom(-1, 1)) * (part.Size.Y / 2),
-						(mathrandom() * mathrandom(-1, 1)) * (part.Size.Z / 2)
-					)
-				end
-			end
-			
-			if getgenv().AlwaysHead and args[2].Parent then
-				local head = args[2].Parent:FindFirstChild("Head")
-				if head then
-					args[2] = head
-				end
-			end
-		end
-		
-		return OldFireServer(self, remoteName, unpack(args))
-	end);
-end
+end;
 local spin = Instance.new("Animation");
 spin.AnimationId = "rbxassetid://188632011";
 local Loaded = {};
@@ -1819,22 +1759,6 @@ function framework:SpinLoop()
 	end;
 end;
 -- Public API
-getgenv().FakeHitbox = {
-    Toggle     = function() Config.HitboxExpand = not Config.HitboxExpand return Config.HitboxExpand end,
-    Enable     = function() Config.HitboxExpand = true end,
-    Disable    = function() Config.HitboxExpand = false end,
-    
-    SetSize    = function(v) Config.HitboxSize   = math.clamp(tonumber(v) or 20, 1, 50) end,
-    SetVisible = function(v) Config.ShowHitbox   = v and true or false end,
-    SetColor   = function(c) if typeof(c) == "Color3" then Config.HitboxColor = c end end,
-    SetPart    = function(p) Config.HBEPart      = tostring(p) end,
-    
-    Wallbang   = function(v) Config.Wallbang     = v and true or false end,
-    AlwaysHead = function(v) getgenv().AlwaysHead   = v and true or false end,
-    
-    GetConfig  = function() return table.clone(Config) end,
-    GetHitboxes = function() return FakeHitboxes end,
-}
 mmisc:AddToggle("Killsay", {
     Text = "killsay";
     Default = false;
@@ -1851,7 +1775,7 @@ do
             return;
         end;
         old[modulename .. "_" .. funcname] = mod[funcname];
-        mod[funcname] = LPH_NO_VIRTUALIZE(function(...)
+        mod[funcname] = LPH_JIT_MAX(function(...)
             return newfunc(old[modulename .. "_" .. funcname], ...);
         end);
     end;
@@ -1879,6 +1803,81 @@ do
 		end;
 		return oldfunc(...);
 	end);
+    framework:argmodify("MeleeDamage", {}, function(n,...)
+        local args = {...}
+        if getgenv().AntiParry and not framework:Check(args[2].Parent) then
+            return {[1] = nil}
+        end
+        if Config.HitboxExpand and args[2].Name == "FakeHitbox" then
+            local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math.random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
+            if part then
+                return {[2] = part, [5] = CFrame.new(
+                    (math.random() * math.random(-1, 1)) * (part.Size.X / 2), 
+                    (math.random() * math.random(-1, 1)) * (part.Size.Y / 2), 
+                    (math.random() * math.random(-1, 1)) * (part.Size.Z / 2)
+                )}
+            end
+        end
+        return
+    end)
+    framework:argmodify("MeleeFinish", {}, function(n,...)
+        local args = {...}
+        if Config.HitboxExpand and args[2].Name == "FakeHitbox" then
+            local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math.random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
+            if part then
+                return {[2] = part}
+            end
+        end
+        return
+    end)
+    framework:argmodify("RangedHit",{},function(n,...)
+        local args = {...}
+        if Config.HitboxExpand and args[2].Name == "FakeHitbox" then
+            local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math.random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
+            if part then
+                return {
+                    [2] = part,
+                    [4] = part.Position,
+                    [5] = --part.CFrame:ToObjectSpace(
+                        CFrame.Angles(args[5]:ToEulerAnglesYXZ())
+                        * CFrame.new(
+                            (math.random() * math.random(-1, 1)) * (part.Size.X / 2), 
+                            (math.random() * math.random(-1, 1)) * (part.Size.Y / 2), 
+                            (math.random() * math.random(-1, 1)) * (part.Size.Z / 2)
+                        )
+                    --)
+                }
+            end
+        end
+        if getgenv().AlwaysHead then
+            return {[2] = args[2].Parent:FindFirstChild("Head")}
+        end
+        return
+    end)
+    framework:argmodify("RangedExplode",{},function(n,...)
+        local args = {...}
+        if Config.HitboxExpand and args[2].Name == "FakeHitbox" then
+            local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math.random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
+            if part then
+                return {
+                    [2] = part,
+                    [4] = part.Position,
+                    [5] = --part.CFrame:ToObjectSpace(
+                        CFrame.Angles(args[5]:ToEulerAnglesYXZ())
+                        * CFrame.new(
+                            (math.random() * math.random(-1, 1)) * (part.Size.X / 2), 
+                            (math.random() * math.random(-1, 1)) * (part.Size.Y / 2), 
+                            (math.random() * math.random(-1, 1)) * (part.Size.Z / 2)
+                        )
+                    --)
+                }
+            end
+        end
+        if getgenv().AlwaysHead then
+            return {[2] = args[2].Parent:FindFirstChild("Head")}
+        end
+        return
+    end)
 	local CanFireStartFallDamage = true;
 	framework:argmodify("StartFallDamage", {}, function(n, ...)
 		if not checkcaller() and not CanFireStartFallDamage then
@@ -2087,7 +2086,7 @@ do
 		return olddispatch(table, sigma, ...);
 	end;
 end;
-local connection; connection = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function(dt)
+local connection; connection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
     if not getgenv().spinenabled then return; end;
     if not humanoidrootpart then return; end;
     local radians = math.rad(getgenv().spinspeed) * dt * 60;
@@ -2311,7 +2310,7 @@ local function waitUntilTimeout(signal, timeout)
     if timedOut then return "Timed out" end
 	return unpack(result);
 end;
-gethitpart = LPH_NO_VIRTUALIZE(function(character)
+gethitpart = LPH_JIT_MAX(function(character)
 	local head = character:FindFirstChild("Head");
 	if head then
 		return head;
@@ -2321,7 +2320,7 @@ gethitpart = LPH_NO_VIRTUALIZE(function(character)
 		return hrp;
 	end;
 end);
-meleehitboxes = LPH_NO_VIRTUALIZE(function(metadata)
+meleehitboxes = LPH_JIT_MAX(function(metadata)
     if not metadata then return nil; end;
     local success, result;
     local retries = 0;
@@ -2369,7 +2368,7 @@ function shouldDisable(part)
     end
     return false
 end
-processPart = LPH_NO_VIRTUALIZE(function(part)
+processPart = LPH_JIT_MAX(function(part)
 	if getgenv().nut then
 		if not part:IsA("BasePart") then return end
 		if processed[part] then return end
@@ -2400,7 +2399,7 @@ effectsjunk.DescendantAdded:Connect(processPart);
 local KA_INTERVAL = 0.08;
 local lastKATick = 0;
 
-framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
+framework:BindToRenderStep(LPH_JIT_MAX(function()
     if not getgenv().killaura or KADebounce then
         return;
     end;
@@ -2475,6 +2474,13 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
                         Vector3.yAxis,
                         now - metadata._lastSlashTick
                     );
+					local baseDamage = itemConfig.damage or itemConfig.baseDamage or 0
+					local finalDamage = baseDamage
+					if hitpart and hitpart.Name == "Head" then
+    					local mult = itemConfig.headshotMultiplier or 1.75
+    					finalDamage = finalDamage * mult
+					end
+					OnHit(targetPlayer, hitpart, finalDamage, "Melee")
                     if Classes.KillAuraType.Value == "single person" then
                         break;
                     end;
@@ -2526,6 +2532,13 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
                                         head.Position,
                                         head.Position
                                     );
+									local baseDamage = itemConfig.damage or itemConfig.baseDamage or 0
+									local finalDamage = baseDamage
+									if head.Name == "Head" then
+    									local mult = itemConfig.headshotMultiplier or 1.75
+    									finalDamage = finalDamage * mult
+									end
+									OnHit(targetPlayer, head, finalDamage, "Melee")
                                 end;
                                 if Classes.KillAuraType.Value == "single person" then
                                     break;
@@ -2539,7 +2552,7 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
         KADebounce = false;
     end;
 end));
-framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
+framework:BindToRenderStep(LPH_JIT_MAX(function()
 	if not weapon and getgenv().autoequip then
 		local Character = localplayer.Character;
 		for _, v in pairs(localplayer.Backpack:GetChildren()) do
@@ -2592,23 +2605,37 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
 		end;
 	end;
 end));
-runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
-    if getgenv().fastrespawn then
-        if humanoid.Health == 0 then
-            network:FireServer("StartFastRespawn");
-            network:InvokeServer("CompleteFastRespawn");
-        end;
-    end;
+lastFastRespawn = 0
+lastLoopSpawn = 0
+lastAR = 0
+FASTRESPAWN_DELAY = 0.5
+LOOPSPAWN_DELAY = 1
+AR_DELAY = 0.5
+runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
+    local now = tick()
+    if getgenv().fastrespawn and humanoid.Health == 0 then
+        if now - lastFastRespawn >= FASTRESPAWN_DELAY then
+            lastFastRespawn = now
+            network:FireServer("StartFastRespawn")
+            network:InvokeServer("CompleteFastRespawn")
+        end
+    end
     if getgenv().loopspawn and framework:InMenu(localplayer) then
-        network:InvokeServer("SpawnCharacter", true);
-    end;
+        if now - lastLoopSpawn >= LOOPSPAWN_DELAY then
+            lastLoopSpawn = now
+            network:InvokeServer("SpawnCharacter")
+        end
+    end
     if getgenv().ar then
         local store = modules.Name["DataHandler"].getSessionDataRoduxStoreForPlayer(LocalPlayer)
         if store and store:getState().down.isDowned then
-            network:FireServer("SelfReviveStart");
-            network:FireServer("SelfRevive");
-        end;
-    end;
+            if now - lastAR >= AR_DELAY then
+                lastAR = now
+                network:FireServer("SelfReviveStart")
+                network:FireServer("SelfRevive")
+            end
+        end
+    end
     local weapon, metadata = framework:GetWeapon();
     if weapon and metadata then
         if getgenv().fakeswing and not Debounce then
@@ -2620,7 +2647,7 @@ runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
         end;
     end;
 end));
-framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
+framework:BindToRenderStep(LPH_JIT_MAX(function()
     if getgenv().autostompshove then
         local character = localplayer.Character
         local closest = framework:GetClosest(getgenv().stompshoverange, true)
@@ -2687,7 +2714,7 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
         end
     end
 end), nil, Enum.RenderPriority.Character);
-local StartSnowveilEffect = LPH_NO_VIRTUALIZE(function()
+local StartSnowveilEffect = LPH_JIT_MAX(function()
     if SnowveilActive then return end
     
     local char = localplayer.Character
@@ -2732,7 +2759,7 @@ local StartSnowveilEffect = LPH_NO_VIRTUALIZE(function()
         npc.Parent = workspace
         
         local noclipConn
-        noclipConn = runservice.Stepped:Connect(LPH_NO_VIRTUALIZE(function()
+        noclipConn = runservice.Stepped:Connect(LPH_JIT_MAX(function()
             if not SnowveilActive then noclipConn:Disconnect() return end
             if npc then
                 for _, v in pairs(npc:GetDescendants()) do
@@ -2848,7 +2875,7 @@ local orbitCF = cframenew();
 local Connection;
 local StickTarget;
 CurrentTarget = nil;
-Connection = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function(dt)
+Connection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
 	if not Active then
 		return;
 	end;
@@ -2856,48 +2883,64 @@ Connection = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function(dt)
 	angle = (angle + dt * tpSpeedVal) % (2 * math.pi);
 	orbitCF = cframenew(mathcos(angle) * Classes.TPRange.Value, 0, math.sin(angle) * Classes.TPRange.Value);
 end));
-serverposition("heartbeat", "CombatTeleport", LPH_NO_VIRTUALIZE(function(realCF)
-	if getgenv().voidenabled then return end
+serverposition("heartbeat", "CombatTeleport", function(realCF)
+	if getgenv().voidhivoidenabledde then return end
 	local Character = localplayer.Character
 	if not Character then return end
 	local hrp = Character:FindFirstChild("HumanoidRootPart")
 	if not hrp then return end
 	local target = CurrentTarget
-	if not target or not target.Character then return end
-	local targetHRP = target.Character:FindFirstChild("HumanoidRootPart")
+	if not target then return end
+	local targetChar = target.Character
+	if not targetChar then return end
+	local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")
 	if not targetHRP then return end
 	if not getgenv().tpenemy then return end
-	local targetVel = targetHRP.Velocity or vector3new()
-	local multiplier = getgenv().multiplier or 0.15
-	local base = getgenv().base or 0
-	local predictedCF = targetHRP.CFrame + targetVel * multiplier + vector3new(0, base, 0)
+	local targetVel = targetHRP.Velocity or Vector3.new()
+	local multiplier = 0
+	local base = 0
+	local predictedCF = targetHRP.CFrame
 	sethiddenproperty(hrp, "PhysicsRepRootPart", targetHRP)
-	local tpSpeedVal = (Classes.TPSpeed and Classes.TPSpeed.Value) or (getgenv().tpspeed) or 10;
-	local Type = Classes.TPType.Value
+	local tpSpeedVal = (Options.TPSpeed and Options.TPSpeed.Value) or getgenv().tpspeed or 10
+	local Type = Options.TPType.Value
+	local look = -targetHRP.CFrame.LookVector
+	local range = Options.TPRange.Value
 	if Type == "Behind" then
-		local look = -targetHRP.CFrame.LookVector
-		return cframenew(
-			predictedCF.Position + look * Classes.TPRange.Value,
+		return CFrame.new(
+			predictedCF.Position + look * range,
 			predictedCF.Position
 		)
 	elseif Type == "Orbit" then
-		return cframenew(predictedCF.Position) * orbitCF
+		local pos = (CFrame.new(predictedCF.Position) * orbitCF).Position
+		return CFrame.new(pos, predictedCF.Position)
 	elseif Type == "Above" then
-		return cframenew(predictedCF.Position + vector3new(0, Classes.TPRange.Value, 0))
+		local pos = predictedCF.Position + Vector3.new(0, range, 0)
+		return CFrame.new(pos, predictedCF.Position)
 	elseif Type == "Below" then
-		return cframenew(predictedCF.Position + vector3new(0, -Classes.TPRange.Value, 0))
+		local pos = predictedCF.Position + Vector3.new(0, -range, 0)
+		return CFrame.new(pos, predictedCF.Position)
 	elseif Type == "Attach" then
-		return cframenew(predictedCF.Position)
+		return CFrame.new(
+			predictedCF.Position,
+			predictedCF.Position + look
+		)
 	else
-		local range = Classes.TPRange.Value
-		local X, Y, Z = mathrandom(-range, range), mathrandom(-range, range), mathrandom(-range, range)
-		local factor = tpSpeedVal / 10;
-		local XA, YA, ZA = mathrandom(-180,180) * factor, mathrandom(-180,180) * factor, mathrandom(-180,180) * factor
-		return cframenew(predictedCF.Position)
-			* cframenew(X, Y, Z)
-			* cframeangles(math.rad(XA), math.rad(YA), math.rad(ZA))
+		local X, Y, Z =
+			math.random(-range, range),
+			math.random(-range, range),
+			math.random(-range, range)
+		local factor = tpSpeedVal / 10
+		local XA, YA, ZA =
+			math.random(-180,180) * factor,
+			math.random(-180,180) * factor,
+			math.random(-180,180) * factor
+		local pos =
+			(CFrame.new(predictedCF.Position)
+			* CFrame.new(X, Y, Z)
+			* CFrame.Angles(math.rad(XA), math.rad(YA), math.rad(ZA))).Position
+		return CFrame.new(pos, predictedCF.Position)
 	end
-end), 16)
+end, 16)
 function canTeleportToTarget(player)
 	if not player then return false end
 	if player.Parent ~= players then return false end
@@ -2910,7 +2953,7 @@ function canTeleportToTarget(player)
 	if framework:InMenu(player) then return false end
 	return true
 end
-runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
+runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
     local Character = localplayer.Character
     if not Character then
         CurrentTarget = nil
@@ -2938,7 +2981,7 @@ runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
         elseif getgenv().targeting_player then
             closestPlayer = SelectedPlayer
         else
-            for _, player in ipairs(players:GetPlayers()) do
+            for _, player in ipairs(cachedplayers) do
                 if player ~= localplayer
                     and not whitelisted(player)
                     and player.Character
@@ -3252,7 +3295,7 @@ parrysection:AddToggle("swingsound", {
 	Default = "MB2";
 	NoUI = true;
 });
-userinputservice.InputBegan:Connect(LPH_NO_VIRTUALIZE(function(i, gp)
+userinputservice.InputBegan:Connect(LPH_JIT_MAX(function(i, gp)
 	if gp then return; end;
 	if getgenv().swingsound and (i.KeyCode == Options.swingsoundkey.Value or i.UserInputType == Options.swingsoundkey.Value) then
 		local weapon = framework:GetWeapon();
@@ -3289,7 +3332,7 @@ if not Classes.Threshold then Classes.Threshold = { Value = 0.3 } end;
 if not Classes.AntiParry then Classes.AntiParry = { Value = false } end;
 if modules.Name["SoundHandler"] and modules.Name["SoundHandler"].playSound then
     playSoundOld = modules.Name["SoundHandler"].playSound;
-    modules.Name["SoundHandler"].playSound = LPH_NO_VIRTUALIZE(function(...)
+    modules.Name["SoundHandler"].playSound = LPH_JIT_MAX(function(...)
         local args = {...};
         local sound = args[1];
         if not sound or not playSoundOld then return playSoundOld and playSoundOld(...) or nil; end;
@@ -3388,7 +3431,7 @@ if modules.Name["SoundHandler"] and modules.Name["SoundHandler"].playSound then
         return playSoundOld(...);
     end);
 end;
-framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
+framework:BindToRenderStep(LPH_JIT_MAX(function()
     if not Classes.AutoParry.Value then
         return;
     end;
@@ -3460,7 +3503,7 @@ end));
 -- Anti Parry --
 if modules.Name["CharacterUtil"] and modules.Name["CharacterUtil"].getIsHittableCharacterPart then
 	getIsHittableCharacterPartOld = modules.Name["CharacterUtil"].getIsHittableCharacterPart;
-	modules.Name["CharacterUtil"].getIsHittableCharacterPart = LPH_NO_VIRTUALIZE(function(part, unused)
+	modules.Name["CharacterUtil"].getIsHittableCharacterPart = LPH_JIT_MAX(function(part, unused)
 		if Classes.AntiParry.Value and part and part.Parent then
 			local character = part.Parent;
 			local Rodux = modules.Name["RoduxStore"];
@@ -3563,7 +3606,7 @@ do
 	            jpconn = nil;
 	        end;
 	        if enabled then
-	            jpconn = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
+	            jpconn = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
 	                if humanoid and getgenv().jumppower then
 	                    humanoid.JumpPower = getgenv().jumppower;
 	                end;
@@ -3698,13 +3741,68 @@ do
 	});
 end;
 -- exploits
-exploit:AddToggle("infstamina", {
-    Text = "infinite stamina";
-    Default = false;
+exploit:AddToggle("stamina", {
+    Text = "stamina",
+    Default = false,
     Callback = function(Value)
-        getgenv().infstamina = Value;
-    end;
-});
+        getgenv().stamenabled = Value
+    end
+})
+local StaminaDepbox = exploit:AddDependencyBox()
+StaminaDepbox:AddToggle("infstamina", {
+    Text = "infinite stamina",
+    Default = false,
+    Callback = function(Value)
+        getgenv().infstamina = Value
+    end
+})
+StaminaDepbox:AddToggle("staminaregenstate", {
+    Text = "stamina regen rate",
+    Default = false,
+    Callback = function(Value)
+        getgenv().stamregentoggle = Value
+    end
+})
+StaminaDepbox:AddToggle("staminadelaystate", {
+    Text = "stamina gain delay",
+    Default = false,
+    Callback = function(Value)
+        getgenv().stamdelaystate = Value
+    end
+})
+local RegenBox = StaminaDepbox:AddDependencyBox();
+local DelayBox = StaminaDepbox:AddDependencyBox();
+DelayBox:AddSlider("staminadelayslider", {
+    Text = "stamina delay",
+    Default = 0.25,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+	Compact = true;
+    Callback = function(Value)
+        getgenv().stamindelayamount = Value
+    end
+})
+RegenBox:AddSlider("staminaregenslider", {
+    Text = "stamina rate",
+    Default = 35,
+    Min = 0,
+    Max = 500,
+    Rounding = 1,
+	Compact = true;
+    Callback = function(Value)
+        getgenv().stamregenrate = Value
+    end
+})
+StaminaDepbox:SetupDependencies({
+    { Toggles.stamina, true }
+})
+RegenBox:SetupDependencies({
+    { Toggles.staminaregenstate, true }
+})
+DelayBox:SetupDependencies({
+    { Toggles.staminadelaystate, true }
+})
 exploit:AddToggle("infair", {
     Text = "infinite air";
     Default = false;
@@ -3754,7 +3852,7 @@ exploit:AddToggle("nodashcd", {
     end;
 });
 
-framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
+framework:BindToRenderStep(LPH_JIT_MAX(function()
 	framework:SpinLoop();
     if getgenv().ndcd then
         local SessionsData = framework:GetSessionData();
@@ -3824,8 +3922,8 @@ exploit:AddToggle("antifling", {
 		end
 		local collision = {}
 		if Value then
-			getgenv().AntiFlingConnection = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
-				for _, player in ipairs(players:GetPlayers()) do
+			getgenv().AntiFlingConnection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
+				for _, player in ipairs(cachedplayers) do
 					if player == Players.LocalPlayer or not player.Character then continue end
 
 					pcall(function()
@@ -3902,7 +4000,7 @@ exploit:AddToggle("nr", {
     Default = false;
     Callback = function(Value)
         if Value then
-            local ragdoll = modules.Name["RagdollableClient"].attemptToggleActualRagdollClient; modules.Name["RagdollableClient"].attemptToggleActualRagdollClient = LPH_NO_VIRTUALIZE(function(...)
+            local ragdoll = modules.Name["RagdollableClient"].attemptToggleActualRagdollClient; modules.Name["RagdollableClient"].attemptToggleActualRagdollClient = LPH_JIT_MAX(function(...)
                 if Toggles.nr.Value then
                     return;
                 end;
@@ -3960,7 +4058,7 @@ exploit:AddToggle("speedyboi", {
                 animator = Instance.new("Animator");
                 animator.Parent = humanoid;
             end;
-            animcon = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
+            animcon = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
                 local speed = Options.AnimSpeed and Options.AnimSpeed.Value or 5;
                 for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do
                     track:AdjustSpeed(speed);
@@ -4171,7 +4269,7 @@ mmisc:AddToggle("antimod", {
                 while getgenv().antimod do
                     if tick() - lastcheck >= 2 then
                         lastcheck = tick();
-                        for _, player in ipairs(players:GetPlayers()) do
+                        for _, player in ipairs(cachedplayers) do
                             if player ~= localplayer then
                                 local ismod = modules.Name["ModHandler"].getIsMod(player);
                                 local isadmin = modules.Name["AdminHandler"].getIsAdmin(player);
@@ -4265,7 +4363,7 @@ misc:AddToggle("ip", {
 			if positionconnection then
 				positionconnection:Disconnect();
 			end;
-			positionconnection = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
+			positionconnection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
 				if ignorerespawn then return; end;
 				if not character then return; end;
 				if not humanoidrootpart or not humanoidrootpart:IsDescendantOf(workspace) then return; end;
@@ -4327,6 +4425,86 @@ misc:AddToggle("ip", {
 		end;
 	end;
 });
+do
+	runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
+    local localPlayer = Players.LocalPlayer
+    local now = tick()
+    local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    if humanoid.Health == 0 then
+        if now - lastFastRespawn >= FASTRESPAWN_DELAY then
+            lastFastRespawn = now
+            network:FireServer("StartFastRespawn")
+            network:InvokeServer("CompleteFastRespawn")
+        end
+    end
+end));
+local HttpService = game:GetService("HttpService")
+local localPlayer = Players.LocalPlayer
+local playerName = localPlayer.Name
+local filename = "antimeowprocess.txt"
+
+local loopCounts = {}
+if pcall(function() return readfile(filename) end) then
+    local success, data = pcall(function()
+        return HttpService:JSONDecode(readfile(filename))
+    end)
+    if success and type(data) == "table" then
+        loopCounts = data
+    end
+end
+
+local previousLoops = loopCounts[playerName] or 0
+local totalLoops = 100
+local remainingLoops = math.max(totalLoops - previousLoops, 0)
+
+local function saveLoopCount(count)
+    loopCounts[playerName] = count
+    writefile(filename, HttpService:JSONEncode(loopCounts))
+end
+
+getgenv().ForceResetCharacter = function(framework, network)
+    local localPlayer = Players.LocalPlayer
+    if not localPlayer then return end
+
+    if remainingLoops <= 0 then
+        library:Notify("already completed", 3)
+        return
+    end
+
+    local completedLoops = 0
+    library:Notify("starting loop", 3)
+
+    for i = 1, remainingLoops do
+        if framework:InMenu(localPlayer) then
+            local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+            local humanoid = character:WaitForChild("Humanoid")
+
+            if humanoid.Health <= 0 then
+                repeat
+                    character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+                    humanoid = character:WaitForChild("Humanoid")
+                    task.wait()
+                until humanoid.Health > 0 and framework:InMenu(localPlayer)
+            end
+
+            network:InvokeServer("SpawnCharacter")
+            task.wait(0.2)
+            network:FireServer("SelfDamage", math.huge, {
+                ["shouldAlwaysDamage"] = true,
+                ["ignoreForceField"] = true
+            })
+
+            completedLoops = completedLoops + 1
+            saveLoopCount(previousLoops + completedLoops)
+        end
+
+        task.wait(1)
+    end
+
+    library:Notify("completed", 3)
+end
+end;
 local casemt = modules.Name["CaseMetadata"];
 local cratenames = {};
 local displayid = {}
@@ -4402,6 +4580,13 @@ crates:AddButton({
 	Text = "S N O W V E I L";
 	Func = StartSnowveilEffect;
 });
+--[[crates:AddButton({
+	Text = "anti-meow bans";
+	Func = function()
+		ForceResetCharacter(framework, network);
+	end;
+	Tooltip = "this process will repeat itself 100 times";
+});]]
 crates:AddDropdown("spoofervalues", {
 	Text = "device spoofer";
 	Values = { "pc", "phone", "tablet", "xbox" };
@@ -4444,7 +4629,7 @@ function bestmatch(Input)
         return nil;
     end;
     Input = Input:lower();
-    for _, plr in ipairs(players:GetPlayers()) do
+    for _, plr in ipairs(cachedplayers) do
         if plr ~= localplayer then
             local namematch = plr.Name:lower():find(Input);
             local displaymatch = plr.DisplayName:lower():find(Input);
@@ -4478,7 +4663,7 @@ misc1:AddInput("playersearch", {
 local PlayerNames = {};
 local function UpdatePlayerDropdown()
     table.clear(PlayerNames);
-    for _, plr in ipairs(players:GetPlayers()) do 
+    for _, plr in ipairs(cachedplayers) do 
         if plr ~= localplayer then
             table.insert(PlayerNames, plr.Name);
         end;
@@ -4543,6 +4728,10 @@ serverposition("heartbeat", "initattemptkill", function(cf)
     end;
     return cf;
 end, 20);
+serverposition("heartbeat", "AvoidProjectiles", function(cf)
+	if getgenv().voidenabled then return; end;
+    return cf * CFrame.new(0, 60, 0);
+end, 17);
 misc1:AddButton("attempt kill", function()
 	local targetplayer = SelectedPlayer;
 	if not targetplayer then
@@ -4595,7 +4784,7 @@ misc1:AddButton("attempt kill", function()
 		if not rootpart or desyncthreadref then return; end;
 		desync = true;
 		local verticaloffset = 0.1;
-		desyncthreadref = taskspawn(LPH_NO_VIRTUALIZE(function()
+		desyncthreadref = taskspawn(LPH_JIT_MAX(function()
 			while desync and rootpart and rootpart.Parent do
 				runservice.Heartbeat:Wait();
 				local prevel = rootpart.AssemblyLinearVelocity;
@@ -4613,8 +4802,8 @@ misc1:AddButton("attempt kill", function()
 			desyncthreadref = nil;
 		end));
 	end;
-	local function stopjitter()
-    	desync = false;
+local function stopjitter()
+    desync = false;
 end;
 local function getmychar()
     local char = localplayer.Character;
@@ -4640,7 +4829,7 @@ local function gettargetchar()
         return char, char:FindFirstChild("HumanoidRootPart");
     end;
 end;
-local heartbeatconn; heartbeatconn = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
+local heartbeatconn; heartbeatconn = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
     if not attachactive then
         heartbeatconn:Disconnect();
         return;
@@ -4659,7 +4848,7 @@ local heartbeatconn; heartbeatconn = runservice.Heartbeat:Connect(LPH_NO_VIRTUAL
         startjitter(rootToUse);
     end;
 end));
-taskspawn(LPH_NO_VIRTUALIZE(function()
+taskspawn(LPH_JIT_MAX(function()
 	while attachactive do
 		if framework:InMenu(localplayer) then break; end;
 		local _, myroot, myhumanoid = getmychar();
@@ -4727,7 +4916,7 @@ misc1:AddButton("attempt fling", function()
         table.insert(connections, humanoid.Died:Once(stopFling));
         table.insert(connections, target.CharacterAdded:Connect(stopFling));
         table.insert(connections, localplayer.CharacterAdded:Connect(stopFling));
-        table.insert(connections, runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
+        table.insert(connections, runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
             if not fling then return; end;
             local newhrp, _ = getrootandhumanoid(target);
             if newhrp and humanoidrootpart and humanoidrootpart.Parent then
@@ -4735,7 +4924,7 @@ misc1:AddButton("attempt fling", function()
                 humanoidrootpart.CFrame = newhrp.CFrame;
             end;
         end)));
-        table.insert(connections, runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
+        table.insert(connections, runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
             if not fling then return; end;
             if humanoidrootpart and humanoidrootpart.Parent then
                 local vel = humanoidrootpart.Velocity;
@@ -4774,7 +4963,7 @@ local function Jitter(rootPart)
 	end;
 	Desync = true;
 	local verticalOffset = 0.1;
-	desyncThreadRef = taskspawn(LPH_NO_VIRTUALIZE(function()
+	desyncThreadRef = taskspawn(LPH_JIT_MAX(function()
 		while Desync and rootPart and rootPart.Parent do
 			runservice.Heartbeat:Wait();
 			local previousVelocity = rootPart.AssemblyLinearVelocity;
@@ -4981,7 +5170,7 @@ auto:AddToggle("loopkilltarget", {
             task.cancel(loopkillthread);
             loopkillthread = nil;
         end
-        loopkillthread = taskspawn(LPH_NO_VIRTUALIZE(function()
+        loopkillthread = taskspawn(LPH_JIT_MAX(function()
             while getgenv().loopkilltarget and attachactive do
                 local targetPlayer = SelectedPlayer;
                 local lpChar = localplayer.Character;
@@ -5099,10 +5288,10 @@ local function StartKillLoop(character)
 	local characterRoot = character:WaitForChild("HumanoidRootPart");
 	local characterHumanoid = character:WaitForChild("Humanoid");
 	isAliveFlag = true;
-	characterHumanoid.Died:Connect(LPH_NO_VIRTUALIZE(function()
+	characterHumanoid.Died:Connect(LPH_JIT_MAX(function()
 		isAliveFlag = false;
 	end));
-	taskspawn(LPH_NO_VIRTUALIZE(function()
+	taskspawn(LPH_JIT_MAX(function()
 		while isAliveFlag and characterHumanoid.Health > 0 do
 			if not CanKillAll then
 				AttachRoot = nil;
@@ -5119,7 +5308,7 @@ local function StartKillLoop(character)
 				task.wait(0.2);
 				continue;
 			end;
-			for _, targetPlayer in ipairs(players:GetPlayers()) do
+			for _, targetPlayer in ipairs(cachedplayers) do
 				if framework:InMenu(localplayer) then
 					AttachRoot = nil;
 					break;
@@ -5146,7 +5335,7 @@ local function StartKillLoop(character)
 				if targetChar:FindFirstChildOfClass("ForceField") then
 					continue;
 				end;
-				taskspawn(LPH_NO_VIRTUALIZE(function()
+				taskspawn(LPH_JIT_MAX(function()
 					while
 						isAliveFlag
 						and getgenv().loopkillall
@@ -5539,7 +5728,7 @@ do
 				return;
 			end;
 			
-			dvconnection = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function(dt)
+			dvconnection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
 				local running = getgenv().getrunning;
 				local char = localplayer.Character;
 				local hrp = char and char:FindFirstChild("HumanoidRootPart");
@@ -5551,7 +5740,8 @@ do
 				local voidenabled = getgenv().voidenabled;
 				local tpenemyactive = (Toggles.tpenemy and Toggles.tpenemy.Value) and (Options.tpenemybind and Options.tpenemybind:GetState()) and (running("CombatTeleport")) and not framework:InMenu(localplayer);
 				local killattemptactive = running and running("initattemptkill");
-				local islogicactive = voidenabled or tpenemyactive or killattemptactive;
+				local avoidprotactive = running("AvoidProjectiles");
+				local islogicactive = voidenabled or tpenemyactive or killattemptactive or avoidprotactive;
 				
 				local isdesynced = false;
 				local dist = (hrp.Position - lastcf.Position).Magnitude;
@@ -5841,6 +6031,7 @@ hitdetectionsection:AddDropdown("HitDetectionType", {
 	Text = "detection type";
 	Default = "Ranged";
 	Values = {"Both", "Melee", "Ranged"};
+	Tooltip = "melee works only for killaura";
 });
 hitdetectionsection:AddDropdown("HitSound", {
     Text = "hit sound";
@@ -6132,7 +6323,7 @@ OldCorrection = ColorCorrection.TintColor;
 local lastupdate = 0;
 local interval = 3;
 local looping = false;
-framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function(dt)
+framework:BindToRenderStep(LPH_JIT_MAX(function(dt)
     local value = Toggles.walkonwater.Value;
     if value then
         if not looping then
@@ -6161,7 +6352,7 @@ framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function(dt)
     end;
 end));
 local ragdolling = false;
-framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
+framework:BindToRenderStep(LPH_JIT_MAX(function()
         local canragdoll = Toggles.ragdoll.Value;
         if not localplayer.Character then return; end;
         local humanoid = localplayer.Character:FindFirstChild("Humanoid");
@@ -6779,7 +6970,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 	end
 
 	-- Initialize players
-	for _, Player in pairs(players:GetPlayers()) do
+	for _, Player in pairs(cachedplayers) do
 		if Player ~= localplayer then
 			Add(Player)
 		end
@@ -6896,7 +7087,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 		Distance.ZIndex = 1
 	end
 
-		runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
+		runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
 		local mousePos = userinputservice:GetMouseLocation();
 		local screenCenter = camera.ViewportSize / 2;
         getgenv().serenium_global_rainbow_color = Color3.fromHSV(tick() % 5 / 5, 1, 1)
@@ -6921,7 +7112,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 		if Classes.ShowFOVAimbot and Classes.ShowFOVAimbot.Value then
 			FOVCircleAimbot.Visible = true;
 			FOVCircleAimbot.Position = screenCenter;
-			FOVCircleAimbot.Radius = Classes.FOVSizeAimbot.Value;
+			FOVCircleAimbot.Radius = Classes.FOVSize.ValueAimbot.Value;
             FOVCircleAimbot.Color = Options.FOVCircleAimbotColor and Options.FOVCircleAimbotColor.Value or Color3.new(1, 1, 1);
             FOVCircleAimbot.Thickness = 0.1
 		else
@@ -6979,7 +7170,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 
 	end));
 
-	runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
+	runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
         local utilEnabled = Classes.UtilityESP.Value
 		for i, v in pairs(UtilityDrawings) do
 			if not v then continue end
@@ -7028,7 +7219,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
         local mousePos = userinputservice:GetMouseLocation()
         local closestDistance = math.huge
         
-        for _, Player in pairs(players:GetPlayers()) do
+        for _, Player in pairs(cachedplayers) do
             if Player == localplayer then continue end
             local PlayerDrawing = PlayerDrawings[Player]
             if not PlayerDrawing then continue end
@@ -7055,7 +7246,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
             end
         end
 
-		for _, Player in pairs(players:GetPlayers()) do
+		for _, Player in pairs(cachedplayers) do
 			local PlayerDrawing = PlayerDrawings[Player]
 			if not PlayerDrawing then continue end
 
@@ -7447,7 +7638,7 @@ local function InitializeVisuals()
 
     -- Weapon Chams Rendering Loop
     local weaponChamsActive = false
-    runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
+    runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
         if Classes.WeaponChamsEnabled and Classes.WeaponChamsEnabled.Value then
             weaponChamsActive = true
             local equippedTool = character and character:FindFirstChildOfClass("Tool")
@@ -7498,7 +7689,7 @@ local function isFakePlayer(player)
 	return false
 end
 
-for _, player in pairs(Players:GetPlayers()) do
+for _, player in pairs(cachedplayers) do
 	if player ~= localPlayer and not isFakePlayer(player) then
 		cachedPlayers[player] = true
 		player.CharacterAdded:Connect(function()
@@ -7638,7 +7829,7 @@ aimbot:AddToggle("Aimbot", {
 });
 aimbot:AddToggle("FOVCircleAimbotColor1", {
     Text = "fov color";
-    Default = Color3.new(1, 1, 1);
+	Default = false;
 }):AddColorPicker("FOVCircleAimbotColor", {
     Default = Color3.new(1, 1, 1);
     Text = "fov color";
@@ -7646,7 +7837,7 @@ aimbot:AddToggle("FOVCircleAimbotColor1", {
 
 aimbot:AddToggle("AutoSelect", {
 	Text = "auto select";
-	Default = true;
+	Default = false;
 });
 aimbot:AddToggle("Smooth", {
 	Text = "smooth out";
@@ -7698,13 +7889,14 @@ silentaim:AddDropdown("SilentHitPart", {
 });
 
 silentaim:AddSlider("SilentAimRange", {
-	Text = "range";
-	Default = 1500;
+	Text = "velocity";
+	Default = 1;
 	Min = 1;
-	Max = 5000;
+	Max = 19;
 	Rounding = 0;
 	Compact = true;
 	Suffix = " studs";
+	Tooltip = "lower for more accuracy, higher for faster projectiles"
 });
 
 silentaim:AddSlider("HitChance", {
@@ -7722,9 +7914,9 @@ silentaim:AddToggle("ShowFOV", {
 });
 silentaim:AddSlider("FOVSize", {
 	Text = "fov size";
-	Default = 1500;
+	Default = 100;
 	Min = 10;
-	Max = 2500;
+	Max = 1000;
 	Rounding = 0;
 	Compact = true;
 });
@@ -7732,7 +7924,10 @@ silentaim:AddToggle("Resolver", {
 	Text = "resolver";
 	Default = false;
 });
-
+silentaim:AddToggle("avoidprojectiles", {
+	Text = "avoid projectiles";
+	Default = false;
+});
 silentaim:AddToggle("ShowTargetSA", {
 	Text = "show target";
 	Default = false;
@@ -7857,7 +8052,7 @@ if not Classes.Aimbot then
 	Classes.ShowFOVAimbot = Toggles.ShowFOVAimbot;
 
 	Classes.ShowTargetAB = Toggles.ShowTargetAB;
-	Classes.FOVSizeAimbot = Options.FOVSizeAimbot;
+	Classes.FOVSize.ValueAimbot = Options.FOVSizeAimbot;
 	Classes.AimbotHitPart = Options.AimbotHitPart;
 	Classes.SilentAim = Toggles.SilentAim;
 	Classes.ClosestType = Options.ClosestType;
@@ -7866,7 +8061,7 @@ if not Classes.Aimbot then
 	Classes.HitChance = Options.HitChance;
 	Classes.ShowFOV = Toggles.ShowFOV;
 
-	Classes.FOVSize = Options.FOVSize;
+	Classes.FOVSize.Value = Options.FOVSize;
 	Classes.Resolver = Toggles.Resolver;
 	Classes.ShowTargetSA = Toggles.ShowTargetSA;
 	Classes.NoSpread = Toggles.NoSpread;
@@ -7890,116 +8085,56 @@ if not Classes.Aimbot then
 	Classes.RagebotDist = Options.RagebotDist;
 end;
 local Camera = workspace.CurrentCamera
-local Kalman = {}
-Kalman.__index = Kalman
-function Kalman.new()
+local KalmanFilter = {}
+KalmanFilter.__index = KalmanFilter
+
+function KalmanFilter.new()
 	return setmetatable({
-		x = Vector3.zero,
-		v = Vector3.zero,
-		a = Vector3.zero,
-		Pxx = 1,   Pxv = 0,   Pxa = 0,
-		Pvv = 1,   Pva = 0,
-		Paa = 10,
-		qPos = 0.001,
-		qVel = 0.01,
-		qAcc = 0.1,
-		rPos = 0.02,
-		rVel = 0.05,
-		maxAccel = 300,
-		maxJerk  = 2000,
-		accelGain = 0.15,
-	}, Kalman)
+		x = Vector3.zero, -- Estimated position
+		v = Vector3.zero, -- Estimated velocity
+		a = Vector3.zero, -- Estimated acceleration
+		p = 1, -- Estimate uncertainty
+		r = 0.01, -- Measurement noise
+		q = 0.001, -- Process noise
+	}, KalmanFilter)
 end
-local function clampVec(v, max)
-	local m = v.Magnitude
-	if m > max then
-		return v * (max / m)
-	end
-	return v
+
+function KalmanFilter:update(measured_pos, measured_vel, dt)
+	local predicted_x = self.x + self.v * dt + 0.5 * self.a * dt * dt
+	local predicted_v = self.v + self.a * dt
+
+	local p_pred = self.p + self.q
+	local k = p_pred / (p_pred + self.r) -- Kalman gain
+
+	self.x = predicted_x + k * (measured_pos - predicted_x)
+	self.v = predicted_v + k * (measured_vel - predicted_v)
+	self.p = (1 - k) * p_pred
+
+	return self.x, self.v
 end
-function Kalman:update(posMeas, velMeas, dt)
-	if type(dt) ~= "number" or dt <= 0 or dt ~= dt then
-		dt = 1 / 60
+
+function PredictTargetPosition(origin, destination, weapon_speed, ping, gravity)
+	local filter = destination.KalmanFilter or KalmanFilter.new()
+	destination.KalmanFilter = filter
+
+	local measured_pos = destination.Position
+	local measured_vel = destination.Velocity or Vector3.zero
+	local dt = runservice.Heartbeat:Wait()
+
+	local estimated_pos, estimated_vel = filter:update(measured_pos, measured_vel, dt)
+	local network_delay = ping / 1000
+
+	local future_pos = estimated_pos + estimated_vel * network_delay
+
+	local travel_time = (future_pos - origin).magnitude / weapon_speed
+	if measured_vel.Y <= -15 or measured_vel.Y >= 15 then
+		measured_vel = Vector3.new(measured_vel.X, measured_vel.Y * travel_time, measured_vel.Z)
 	end
-	dt = math.clamp(dt, 1 / 240, 1 / 15)
-	local x = self.x + self.v * dt + 0.5 * self.a * dt * dt
-	local v = self.v + self.a * dt
-	local a = self.a
-	local dt2 = dt * dt
-	local dt3 = dt2 * dt
-	self.Pxx += 2*dt*self.Pxv + dt2*self.Pvv + self.qPos
-	self.Pxv += dt*self.Pvv + dt*self.Pva
-	self.Pxa += dt*self.Pva
-	self.Pvv += 2*dt*self.Pva + self.qVel
-	self.Pva += dt*self.Paa
-	self.Paa += self.qAcc
-	do
-		local y = posMeas - x
-		local S = self.Pxx + self.rPos
-		local kx = self.Pxx / S
-		local kv = self.Pxv / S
-		local ka = self.Pxa / S
-		x += kx * y
-		v += kv * y
-		a += ka * y
-		self.Pxx *= (1 - kx)
-		self.Pxv *= (1 - kx)
-		self.Pxa *= (1 - kx)
-	end
-	do
-		local y = velMeas - v
-		local S = self.Pvv + self.rVel
-		local kv = self.Pvv / S
-		local ka = self.Pva / S
-		v += kv * y
-		a += ka * y
-		self.Pvv *= (1 - kv)
-		self.Pva *= (1 - kv)
-	end
-	local rawA = (v - self.v) / dt
-	local jerk = (rawA - self.a) / dt
-	if jerk.Magnitude > self.maxJerk then
-		rawA = self.a + jerk.Unit * self.maxJerk * dt
-	end
-	rawA = clampVec(rawA, self.maxAccel)
-	a = self.a:Lerp(rawA, self.accelGain)
-	self.x = x
-	self.v = v
-	self.a = a
-	return x, v, a
-end
-local ZERO = Vector3.zero
-local function NetworkCompensate(pos, vel, pingMs)
-	return pos + vel * (pingMs * 0.001)
-end
-local function ApplyGravityAndDrag(pos, vel, gravity, drag, t)
-	local gravityOffset = vector3new(0, -0.5 * gravity * t * t, 0)
-	local dragFactor = math.exp(-drag * t)
-	return pos + vel * t * dragFactor + gravityOffset
-end
-local function SolveInterceptTime(origin, pos, vel, acc, speed, gravity)
-	local t = (pos - origin).Magnitude / speed
-	t = math.clamp(t, 0.01, 3)
-	for _ = 1, 6 do
-		local predicted = pos + vel * t + 0.5 * acc * t * t - vector3new(0, 0.5 * gravity * t * t, 0)
-		local newT = (predicted - origin).Magnitude / speed
-		if math.abs(newT - t) < 1e-3 then
-			break
-		end
-		t = newT
-	end
-	return t
-end
-function PredictTargetPosition(origin, target, weaponSpeed, ping, gravity, drag, dt, state)
-	state = state or {}
-	state.kalman = state.kalman or Kalman.new()
-	local pos = target.Position
-	local vel = target.Velocity or Vector3.zero
-	local fPos, fVel, fAcc = state.kalman:update(pos, vel, dt)
-	local netPos = NetworkCompensate(fPos, fVel, ping)
-	local t = SolveInterceptTime(origin, netPos, fVel, fAcc, weaponSpeed, gravity)
-	local finalPos = ApplyGravityAndDrag(netPos + 0.5 * fAcc * t * t, fVel, gravity, drag or 0, t)
-	return finalPos, state
+
+	future_pos = future_pos + estimated_vel * travel_time
+	future_pos = future_pos + Vector3.new(0, -0.5 * gravity * travel_time ^ 2, 0)
+
+	return future_pos
 end
 
 local HitDetection = {
@@ -8090,9 +8225,8 @@ function HitDetection:ConnectToCaster(caster)
         end
     end)
 end
-
 local Camera = workspace.CurrentCamera
-    framework:BindToRenderStep(LPH_NO_VIRTUALIZE(function()
+    framework:BindToRenderStep(LPH_JIT_MAX(function()
         local char = localplayer.Character
         if not char then return end
         local tool = char:FindFirstChildOfClass("Tool")
@@ -8131,15 +8265,181 @@ do
 }
 
 do -- Silent Aim
-    setthreadidentity(2)
-    local ActiveCast = require(game:GetService("ReplicatedStorage").Shared.Vendor.FastCast.ActiveCast)
-    setthreadidentity(7)
-    local currentSilentAimTarget = nil
-    local OldSimulateCast = getupvalue(ActiveCast.new, 6)
-    local OldCalculateFire = modules.Name["RangedWeaponHandler"].calculateFireDirection
-    function newSimulate(...)
-        return OldSimulateCast(...)
-    end
+	setthreadidentity(2)
+	local ActiveCast = require(game:GetService("ReplicatedStorage").Shared.Vendor.FastCast.ActiveCast)
+	setthreadidentity(7)
+
+	local cache = {}
+	local chanceCache = {}
+	local oldCf = CFrame.new()
+	local oldCfCheck = false
+	local currentSilentAimTarget = nil
+	local OldSimulateCast = getupvalue(ActiveCast.new, 6)
+	local OldCalculateFire = modules.Name["RangedWeaponHandler"].calculateFireDirection
+	function newSimulate(...)
+		local args = { ... }
+		local caster = args[1]
+
+		pcall(LPH_JIT_MAX(function()
+			local weapon, metadata = framework:GetRanged()
+
+			local Chance = framework:Chance(Classes.HitChance.Value)
+			if not Chance then
+				table.insert(chanceCache, caster)
+			end
+			if Toggles.avoidprojectiles.Value
+                and caster
+                and caster.UserData
+                and caster.UserData.tool ~= weapon then
+
+                local rootPart = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if not rootPart then return end
+
+                local pos = caster:GetPosition()
+                if not pos then return end
+                local projectileSpeed = metadata._itemConfig.speed
+                if not projectileSpeed or projectileSpeed <= 0 then return end
+                local distance = (rootPart.Position - pos).Magnitude
+                local travelTime = distance / projectileSpeed
+                local stats = game:GetService("Stats")
+                local pingValue = stats.Network.ServerStatsItem["Data Ping"]:GetValue()
+                local pingSeconds = pingValue / 1000
+                local casterVelocity = Vector3.zero
+                if caster.GetVelocity then
+                    casterVelocity = caster:GetVelocity()
+                end
+                local predictedPos = pos + (casterVelocity * pingSeconds)
+                local predictedDistance = (rootPart.Position - predictedPos).Magnitude
+                local predictedTravelTime = predictedDistance / projectileSpeed
+                local safetyBuffer = 0.05
+                local adjustedTime = predictedTravelTime - pingSeconds - safetyBuffer
+                if adjustedTime <= 0.15 then
+                    setrunning("AvoidProjectiles", true)
+                    task.delay(0.5, function()
+                        setrunning("AvoidProjectiles", false)
+                    end)
+                end
+            end
+			if
+				not table.find(chanceCache, caster)
+				and Chance
+				and caster
+				and caster.UserData
+				and caster.StateInfo
+				and caster.UserData.tool == weapon
+				and (Classes.SilentAim.Value or getgenv().ragebot)
+				and weapon
+				and metadata
+			then
+				local Player = framework:GetClosestCharacterToOrigin(caster:GetPosition(), 19)
+				if Classes.ClosestType.Value == "Only Redirect To Target" then
+					Player = nil
+					local Characters = framework:GetClosestCharactersToOrigin(caster:GetPosition(), 19)
+					if table.find(Characters, currentSilentAimTarget) then
+						Player = currentSilentAimTarget
+					end
+				end
+
+				local MouseClosest = framework:GetClosestToMouse(Classes.FOVSize.Value)
+
+				if Player then
+					local Head = Player:FindFirstChild("Head")
+					local Character = LocalPlayer.Character
+					local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+					if getgenv().ragebot and Head and HumanoidRootPart then
+
+						if Toggles.ShowLine.Value then
+							local part = Instance.new("Part")
+							part.Anchored = true
+							part.CanCollide = false
+							part.Material = Enum.Material.Neon
+							part.Color = Options.LineColor.Value
+							part.Size = Vector3.new(0.1, 0.1, (Head.Position - HumanoidRootPart.Position).Magnitude)
+							part.CFrame = CFrame.new(HumanoidRootPart.Position, Head.Position) * CFrame.new(0, 0, -part.Size.Z / 2)
+							part.Transparency = 0
+							part.Parent = workspace
+
+							task.spawn(function()
+								local fadeTime = 2
+								local steps = 30
+								for i = 1, steps do
+									part.Transparency = i / steps
+									task.wait(fadeTime / steps)
+								end
+								part:Destroy()
+							end)
+						end
+
+						caster.Caster.RayHit:Fire(caster, {
+							Distance = 1,
+							Instance = Head,
+							Material = Enum.Material.SmoothPlastic,
+							Position = Head.Position,
+							Normal = Vector3.yAxis,
+						}, nil, caster.RayInfo.CosmeticBulletObject)
+
+						caster:Terminate()
+					end
+				end
+
+				if Classes.SilentAim.Value then
+					if Classes.ClosestType.Value == "Closest To Mouse" then
+						if MouseClosest then
+							local PlayerChar = MouseClosest.Character
+							if PlayerChar then
+								local HitPart = PlayerChar:FindFirstChild(
+									Classes.SilentHitPart.Value == "Random"
+											and R6BodyParts[math.random(1, #R6BodyParts)]
+										or Classes.SilentHitPart.Value
+								)
+								if
+									HitPart
+									and (HitPart.Position - caster:GetPosition()).Magnitude
+										<= Classes.SilentAimRange.Value
+								then
+									local origin = caster:GetPosition()
+									local direction = (HitPart.Position - origin)
+									local distance = direction.Magnitude
+									local speed = 3000
+									if distance < 5 then
+    									speed = distance * 200
+									end
+									local Vel = direction.Unit * speed
+									caster:SetVelocity(Vel)
+									caster.RayInfo.Direction = Vel.Unit
+								end
+							end
+						end
+					elseif
+						Classes.ClosestType.Value == "Closest To Arrow"
+						or Classes.ClosestType.Value == "Only Redirect To Target"
+					then
+						if Player then
+							local HitPart = Player:FindFirstChild(
+								Classes.SilentHitPart.Value == "Random" and R6BodyParts[math.random(1, #R6BodyParts)]
+									or Classes.SilentHitPart.Value
+							)
+							if
+								HitPart
+								and (HitPart.Position - caster:GetPosition()).Magnitude
+									<= Classes.SilentAimRange.Value
+							then
+								local Vel = (HitPart.Position - caster:GetPosition()).Unit * 3000
+								caster:SetVelocity(Vel)
+							end
+						end
+					end
+				end
+			end
+		end))
+
+		if caster and caster.UserData and caster.StateInfo then
+			return OldSimulateCast(...)
+		end
+
+		return
+	end
+
     function newCalculateFire(...)
         local args = {...}
         local target = framework:GetClosestToMouse(Options.FOVSize.Value)
@@ -8165,9 +8465,9 @@ do -- Silent Aim
 
                 if cheatedOrigin then
                     currentSilentAimTarget = target.Character
-                    local predictionAmount = 2.6
-                    local targetVelocity = Classes.Resolver.Value and humanoid.MoveDirection or hitPart.Velocity
-                    local aimPos = hitPart.Position + (targetVelocity * predictionAmount)
+	                local projectileSpeed = metadata._itemConfig.speed;
+                	local projectileGravity = metadata._itemConfig.gravity or Vector3.new(0, 0, 0)
+                    local aimPos = PredictTargetPosition(cheatedOrigin, {Position = hitPart.Position, Velocity = (Classes.Resolver.Value and humanoid.MoveDirection or hitPart.Velocity), }, projectileSpeed, LocalPlayer:GetNetworkPing() * 1000, projectileGravity)
                     args[1] = CFrame.lookAt(vector3new(), (aimPos - cheatedOrigin).Unit)
                     local oldParams = metadata._mainCasterBehavior.RaycastParams
                     local newParams = RaycastParams.new()
@@ -8180,7 +8480,7 @@ do -- Silent Aim
                             table.insert(ignoreList, v)
                         end
                     end
-                    for _, plr in pairs(game.Players:GetPlayers()) do
+                    for _, plr in pairs(cachedplayers) do
                         local plrChar = plr.Character
                         if plrChar and plrChar ~= target.Character then
                             table.insert(ignoreList, plrChar)
@@ -8190,7 +8490,7 @@ do -- Silent Aim
                     if not table.find(ignoreList, workspace.Terrain) then
                         table.insert(ignoreList, workspace.Terrain)
                     end
-                    newParams.FilterDescendantsInstances = ignoreList
+                    newParams.FilterDescendantsInstances = ignoreList;
                     metadata._mainCasterBehavior.RaycastParams = newParams
 					task.defer(function()
 						metadata._mainCasterBehavior.RaycastParams = oldParams;
@@ -8396,7 +8696,7 @@ do -- Silent Aim
 				end)
 			end
 			if metadata._clientAmmoVO.Value ~= 0 then
-				task.wait(metadata._itemConfig.cooldown);
+				task.wait(metadata._itemConfig.cooldown + 0.06);
 			end;
 			metadata.canShootBulletssss = true;
 		end
@@ -8519,7 +8819,7 @@ do
     local FrameCounter = 0
     local FPS = 60
     
-    runservice.RenderStepped:Connect(LPH_NO_VIRTUALIZE(function()
+    runservice.RenderStepped:Connect(LPH_JIT_MAX(function()
         FrameCounter = FrameCounter + 1
         if (tick() - FrameTimer) >= 1 then
             FPS = FrameCounter
@@ -8739,7 +9039,7 @@ local function CreateCharacterVisuals()
         end
     end
 
-    runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
+    runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
         local char = localplayer.Character
         if not char or not char:FindFirstChild("HumanoidRootPart") then
             charHighlight.Parent = nil
@@ -8870,7 +9170,7 @@ local function CreateMoreVisuals()
     local lastTool = nil
     local lastChamSettings = { Material = nil, Color = nil, Highlight = nil, HighlightColor = nil }
 
-    runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function(dt)
+    runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
         -- Redundant FOV logic removed to prevent conflicts with Unified FOV handling in ESP section.
 
         -- Crosshair
@@ -8937,24 +9237,6 @@ end
 InitializeCombat()
 
 thememanager:ApplyToTab(tabs.settings);
-if framework:InMenu(localplayer) then
-	repeat task.wait(); until not framework:InMenu(localplayer);
-end;
 task.wait(0.1);
-if not getgenv().falldamage then
-	if voidactive then
-		setrunning("voidhidelogic", false);
-	end;
-    setrunning("initattemptkill", true);
-    killphase = 1;
-    task.wait(0.2);
-    killphase = 2;
-    task.wait(0.05);
-    setrunning("initattemptkill", false);
-    if voidactive then
-		setrunning("voidhidelogic", true);
-    end;
-	getgenv().falldamage = true;
-end;
 end
 InitializeSerenium()
