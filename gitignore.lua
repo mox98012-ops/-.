@@ -1343,8 +1343,21 @@ function framework:GetMeleeFuncs(Table)
 	end;
 	return nil;
 end;
-
+TweenService = game:GetService("TweenService");
+local function slow_tween(CF)
+	local part = humanoidrootpart;
+	local dist = (part.Position - CF.Position).Magnitude;
+	local speed = 60;
+	local time = dist / speed;
+	local tween = TweenService:Create(part, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = CF});
+	tween:Play();
+	tween.Completed:Wait();
+end;
 function framework:Teleport(CF)
+	if getgenv().safe_mode then
+		slow_tween(CF);
+		return;
+	end;
 	if driver then
 		driver.CFrame = CF;
 	else
@@ -1369,7 +1382,7 @@ function framework:Teleport(CF)
 		end;
 		task.wait();
 	until notowner or (os.clock() - start) >= maxtime;
-    task.wait(0.5);
+	task.wait(0.5);
 	if notowner then
 		if driver then
 			humanoidrootpart.CFrame = CF;
@@ -3668,12 +3681,14 @@ do
 	        end;
 	    end;
 	});
-
+    max_speed = getgenv().safe_mode and 50 or 5000;
+    max_speed1 = getgenv().safe_mode and 30 or 100;
+    max_speed2 = getgenv().safe_mode and 65 or 1000;
 	charactertab:AddSlider("flyspeed", {
 	    Text = "fly speed",
 	    Default = 16,
 	    Min = 16,
-	    Max = 5000,
+	    Max = max_speed,
 	    Rounding = 0,
 	    Compact = true,
 		Callback = function(Value)
@@ -3685,7 +3700,7 @@ do
     	Text = "walk speed";
     	Default = 16;
     	Min = 16;
-    	Max = 100;
+    	Max = max_speed1;
     	Rounding = 0;
     	Compact = true;
     	Callback = function(value)
@@ -3720,7 +3735,7 @@ do
 	    Text = "velocity speed",
 	    Default = 16,
 	    Min = 16,
-	    Max = 1000,
+	    Max = max_speed2,
 	    Rounding = 0,
 	    Compact = true,
 		Callback = function(Value)
@@ -4732,6 +4747,7 @@ serverposition("heartbeat", "AvoidProjectiles", function(cf)
 	if getgenv().voidenabled then return; end;
     return cf * CFrame.new(0, 60, 0);
 end, 17);
+if not getgenv().safe_mode then
 misc1:AddButton("attempt kill", function()
 	local targetplayer = SelectedPlayer;
 	if not targetplayer then
@@ -4936,6 +4952,7 @@ misc1:AddButton("attempt fling", function()
     end;
     fling();
 end);
+end;
 misc1:AddButton("whitelist", function()
     local playername = SelectedPlayer.Name;
     if not table.find(whitelist, playername) then
@@ -5034,6 +5051,7 @@ local function AttemptKillTarget(targetPlayer)
 	AttachRoot = nil;
 	StopJitter();
 end;
+if not getgenv().safe_mode then
 misc1:AddButton({
     Text = "re-init attempt kill",
     Func = function()
@@ -5065,6 +5083,7 @@ misc1:AddButton({
     end,
     Tooltip = "re-initialize attempt kill incase it failed";
 });
+end;
 misc1:AddToggle("spectateto", {
 	Text = "spectate";
 	Default = false;
@@ -5107,7 +5126,7 @@ local loopkillthread = nil;
 local currentTarget = nil;
 local loopkilltarget_hb = nil;
 local attachactive = false;
-
+if not getgenv().safe_mode then
 auto:AddToggle("loopkilltarget", {
     Text = "loop attempt kill target";
     Default = false;
@@ -5257,7 +5276,7 @@ auto:AddToggle("loopkillall", {
         end)
     end
 })
-
+end;
 local cas = game:GetService("ContextActionService");
 local function alive(player)
 	local character = player.Character;
@@ -5459,6 +5478,7 @@ players.PlayerRemoving:Connect(function()
 end);
 local FlingThread;
 local CanFlingAll = false;
+if not getgenv().safe_mode then
 auto:AddToggle("loopflingall", {
     Text = "loop attempt fling all";
     Default = false;
@@ -5536,7 +5556,7 @@ auto:AddToggle("loopflingall", {
         end));
     end;
 });
-
+end;
 auto:AddToggle("WhitelistFriends", {
 	Text = "whitelist friends";
 	Default = false;
