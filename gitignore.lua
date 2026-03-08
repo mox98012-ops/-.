@@ -5276,7 +5276,6 @@ auto:AddToggle("loopkillall", {
         end)
     end
 })
-end;
 local cas = game:GetService("ContextActionService");
 local function alive(player)
 	local character = player.Character;
@@ -5393,6 +5392,7 @@ runservice.Heartbeat:Connect(function(dt)
 		end;
 	end;
 end);
+end;
 network:BindEvents({
 	KilledPlayer = function(statData)
 		local KillSayStuff = Data.KillSayStuff
