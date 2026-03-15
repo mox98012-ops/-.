@@ -4,22 +4,20 @@ if (info.Creator.CreatorType ~= "Group" or info.Creator.CreatorTargetId ~= 51928
 	return;
 end;
 getgenv().serenium_LOADED = true;
-if (not game:GetService("Players").LocalPlayer) then
-    repeat task.wait() until game:GetService("Players").LocalPlayer;
-end;
+repeat task.wait() until game:GetService("Players").LocalPlayer;
+workspace.FallenPartsDestroyHeight = -math.huge;
 for _, void in pairs(workspace:GetDescendants()) do
 	if (void.Name == "VoidCollidePart" and void:IsA("Part")) then
-		void.CanTouch = false;
+        void.CanTouch = false;
 		void:GetPropertyChangedSignal("CanTouch"):Connect(function()
-			if (not void.CanTouch == false) then
+			if (void.CanTouch ~= false) then
 				void.CanTouch = false;
 			end;
 		end);
 	end;
 end;
-workspace.FallenPartsDestroyHeight = -math.huge;
 workspace:GetPropertyChangedSignal("FallenPartsDestroyHeight"):Connect(function()
-	if (not workspace.FallenPartsDestroyHeight == -math.huge) then
+	if (workspace.FallenPartsDestroyHeight ~= -math.huge) then
 		workspace.FallenPartsDestroyHeight = -math.huge;
 	end;
 end);
@@ -29,7 +27,7 @@ game:GetService("Players").LocalPlayer:WaitForChild("DataLoaded");
 if not LPH_OBFUSCATED then
     getgenv().LPH_JIT_MAX = function(f) return f end
     getgenv().LPH_JIT = function(f) return f end
-    getgenv().LPH_JIT_MAX = function(f) return f end
+    getgenv().LPH_NO_VIRTUALIZE = function(f) return f end
     getgenv().LPH_NO_UPVALUES = function(f) return f end
     getgenv().LPH_CRASH = function() return end
 end
@@ -141,33 +139,29 @@ local modules, framework;
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/linoria-fork/refs/heads/main/linoria.lua"))();
 local savemanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/savemanager/refs/heads/main/linoria.lua"))();
 local thememanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/refs/heads/main/addons/ThemeManager.lua"))();
-local window = library:CreateWindow({Title = "			 nil.solutions - discord.gg/serenium   <font color=\"#ff0000\">combat warriors</font>", Center = true, AutoShow = true, TabPadding = 8, MenuFadeTime = 0});
-local tabs = {main = window:AddTab('main'), ranged = window:AddTab("ranged"); charactertab = window:AddTab("character"), misc = window:AddTab("misc"), visuals = window:AddTab("visuals"), sniper = window:AddTab("sniper"), settings = window:AddTab("settings")};
+local window = library:CreateWindow({Title = "			 <font color = \"#8400ff\">nil.solutions - discord.gg/serenium</font>   <font color=\"#ff0000\">combat warriors</font>", Center = true, AutoShow = true, TabPadding = 8, MenuFadeTime = 0});
+local tabs = {main = window:AddTab('main'), ranged = window:AddTab("ranged"); charactertab = window:AddTab("character"), misc = window:AddTab("misc"), visuals = window:AddTab("visuals"), kill = window:AddTab("kill"), settings = window:AddTab("settings")}; -- tabs
 
--- tabs
 local main = tabs.main:AddLeftGroupbox("main");
 local parrysection2 = tabs.main:AddRightGroupbox("auto parry")
 local parrysection = tabs.main:AddRightGroupbox("modifications")
-local ragebotsection = tabs.misc:AddLeftGroupbox("ragebot");
 
 local mmisc = tabs.misc:AddLeftGroupbox("main");
 local miscauto = tabs.misc:AddLeftGroupbox("auto");
 local misc = tabs.misc:AddLeftGroupbox("cosmetic");
 local crates = tabs.misc:AddLeftGroupbox("crates");
-local misc1 = tabs.misc:AddRightGroupbox("players");
+local misc_tab = tabs.misc:AddRightTabbox();
 local auto = tabs.misc:AddRightGroupbox("others")
 local charactertab = tabs.charactertab:AddLeftGroupbox("character");
 local othertabs = tabs.charactertab:AddLeftGroupbox("others");
 local exploit = tabs.charactertab:AddRightGroupbox("exploits");
 local exploit1 = tabs.charactertab:AddRightGroupbox("character exploits");
 local settings = tabs.settings:AddLeftGroupbox("settings");
-local sniper = tabs.sniper:AddLeftGroupbox("sniper");
-local aimbot = tabs.ranged:AddLeftGroupbox("aimbot");
 local gunmods = tabs.ranged:AddLeftGroupbox("gun mods");
-local silentaim = tabs.ranged:AddRightGroupbox("silent aim");
 
 local charactersection = tabs.visuals:AddRightGroupbox("character visuals");
 local espsection = tabs.visuals:AddLeftGroupbox("esp");
+local kill = tabs.kill:AddLeftGroupbox("attempt kills");
 
 -- others
 local whitelist = {};
@@ -263,6 +257,7 @@ getgenv().killsay = false;
 getgenv().nfd = false;
 getgenv().loopkilltarget = false;
 getgenv().stick = false;
+getgenv().silentAimTarget = nil;
 getgenv().tpenemy = false;
 getgenv().hbe_part = "Head";
 getgenv().hbesize = 1;
@@ -426,12 +421,31 @@ taskspawn(LPH_JIT_MAX(function()
 		end;
 	end;
 end));
--- noclip
+-- noclip (cached parts)
+local noclipParts = {};
+local function cacheNoclipParts(char)
+    noclipParts = {};
+    if not char then return end;
+    for _, v in ipairs(char:GetDescendants()) do
+        if v:IsA("BasePart") then
+            table.insert(noclipParts, v);
+        end;
+    end;
+    char.DescendantAdded:Connect(function(v)
+        if v:IsA("BasePart") then
+            table.insert(noclipParts, v);
+        end;
+    end);
+end;
+cacheNoclipParts(character);
+localplayer.CharacterAdded:Connect(cacheNoclipParts);
 runservice.Stepped:Connect(LPH_JIT_MAX(function()
     if not getgenv().noclipenabled then return; end;
-    if not character then return; end;
-    for _, v in ipairs(character:GetDescendants()) do
-        if v:IsA("BasePart") then
+    for i = #noclipParts, 1, -1 do
+        local v = noclipParts[i];
+        if not v or not v.Parent then
+            table.remove(noclipParts, i);
+        else
             v.CanCollide = false;
         end;
     end;
@@ -455,33 +469,45 @@ local HitDetectionImpl = {
 };
 HitDetectionImpl.CreateLog = LPH_JIT_MAX(function(text)
     local screen = workspace.CurrentCamera.ViewportSize
-    local prefixBase = "serenium"
-    local prefixHvh = ".hvh"
-    local restOfText = text:sub(#"serenium.hvh" + 1)
+    local prefixNil = "nil"
+    local prefixDot = "."
+    local prefixSolutions = "solutions"
+    local fullPrefix = "nil.solutions"
+    local restOfText = text:sub(#fullPrefix + 1)
     
-    local hvhColor = (Options and Options.HvhColor) and Options.HvhColor.Value or Color3.fromRGB(150, 0, 255)
+    local nilColor = Color3.fromRGB(148, 131, 255)
     local textSize = 19
-    local textFont = 2 -- Bold-ish Monospace
+    local textFont = 2
 
-    local labelBase = drawingnew("Text")
-    labelBase.Text = prefixBase
-    labelBase.Size = textSize
-    labelBase.Font = textFont
-    labelBase.Outline = true
-    labelBase.Color = Color3.new(1, 1, 1)
-    labelBase.Visible = true
-    labelBase.Transparency = 0
-    labelBase.ZIndex = 15
+    local labelNil = drawingnew("Text")
+    labelNil.Text = prefixNil
+    labelNil.Size = textSize
+    labelNil.Font = textFont
+    labelNil.Outline = true
+    labelNil.Color = nilColor
+    labelNil.Visible = true
+    labelNil.Transparency = 0
+    labelNil.ZIndex = 15
     
-    local labelHvh = drawingnew("Text")
-    labelHvh.Text = prefixHvh
-    labelHvh.Size = textSize
-    labelHvh.Font = textFont
-    labelHvh.Outline = true
-    labelHvh.Color = hvhColor
-    labelHvh.Visible = true
-    labelHvh.Transparency = 0
-    labelHvh.ZIndex = 15
+    local labelDot = drawingnew("Text")
+    labelDot.Text = prefixDot
+    labelDot.Size = textSize
+    labelDot.Font = textFont
+    labelDot.Outline = true
+    labelDot.Color = Color3.new(1, 1, 1)
+    labelDot.Visible = true
+    labelDot.Transparency = 0
+    labelDot.ZIndex = 15
+
+    local labelSolutions = drawingnew("Text")
+    labelSolutions.Text = prefixSolutions
+    labelSolutions.Size = textSize
+    labelSolutions.Font = textFont
+    labelSolutions.Outline = true
+    labelSolutions.Color = Color3.new(1, 1, 1)
+    labelSolutions.Visible = true
+    labelSolutions.Transparency = 0
+    labelSolutions.ZIndex = 15
 
     local labelRest = drawingnew("Text")
     labelRest.Text = restOfText
@@ -495,19 +521,20 @@ HitDetectionImpl.CreateLog = LPH_JIT_MAX(function(text)
     
     local targetX = screen.X / 2
     local finalY = screen.Y - 180 - HitDetectionImpl.YOffset
-    local totalWidth = labelBase.TextBounds.X + labelHvh.TextBounds.X + labelRest.TextBounds.X
+    local totalWidth = labelNil.TextBounds.X + labelDot.TextBounds.X + labelSolutions.TextBounds.X + labelRest.TextBounds.X
     local offsetFromCenter = totalWidth / 2
     
     local function setPos(currentX)
-        labelBase.Position = vector2new(currentX - offsetFromCenter, finalY)
-        labelHvh.Position = vector2new(labelBase.Position.X + labelBase.TextBounds.X, finalY)
-        labelRest.Position = vector2new(labelHvh.Position.X + labelHvh.TextBounds.X, finalY)
+        labelNil.Position = vector2new(currentX - offsetFromCenter, finalY)
+        labelDot.Position = vector2new(labelNil.Position.X + labelNil.TextBounds.X, finalY)
+        labelSolutions.Position = vector2new(labelDot.Position.X + labelDot.TextBounds.X, finalY)
+        labelRest.Position = vector2new(labelSolutions.Position.X + labelSolutions.TextBounds.X, finalY)
     end
     
     -- Initial Pos (shifted left)
     setPos(targetX - 30)
 
-    table.insert(HitDetectionImpl.Labels, {labelBase, labelHvh, labelRest})
+    table.insert(HitDetectionImpl.Labels, {labelNil, labelDot, labelSolutions, labelRest})
     HitDetectionImpl.YOffset = HitDetectionImpl.YOffset + 22
 
     taskspawn(function()
@@ -516,8 +543,9 @@ HitDetectionImpl.CreateLog = LPH_JIT_MAX(function(text)
         for i = 1, slideSteps do
             local progress = i / slideSteps
             local currentX = (targetX - 30) + (30 * progress)
-            labelBase.Transparency = progress
-            labelHvh.Transparency = progress
+            labelNil.Transparency = progress
+            labelDot.Transparency = progress
+            labelSolutions.Transparency = progress
             labelRest.Transparency = progress
             setPos(currentX)
             task.wait(0.015)
@@ -528,20 +556,23 @@ HitDetectionImpl.CreateLog = LPH_JIT_MAX(function(text)
         -- Fade Out
         for i = 1, 10 do
             local trans = 1 - (i / 10)
-            labelBase.Transparency = trans
-            labelHvh.Transparency = trans
+            labelNil.Transparency = trans
+            labelDot.Transparency = trans
+            labelSolutions.Transparency = trans
             labelRest.Transparency = trans
             task.wait(0.04)
         end
-        labelBase.Visible = false
-        labelHvh.Visible = false
+        labelNil.Visible = false
+        labelDot.Visible = false
+        labelSolutions.Visible = false
         labelRest.Visible = false
-        labelBase:Remove()
-        labelHvh:Remove()
+        labelNil:Remove()
+        labelDot:Remove()
+        labelSolutions:Remove()
         labelRest:Remove()
         
         for i, v in ipairs(HitDetectionImpl.Labels) do
-            if v[1] == labelBase then
+            if v[1] == labelNil then
                 table.remove(HitDetectionImpl.Labels, i)
                 break
             end
@@ -846,7 +877,7 @@ local OnHit = LPH_JIT_MAX(function(targetPlayer, hitPart, damage, hitType)
             local dmgText = string.format("%.0f", displayDamage)
 
             HitDetectionImpl.CreateLog(
-                "serenium.hvh | hit "
+                "nil.solutions | hit "
                 .. targetPlayer.Name
                 .. " for "
                 .. dmgText
@@ -1016,16 +1047,22 @@ function framework:InMenu(Player)
 	end
 	return IsMenu
 end
+getgenv().cachedplayers = {}
 local Players = game:GetService("Players")
-local localPlayer = Players.LocalPlayer
-cachedplayers = {}
 local function updateCached()
-    for i = #cachedplayers, 1, -1 do
-        cachedplayers[i] = nil
+    local lp = Players.LocalPlayer
+    
+    -- Sync dictionary
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= lp then
+            getgenv().cachedplayers[p] = true
+        end
     end
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= localPlayer then
-            table.insert(cachedplayers, player)
+    
+    -- Remove gone players
+    for p, _ in pairs(getgenv().cachedplayers) do
+        if p.Parent ~= Players or p == lp then
+            getgenv().cachedplayers[p] = nil
         end
     end
 end
@@ -1050,7 +1087,7 @@ function framework:GetClosest(Distance, Priority, CheckFunction)
     local Distance = Distance or math.huge;
     local CheckFunction = CheckFunction or n;
     local ClosestPlayers = {};
-    for i, v in pairs(cachedplayers) do
+    for v, _ in pairs(getgenv().cachedplayers) do
         if v == localplayer then
             continue;
         end;
@@ -1113,27 +1150,27 @@ function framework:GetClosest2(Distance, CheckFunction)
 	local CheckFunction = CheckFunction or n;
 	local ClosestPlayer = nil;
 
-	for i, v in pairs(cachedplayers) do
-		if v == localplayer then
+	for player, _ in pairs(getgenv().cachedplayers) do
+		if player == localplayer then
 			continue;
 		end;
-		local checkSuccess, checkResult = pcall(CheckFunction, v)
+		local checkSuccess, checkResult = pcall(CheckFunction, player)
 		if not checkSuccess or not checkResult then
 			continue;
 		end;
-		if framework:InMenu(v) then
+		if framework:InMenu(player) then
 			continue;
 		end;
-		if Toggles.WhitelistFriends.Value and localplayer:IsFriendsWith(v.UserId) then
+		if Toggles.WhitelistFriends.Value and localplayer:IsFriendsWith(player.UserId) then
 			continue;
 		end;
-		local HRP = v.Character and v.Character:FindFirstChild("HumanoidRootPart");
+		local HRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart");
 		if not HRP then continue end
 		local Magnitude = (HRP.Position - humanoidrootpart.Position).Magnitude;
 
 		if Magnitude < Distance then
 			Distance = Magnitude;
-			ClosestPlayer = v.Name;
+			ClosestPlayer = player.Name;
 		end;
 	end;
 
@@ -1159,25 +1196,25 @@ function framework:GetClosestToMouse(Distance, Priority, CheckFunction, MaxDist3
 	local ClosestPlayer = nil;
 	local MousePosition = userinputservice:GetMouseLocation();
 
-	for i, v in pairs(cachedplayers) do
-		if v == localplayer then
+	for player, _ in pairs(getgenv().cachedplayers) do
+		if player == localplayer then
 			continue;
 		end;
-		if Ignored and table.find(Ignored, v.Name) then
+		if Ignored and table.find(Ignored, player.Name) then
 			continue;
 		end;
-		if Toggles.WhitelistFriends.Value and localplayer:IsFriendsWith(v.UserId) then
+		if Toggles.WhitelistFriends.Value and localplayer:IsFriendsWith(player.UserId) then
 			continue;
 		end;
-		local checkSuccess, checkResult = pcall(CheckFunction, v)
+		local checkSuccess, checkResult = pcall(CheckFunction, player)
 		if not checkSuccess or not checkResult then
 			continue;
 		end;
-		if framework:InMenu(v) then
+		if framework:InMenu(player) then
 			continue;
 		end;
 
-		local HRP = v.Character and v.Character:FindFirstChild("HumanoidRootPart");
+		local HRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart");
 		if not HRP then continue end
 		local vector, onScreen = camera:WorldToScreenPoint(HRP.Position);
 		if onScreen then
@@ -1189,7 +1226,7 @@ function framework:GetClosestToMouse(Distance, Priority, CheckFunction, MaxDist3
 			local Magnitude = (MousePosition - vector2new(vector.X, vector.Y)).Magnitude;
 			if Magnitude < Distance then
 				Distance = Magnitude;
-				ClosestPlayer = v;
+				ClosestPlayer = player;
 			end;
 		end;
 	end;
@@ -1660,7 +1697,7 @@ for _, v in PlayerCharacters:GetChildren() do
         ApplyHitbox(v)
     end
 end
-for _, player in cachedplayers do
+for player, _ in pairs(getgenv().cachedplayers) do
     if player ~= localplayer then
         if player.Character then
             ApplyHitbox(player.Character)
@@ -2133,18 +2170,338 @@ network:BindEvents({
 });
 
 -- ui setup
-local activeloops = {};
 local function updatefeature(togglename, keyname, setter)
-    if activeloops[togglename] then return; end;
-    activeloops[togglename] = true;
-    taskspawn(LPH_JIT_MAX(function()
-        while task.wait() do
-            local toggleon = Toggles[togglename].Value;
-            local keyon = Options[keyname]:GetState();
-            setter(toggleon and keyon);
-        end;
-    end));
+    local ok, result = pcall(function()
+        local toggleon = Toggles[togglename] and Toggles[togglename].Value;
+        local keyon = Options[keyname] and Options[keyname]:GetState();
+        return toggleon and keyon;
+    end);
+    if ok then
+        setter(result);
+    end;
 end;
+do
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local localplayer = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+local lastKeybindState = false
+
+local character = localplayer.Character or localplayer.CharacterAdded:Wait()
+
+local main_ranged = tabs.ranged:AddRightTabbox()
+local silent_tab = main_ranged:AddTab("silent aim")
+local aimbot_tab = main_ranged:AddTab("aimbot")
+local ragebotsection = tabs.ranged:AddRightGroupbox("ragebot");
+localplayer.CharacterAdded:Connect(function(char)
+	character = char
+end)
+
+-- Using global cachedplayers
+
+Players.PlayerRemoving:Connect(function(player)
+	getgenv().cachedplayers[player] = nil
+	if getgenv().lockedTarget == player then
+		getgenv().lockedTarget = nil
+	end
+end)
+
+aimbot_tab:AddToggle("aimbot_toggle", {
+	Text = "aimbot",
+	Callback = function(value)
+		if value then
+			getgenv().AimbotEnabled = true
+			lockedTarget = nil
+
+			task.spawn(LPH_JIT_MAX(function()
+				while getgenv().AimbotEnabled do
+					RunService.RenderStepped:Wait()
+
+					local keybindPressed = Options.AimbotKeybind:GetState()
+
+					if keybindPressed then
+						local mouse = localplayer:GetMouse()
+						local fovRadius = Options.FOVCircleSize.Value or 500
+						local hitPartName = Options.AimbotHitPart.Value or "Head"
+
+						local needsNewTarget =
+							not getgenv().lockedTarget
+							or not getgenv().lockedTarget.Character
+							or not getgenv().lockedTarget.Character:FindFirstChild("Humanoid")
+							or getgenv().lockedTarget.Character.Humanoid.Health <= 0
+
+						local keybindJustPressed = keybindPressed and not lastKeybindState
+
+						if Toggles.AutoSelect.Value or needsNewTarget or (not Toggles.AutoSelect.Value and keybindJustPressed) then
+							local closestTarget = nil
+							local closestDistance = math.huge
+
+							for player,_ in pairs(getgenv().cachedplayers) do
+								if player and player.Parent and player ~= localplayer and player.Character then
+									local humanoid = player.Character:FindFirstChild("Humanoid")
+									local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+									local targetPart = player.Character:FindFirstChild(hitPartName)
+
+									if humanoid and humanoid.Health > 0 and hrp and targetPart then
+										local screenPos,onScreen = camera:WorldToViewportPoint(targetPart.Position)
+
+										if onScreen then
+											local mousePos = Vector2.new(mouse.X,mouse.Y)
+											local targetPos = Vector2.new(screenPos.X,screenPos.Y)
+
+											local distance = (mousePos-targetPos).Magnitude
+
+											if distance < fovRadius and distance < closestDistance then
+												closestDistance = distance
+												closestTarget = player
+											end
+										end
+									end
+								end
+							end
+
+							getgenv().lockedTarget = closestTarget
+						end
+
+						lastKeybindState = keybindPressed
+
+						if getgenv().lockedTarget and getgenv().lockedTarget.Character then
+							local targetPart =
+								getgenv().lockedTarget.Character:FindFirstChild(hitPartName)
+								or getgenv().lockedTarget.Character:FindFirstChild("HumanoidRootPart")
+
+							if targetPart then
+								local aimPos = targetPart.Position
+
+								if Toggles.Prediction.Value then
+									local hrp = getgenv().lockedTarget.Character:FindFirstChild("HumanoidRootPart")
+
+									if hrp then
+										local targetVelocity = hrp.Velocity
+										local predictionAmount = Options.PredictionAmount.Value or 0.13
+										aimPos = aimPos + (targetVelocity * predictionAmount)
+									end
+								end
+
+								if Toggles.Smooth.Value then
+									local smoothAmount = Options.SmoothAmount.Value or 0.15
+									local currentCFrame = camera.CFrame
+									local targetCFrame = CFrame.new(camera.CFrame.Position,aimPos)
+
+									camera.CFrame = currentCFrame:Lerp(targetCFrame,smoothAmount)
+								else
+									camera.CFrame = CFrame.new(camera.CFrame.Position,aimPos)
+								end
+							end
+						end
+					else
+						lastKeybindState = keybindPressed
+					end
+				end
+			end))
+		else
+			getgenv().AimbotEnabled = false
+			getgenv().lockedTarget = nil
+		end
+	end
+}):AddKeyPicker("AimbotKeybind", {
+	Default = "MB2",
+	SyncToggleState = false,
+	Mode = "Hold",
+	Text = "aimbot",
+	NoUI = false
+})
+silent_tab:AddToggle("SilentAim", {
+	Default = false,
+	Text = "silent aim"
+})
+silent_tab:AddToggle("stickyaim", {
+	Text = "sticky aim",
+	Default = false,
+	Callback = function()
+		local state = Toggles.stickyaim.Value and Options.stickbind:GetState()
+		getgenv().stick = state
+		if not state then
+			getgenv().stickTarget = nil
+		end
+	end
+}):AddKeyPicker("stickbind", {
+	Text = "sticky aim",
+	Default = "T",
+	NoUi = true,
+	Callback = function()
+		local state = Toggles.stickyaim.Value and Options.stickbind:GetState()
+		getgenv().stick = state
+		if not state then
+			getgenv().stickTarget = nil
+		end
+	end
+})
+local silent_children = silent_tab:AddDependencyBox()
+silent_children:AddToggle("ShowFOV", {
+	Text = "show fov",
+	Default = false
+}):AddColorPicker("fov_1_3", {
+    Title = "fov color";
+    Default = Color3.fromRGB(100, 100, 100);
+    Transparency = 0;
+})
+silent_children:AddSlider("FOVSize", {
+	Text = "fov size",
+	Default = 500,
+	Min = 1,
+	Max = 1000,
+	Rounding = 0,
+	Compact = true,
+	Suffix = " px"
+})
+silent_children:AddToggle("Resolver", {
+	Text = "resolver",
+	Default = false
+})
+
+silent_children:AddToggle("avoidprojectiles", {
+	Text = "avoid projectiles",
+	Default = false
+})
+
+silent_children:AddDropdown("ClosestType", {
+	Text = "check type",
+	Default = "Closest To Mouse",
+	Values = {"Closest To Mouse", "Closest To Arrow", "Only Redirect To Target"}
+})
+
+silent_children:AddDropdown("SilentHitPart", {
+	Text = "hit part",
+	Default = "Head",
+	Values = {"Head", "Torso", "Random"}
+})
+
+silent_children:AddSlider("SilentAimRange", {
+	Text = "velocity",
+	Default = 1,
+	Min = 1,
+	Max = 19,
+	Rounding = 0,
+	Compact = true,
+	Suffix = " studs",
+	Tooltip = "lower for more accuracy, higher for faster projectiles"
+})
+
+silent_children:AddSlider("HitChance", {
+	Text = "hit chance",
+	Default = 100,
+	Min = 1,
+	Max = 100,
+	Rounding = 0,
+	Compact = true,
+	Suffix = "%"
+})
+silent_children:SetupDependencies({
+	{ Toggles.SilentAim, true }
+})
+-- ragebot
+
+ragebotsection:AddToggle("Ragebot", {
+	Text = "ragebot";
+	Default = false;
+	Callback = function()
+		updatefeature("Ragebot", "ragebotkey", function(state)
+			getgenv().ragebot = state;
+		end);
+	end;
+}):AddKeyPicker("ragebotkey", {
+	Text = "ragebot";
+	Default = "H";
+	Callback = function()
+		updatefeature("Ragebot", "ragebotkey", function(state)
+			getgenv().ragebot = state;
+		end);
+	end;
+});
+local ragebot_children = ragebotsection:AddDependencyBox();
+ragebot_children:AddToggle("ShowRageBotTarget", {
+	Text = "show ragebot target";
+	Default = false;
+	Callback = function(value)
+		if not value then
+			if RagebotHighlight then
+				RagebotHighlight.Adornee = nil;
+			end;
+		end;
+	end;
+});
+ragebot_children:AddToggle("safe_mode_ragebot", {
+    Text = "<font color=\"#ff0000\">safe mode</font>",
+    Default = false,
+})
+local safe_mode_slider = ragebot_children:AddDependencyBox();
+safe_mode_slider:AddSlider("safe_mode_slider1", {
+    Text = "cooldown",
+    Default = 1,
+    Min = 0.1,
+    Max = 3,
+    Rounding = 1,
+    Compact = true,
+})
+ragebot_children:AddSlider("RagebotDist", {
+	Text = "ragebot distance";
+	Default = 19;
+	Min = 1;
+	Max = 1000;
+	Rounding = 0;
+	Compact = true;
+	Suffix = " studs";
+});
+ragebot_children:SetupDependencies({
+    { Toggles.Ragebot, true };
+});
+safe_mode_slider:SetupDependencies({
+    { Toggles.safe_mode_ragebot, true };
+});
+-- aimbot ui
+
+aimbot_tab:AddToggle("AutoSelect", {
+	Text = "auto select",
+	Default = false
+})
+
+aimbot_tab:AddToggle("Smooth", {
+	Text = "smooth out",
+	Default = false
+})
+
+aimbot_tab:AddSlider("SmoothAmount", {
+	Text = "smooth amount",
+	Default = 0.15,
+	Min = 0.01,
+	Max = 1,
+	Rounding = 2,
+	Compact = true
+})
+
+aimbot_tab:AddToggle("Prediction", {
+	Text = "prediction",
+	Default = false
+})
+
+aimbot_tab:AddSlider("PredictionAmount", {
+	Text = "prediction amount",
+	Default = 0.13,
+	Min = 0.01,
+	Max = 0.5,
+	Rounding = 2,
+	Compact = true
+})
+
+aimbot_tab:AddDropdown("AimbotHitPart", {
+	Text = "hit part",
+	Default = "Head",
+	Values = {"Head", "Torso", "Random"}
+})
+end
 -- main combat
 main:AddToggle("KillAura", {
 	Text = "kill aura";
@@ -2163,29 +2520,6 @@ main:AddToggle("KillAura", {
             getgenv().killaura = state;
         end);
     end;
-});
-silentaim:AddToggle("SilentAim", {
-	Text = "silent aim";
-	Default = false;
-	Tooltip = "use hitbox expander for more accuracy"
-});
-silentaim:AddToggle("stickyaim", {
-	Text = "sticky aim";
-	Default = false;
-	Callback = function()
-		updatefeature("stickyaim", "stickbind", function(state)
-			getgenv().stick = state;
-		end);
-	end;
-}):AddKeyPicker("stickbind", {
-	Text = "sticky aim";
-	Default = "T";
-	NoUi = true;
-	Callback = function()
-		updatefeature("stickyaim", "stickbind", function(state)
-			getgenv().stick = state;
-		end);
-	end;
 });
 main:AddSlider("KillAuraRange", {
 	Text = "kill aura range";
@@ -2407,12 +2741,11 @@ effectsjunk.DescendantAdded:Connect(processPart)
 if map then
     map.DescendantAdded:Connect(processPart);
 end;
-effectsjunk.DescendantAdded:Connect(processPart);
 -- Combat Section
 local KA_INTERVAL = 0.08;
 local lastKATick = 0;
 
-framework:BindToRenderStep(LPH_JIT_MAX(function()
+framework:BindToRenderStep(LPH_JIT_MAX(function() pcall(function()
     if not getgenv().killaura or KADebounce then
         return;
     end;
@@ -2454,52 +2787,54 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
         network:FireServer("MeleeSwing", weapon, slashIndex);
         metadata._lastSlashTick = now;
         task.defer(function()
-            for i, hitbox in hitboxes do
-                for playerName, health in closest do
-                    if health == 0 then
-                        continue;
+            local ok, err = pcall(function()
+                for i, hitbox in hitboxes do
+                    for playerName, health in closest do
+                        if health == 0 then
+                            continue;
+                        end;
+                        local targetPlayer = players:FindFirstChild(playerName);
+                        if not targetPlayer then
+                            continue;
+                        end;
+                        local character = targetPlayer.Character;
+                        if not character or not framework:Check(character) then
+                            continue;
+                        end;
+                        local session = framework:GetSessionData(targetPlayer);
+                        if not session or session:getState().parry.isParrying then
+                            continue;
+                        end;
+                        local hitpart = gethitpart(character);
+                        if not hitpart then
+                            continue;
+                        end;
+                        network:FireServer(
+                            "MeleeDamage",
+                            weapon,
+                            hitpart,
+                            i,
+                            hitpart.Position,
+                            hitpart.CFrame:ToObjectSpace(CFrame.new(hitpart.Position)),
+                            myHRP.CFrame.LookVector,
+                            Vector3.zero,
+                            Vector3.yAxis,
+                            now - metadata._lastSlashTick
+                        );
+                        local baseDamage = itemConfig.damage or itemConfig.baseDamage or 0
+                        local finalDamage = baseDamage
+                        if hitpart and hitpart.Name == "Head" then
+                            local mult = itemConfig.headshotMultiplier or 1.75
+                            finalDamage = finalDamage * mult
+                        end
+                        OnHit(targetPlayer, hitpart, finalDamage, "Melee")
+                        if Classes.KillAuraType.Value == "single person" then
+                            break;
+                        end;
                     end;
-                    local targetPlayer = players:FindFirstChild(playerName);
-                    if not targetPlayer then
-                        continue;
-                    end;
-                    local character = targetPlayer.Character;
-                    if not character or not framework:Check(character) then
-                        continue;
-                    end;
-                    local session = framework:GetSessionData(targetPlayer);
-                    if not session or session:getState().parry.isParrying then
-                        continue;
-                    end;
-                    local hitpart = gethitpart(character);
-                    if not hitpart then
-                        continue;
-                    end;
-                    network:FireServer(
-                        "MeleeDamage",
-                        weapon,
-                        hitpart,
-                        i,
-                        hitpart.Position,
-                        hitpart.CFrame:ToObjectSpace(CFrame.new(hitpart.Position)),
-                        myHRP.CFrame.LookVector,
-                        Vector3.zero,
-                        Vector3.yAxis,
-                        now - metadata._lastSlashTick
-                    );
-					local baseDamage = itemConfig.damage or itemConfig.baseDamage or 0
-					local finalDamage = baseDamage
-					if hitpart and hitpart.Name == "Head" then
-    					local mult = itemConfig.headshotMultiplier or 1.75
-    					finalDamage = finalDamage * mult
-					end
-					OnHit(targetPlayer, hitpart, finalDamage, "Melee")
-                    if Classes.KillAuraType.Value == "single person" then
-                        break;
-                    end;
+                    break;
                 end;
-                break;
-            end;
+            end)
             KADebounce = false;
         end);
     else
@@ -2564,8 +2899,12 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
         end;
         KADebounce = false;
     end;
-end));
+end) end));
 framework:BindToRenderStep(LPH_JIT_MAX(function()
+	-- early exit if no feature needs this loop
+	if not getgenv().autoequip and not getgenv().BeartrapEnemy and not getgenv().AutoAttachC4 and not getgenv().AutoDetonateC4 then
+		return;
+	end;
 	if not weapon and getgenv().autoequip then
 		local Character = localplayer.Character;
 		for _, v in pairs(localplayer.Backpack:GetChildren()) do
@@ -2661,6 +3000,9 @@ runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
     end;
 end));
 framework:BindToRenderStep(LPH_JIT_MAX(function()
+    if not getgenv().autostompshove and not getgenv().autoglory then
+        return;
+    end;
     if getgenv().autostompshove then
         local character = localplayer.Character
         local closest = framework:GetClosest(getgenv().stompshoverange, true)
@@ -2711,7 +3053,7 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
         end
     end
     if getgenv().autoglory then
-        task.wait(getgenv().glorydelay)
+        if getgenv().glorydelay and getgenv().glorydelay > 0 then task.wait(getgenv().glorydelay) end
         local closest = framework:GetClosest(getgenv().gloryrange, true)
         local tool = framework:GetWeapon()
         if tool and closest and next(closest) then
@@ -2896,8 +3238,8 @@ Connection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
 	angle = (angle + dt * tpSpeedVal) % (2 * math.pi);
 	orbitCF = cframenew(mathcos(angle) * Classes.TPRange.Value, 0, math.sin(angle) * Classes.TPRange.Value);
 end));
-serverposition("heartbeat", "CombatTeleport", function(realCF)
-	if getgenv().voidhivoidenabledde then return end
+serverposition("heartbeat", "CombatTeleport", LPH_JIT_MAX(function(realCF)
+	if getgenv().voidenabled then return end
 	local Character = localplayer.Character
 	if not Character then return end
 	local hrp = Character:FindFirstChild("HumanoidRootPart")
@@ -2953,7 +3295,7 @@ serverposition("heartbeat", "CombatTeleport", function(realCF)
 			* CFrame.Angles(math.rad(XA), math.rad(YA), math.rad(ZA))).Position
 		return CFrame.new(pos, predictedCF.Position)
 	end
-end, 16)
+end), 16)
 function canTeleportToTarget(player)
 	if not player then return false end
 	if player.Parent ~= players then return false end
@@ -2985,7 +3327,8 @@ runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
     end
     
     local closestPlayer = nil
-    if getgenv().killaura or getgenv().tpenemy or getgenv().stick or getgenv().targeting_player or getgenv().spectateneemy then
+    local needsTarget = getgenv().killaura or getgenv().tpenemy or getgenv().stick or getgenv().targeting_player or getgenv().spectateneemy
+    if needsTarget then
         local closestDist = math.huge
         local mousePos = userinputservice:GetMouseLocation()
 
@@ -2994,7 +3337,7 @@ runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
         elseif getgenv().targeting_player then
             closestPlayer = SelectedPlayer
         else
-            for _, player in ipairs(cachedplayers) do
+            for player, _ in pairs(getgenv().cachedplayers) do
                 if player ~= localplayer
                     and not whitelisted(player)
                     and player.Character
@@ -3022,6 +3365,8 @@ runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
         end
     end
     CurrentTarget = closestPlayer
+
+
     if CurrentTarget and canTeleportToTarget(CurrentTarget) and not getgenv().voidenabled and not whitelisted(CurrentTarget) then
         setrunning("CombatTeleport", true)
     else
@@ -3938,34 +4283,20 @@ exploit:AddToggle("antifling", {
 		local collision = {}
 		if Value then
 			getgenv().AntiFlingConnection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
-				for _, player in ipairs(cachedplayers) do
-					if player == Players.LocalPlayer or not player.Character then continue end
-
-					pcall(function()
-						local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-						if not hrp then return end
-
-						if hrp:FindFirstChildWhichIsA("WeldConstraint", true) then return end
-						local carrying = false
-						if hrp then
-							for _, joint in ipairs(hrp:GetConnectedParts()) do
-								if joint:IsDescendantOf(player.Character) then
-									carrying = true
-									break
-																end
-							end
-						end
-						if carrying then return end
-
-						collision[player] = collision[player] or {}
-						if not collision[player][hrp] then
-							collision[player][hrp] = {
-								CanCollide = hrp.CanCollide;
-							}
-						end
-
-						hrp.CanCollide = false
-					end)
+				for player, _ in pairs(getgenv().cachedplayers) do
+					if player == Players.LocalPlayer then continue end
+					local char = player.Character
+					if not char then continue end
+					local hrp = char:FindFirstChild("HumanoidRootPart")
+					if not hrp then continue end
+					if hrp:FindFirstChildWhichIsA("WeldConstraint", true) then continue end
+					collision[player] = collision[player] or {}
+					if not collision[player][hrp] then
+						collision[player][hrp] = {
+							CanCollide = hrp.CanCollide;
+						}
+					end
+					hrp.CanCollide = false
 				end
 			end))
 		else
@@ -4056,7 +4387,7 @@ exploit:AddToggle("ragdoll",{
 exploit:AddToggle("speedyboi", {
     Text = "fast animation";
     Default = false;
-    Tooltip = "use for instant finish lol 😂😂😂";
+    Tooltip = "use for instant finish lol ğŸ˜‚ğŸ˜‚ğŸ˜‚";
     Callback = function(Value)
         if animcon then
             animcon:Disconnect();
@@ -4248,23 +4579,6 @@ mmisc:AddToggle("svs", {
         network:FireServer("UpdateHasVc", true);
     end;
 });
-ragebotsection:AddToggle("Ragebot", {
-	Text = "ragebot";
-	Default = false;
-	Callback = function()
-		updatefeature("Ragebot", "ragebotkey", function(state)
-			getgenv().ragebot = state;
-		end);
-	end;
-}):AddKeyPicker("ragebotkey", {
-	Text = "ragebot";
-	Default = "H";
-	Callback = function()
-		updatefeature("Ragebot", "ragebotkey", function(state)
-			getgenv().ragebot = state;
-		end);
-	end;
-});
 mmisc:AddToggle("ShowLine", {
 	Text = "show line";
 	Default = false;
@@ -4284,7 +4598,7 @@ mmisc:AddToggle("antimod", {
                 while getgenv().antimod do
                     if tick() - lastcheck >= 2 then
                         lastcheck = tick();
-                        for _, player in ipairs(cachedplayers) do
+                        for player, _ in pairs(getgenv().cachedplayers) do
                             if player ~= localplayer then
                                 local ismod = modules.Name["ModHandler"].getIsMod(player);
                                 local isadmin = modules.Name["AdminHandler"].getIsAdmin(player);
@@ -4305,26 +4619,6 @@ mmisc:AddToggle("antimod", {
             getgenv().antimod = false;
         end
     end;
-});
-ragebotsection:AddToggle("ShowRageBotTarget", {
-	Text = "show ragebot target";
-	Default = false;
-	Callback = function(value)
-		if not value then
-			if RagebotHighlight then
-				RagebotHighlight.Adornee = nil;
-			end;
-		end;
-	end;
-});
-ragebotsection:AddSlider("RagebotDist", {
-	Text = "ragebot distance";
-	Default = 19;
-	Min = 1;
-	Max = 1000;
-	Rounding = 0;
-	Compact = true;
-	Suffix = " studs";
 });
 -- misc
 misc:AddButton("get cat", function()
@@ -4644,7 +4938,7 @@ function bestmatch(Input)
         return nil;
     end;
     Input = Input:lower();
-    for _, plr in ipairs(cachedplayers) do
+    for plr, _ in pairs(getgenv().cachedplayers) do
         if plr ~= localplayer then
             local namematch = plr.Name:lower():find(Input);
             local displaymatch = plr.DisplayName:lower():find(Input);
@@ -4655,12 +4949,11 @@ function bestmatch(Input)
     end;
     return nil;
 end;
-
+local misc1 = misc_tab:AddTab("players");
 local currenttarget = misc1:AddLabel("current target: none");
 local SelectedPlayer = nil;
 misc1:AddInput("playersearch", {
-    Text = "type player";
-    PlaceholderText = "type name or display";
+    Placeholder = "enter name or display";
     Default = "";
     ClearTextOnFocus = false;
     Callback = function(Text)
@@ -4678,7 +4971,7 @@ misc1:AddInput("playersearch", {
 local PlayerNames = {};
 local function UpdatePlayerDropdown()
     table.clear(PlayerNames);
-    for _, plr in ipairs(cachedplayers) do 
+    for plr, _ in pairs(getgenv().cachedplayers) do
         if plr ~= localplayer then
             table.insert(PlayerNames, plr.Name);
         end;
@@ -4748,13 +5041,13 @@ serverposition("heartbeat", "AvoidProjectiles", function(cf)
     return cf * CFrame.new(0, 60, 0);
 end, 17);
 if not getgenv().safe_mode then
-misc1:AddButton("attempt kill", function()
+kill:AddButton("attempt kill", function()
 	local targetplayer = SelectedPlayer;
 	if not targetplayer then
 		return;
 	end;
 	if framework:InMenu(targetplayer) then
-		HitDetectionImpl.CreateLog("serenium.hvh Target is in lobby.")
+		HitDetectionImpl.CreateLog("nil.solutions | Target is in menu.")
 		return;
 	end;
 	local realname = targetplayer.Name or targetplayer.Character.Name;
@@ -4888,11 +5181,11 @@ taskspawn(LPH_JIT_MAX(function()
 	if heartbeatconn then heartbeatconn:Disconnect(); end;
 end));
 end);
-misc1:AddButton("attempt fling", function()
+kill:AddButton("attempt fling", function()
     local target = SelectedPlayer
     if not target then return; end;
     if framework:InMenu(target) then
-        HitDetectionImpl.CreateLog("serenium.hvh Target is in lobby.")
+        HitDetectionImpl.CreateLog("nil.solutions | Target is in menu.")
         return;
     end;
     local fling = true;
@@ -4972,87 +5265,74 @@ misc1:AddButton("remove from whitelist", function()
         library:Notify(playername .. " is not whitelisted", 4);
     end;
 end);
-local Desync = false;
-local desyncThreadRef = nil;
+local Desync = false
+local desyncThreadRef = nil
+
 local function Jitter(rootPart)
-	if not rootPart or desyncThreadRef then
-		return;
-	end;
-	Desync = true;
-	local verticalOffset = 0.1;
-	desyncThreadRef = taskspawn(LPH_JIT_MAX(function()
-		while Desync and rootPart and rootPart.Parent do
-			runservice.Heartbeat:Wait();
-			local previousVelocity = rootPart.AssemblyLinearVelocity;
-			rootPart.AssemblyLinearVelocity = vector3new(
-				mathrandom(-1500, 1500),
-				mathrandom(-300, 300),
-				mathrandom(-1500, 1500)
-			);
-			runservice.RenderStepped:Wait();
-			if rootPart.Parent then
-				rootPart.AssemblyLinearVelocity = previousVelocity;
-			end;
+    if not rootPart or desyncThreadRef then return end
+    Desync = true
 
-			runservice.Stepped:Wait();
-			if rootPart.Parent then
-				rootPart.AssemblyLinearVelocity = previousVelocity + vector3new(0, verticalOffset, 0);
-				verticalOffset = -verticalOffset;
-			end;
-		end;
+    desyncThreadRef = task.spawn(LPH_JIT_MAX(function()
+        while Desync and rootPart and rootPart.Parent do
+            runservice.Heartbeat:Wait()
 
-		desyncThreadRef = nil;
-	end));
-end;
+            rootPart.AssemblyLinearVelocity = vector3new(
+                mathrandom(-800, 800),   -- tighter X/Z
+                mathrandom(-200, -100),  -- consistently downward Y
+                mathrandom(-800, 800)
+            )
+
+            runservice.Heartbeat:Wait()
+        end
+
+        desyncThreadRef = nil
+    end))
+end
 
 local function StopJitter()
-	Desync = false;
-end;
+	Desync = false
+	desyncThreadRef = nil
+end
 local function AttemptKillTarget(targetPlayer)
-	if not targetPlayer then
-		return;
-	end;
-	local myCharacter = character or localplayer.CharacterAdded:Wait();
-	local myRoot = myCharacter:FindFirstChild("HumanoidRootPart");
-	local myHumanoid = myCharacter:FindFirstChild("Humanoid");
-	local targetCharacter = targetPlayer.Character or targetPlayer;
-	local targetroot = targetCharacter:FindFirstChild("HumanoidRootPart");
-	local targetHumanoid = targetCharacter:FindFirstChild("Humanoid");
-	if not myRoot or not myHumanoid or not targetroot or not targetHumanoid then
-		return;
-	end;
-	local ragdollRemoteEvent = myHumanoid:FindFirstChild("RagdollRemoteEvent")
-		or myHumanoid:WaitForChild("RagdollRemoteEvent", 0.5);
-	if ragdollRemoteEvent then
-		ragdollRemoteEvent:FireServer(true);
-	end;
-	Jitter(myRoot);
-	if framework:InMenu(localplayer) then
-		StopJitter();
-		return;
-	end;
-	while myHumanoid.Health > 0 do
-		if framework:InMenu(localplayer) then
-			StopJitter();
-			break;
-		end;
-		AttachRoot = targetroot;
-		for loopIndex = 1, 50 do
-			if framework:InMenu(localplayer) then
-				AttachRoot = nil;
-				break;
-			end;
-			if targetroot and targetroot.Parent then
-				network:FireServer("TakeFallDamage", math.huge, vector3new(0, -1, 0), targetroot.Position);
-			end;
-			task.wait();
-		end;
-	end;
-	AttachRoot = nil;
-	StopJitter();
-end;
+	if not targetPlayer then return end
+
+	local myCharacter = character or localplayer.CharacterAdded:Wait()
+	local myRoot = myCharacter:FindFirstChild("HumanoidRootPart")
+	local myHumanoid = myCharacter:FindFirstChild("Humanoid")
+	local targetCharacter = targetPlayer.Character or targetPlayer
+	local targetRoot = targetCharacter:FindFirstChild("HumanoidRootPart")
+	local targetHumanoid = targetCharacter:FindFirstChild("Humanoid")
+
+	if not myRoot or not myHumanoid or not targetRoot or not targetHumanoid then return end
+	if framework:InMenu(localplayer) then return end
+
+	local root = driver or humanoidrootpart
+	if root and targetRoot then
+		root.CFrame = targetRoot.CFrame
+		sethiddenproperty(root, "PhysicsRepRootPart", targetRoot)
+	end
+
+	local ragdollEvent = myHumanoid:FindFirstChild("RagdollRemoteEvent")
+		or myHumanoid:WaitForChild("RagdollRemoteEvent", 0.5)
+	if ragdollEvent then
+		ragdollEvent:FireServer(true)
+	end
+
+	Jitter(myRoot)
+	AttachRoot = targetRoot
+
+	if targetRoot and targetRoot.Parent then
+		local pos = targetRoot.Position
+		for i = 1, 5 do
+			network:FireServer("TakeFallDamage", math.huge, vector3new(0, -1, 0), pos)
+		end
+	end
+
+	AttachRoot = nil
+	StopJitter()
+end
 if not getgenv().safe_mode then
-misc1:AddButton({
+kill:AddButton({
     Text = "re-init attempt kill",
     Func = function()
 		if framework:InMenu(localplayer) then
@@ -5127,7 +5407,7 @@ local currentTarget = nil;
 local loopkilltarget_hb = nil;
 local attachactive = false;
 if not getgenv().safe_mode then
-auto:AddToggle("loopkilltarget", {
+kill:AddToggle("loopkilltarget", {
     Text = "loop attempt kill target";
     Default = false;
     Callback = function(Value)
@@ -5174,9 +5454,8 @@ auto:AddToggle("loopkilltarget", {
             loopkilltarget_hb:Disconnect();
             loopkilltarget_hb = nil;
         end
-        loopkilltarget_hb = runservice.Heartbeat:Connect(function()
-            if not getgenv().loopkilltarget or not attachactive or not currentTarget then return; end
-
+        loopkilltarget_hb = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
+            if not getgenv().loopkilltarget or not attachactive or not currentTarget then return; end;
             local targetChar = currentTarget.Character;
             local myRoot = localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart");
             if targetChar and targetChar:FindFirstChild("HumanoidRootPart") and myRoot then
@@ -5184,7 +5463,7 @@ auto:AddToggle("loopkilltarget", {
                 rootToUse.CFrame = targetChar.HumanoidRootPart.CFrame;
                 sethiddenproperty(rootToUse, "PhysicsRepRootPart", targetChar.HumanoidRootPart);
             end
-        end);
+        end));
         if loopkillthread then
             task.cancel(loopkillthread);
             loopkillthread = nil;
@@ -5242,7 +5521,7 @@ auto:AddToggle("loopkilltarget", {
     end;
 });
 local CanKillAll = false
-auto:AddToggle("loopkillall", {
+kill:AddToggle("loopkillall", {
     Text = "loop attempt kill all",
     Default = false,
     Callback = function(Value)
@@ -5290,7 +5569,7 @@ local function onspace(actionName, inputState)
 	end;
 	return Enum.ContextActionResult.Sink;
 end;
-runservice.Heartbeat:Connect(function()
+runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
 	local menu = framework:InMenu(localplayer);
 	local alive = alive(localplayer);
 	if menu and alive and not bound then
@@ -5300,90 +5579,76 @@ runservice.Heartbeat:Connect(function()
 		cas:UnbindAction("MenuSpaceOverride");
 		bound = false;
 	end;
-end);
-local isAliveFlag = true;
+end));
+local isAliveFlag = true
 local function StartKillLoop(character)
-	local characterRoot = character:WaitForChild("HumanoidRootPart");
-	local characterHumanoid = character:WaitForChild("Humanoid");
-	isAliveFlag = true;
+	local characterRoot = character:WaitForChild("HumanoidRootPart")
+	local characterHumanoid = character:WaitForChild("Humanoid")
+	isAliveFlag = true
+
 	characterHumanoid.Died:Connect(LPH_JIT_MAX(function()
-		isAliveFlag = false;
-	end));
+		isAliveFlag = false
+	end))
+
 	taskspawn(LPH_JIT_MAX(function()
 		while isAliveFlag and characterHumanoid.Health > 0 do
-			if not CanKillAll then
-				AttachRoot = nil;
-				task.wait(0.1);
-				continue;
-			end;
-			if not getgenv().loopkillall then
-				AttachRoot = nil;
-				task.wait(0.1);
-				continue;
-			end;
-			if framework:InMenu(localplayer) then
-				AttachRoot = nil;
-				task.wait(0.2);
-				continue;
-			end;
-			for _, targetPlayer in ipairs(cachedplayers) do
+			if not CanKillAll or not getgenv().loopkillall or framework:InMenu(localplayer) then
+				AttachRoot = nil
+				task.wait(0.2)
+				continue
+			end
+
+			local cachedPlayers = getgenv().cachedplayers
+
+			for targetPlayer in pairs(cachedPlayers) do
+				if not isAliveFlag or not getgenv().loopkillall then break end
 				if framework:InMenu(localplayer) then
-					AttachRoot = nil;
-					break;
-				end;
-				if targetPlayer == localplayer then
-					continue;
-				end;
-				if framework:InMenu(targetPlayer) then
-					continue;
-				end;
-                if whitelisted(targetPlayer) then
-                    continue;
-                end;
-				local targetChar = targetPlayer.Character;
-				if not targetChar or not targetChar:FindFirstChild("HumanoidRootPart") then
-					continue;
-				end;
-				if not targetChar:FindFirstChild("Humanoid") then
-					continue;
-				end;
-				if targetChar.Humanoid.Health <= 0 then
-					continue;
-				end;
-				if targetChar:FindFirstChildOfClass("ForceField") then
-					continue;
-				end;
+					AttachRoot = nil
+					break
+				end
+
+				if targetPlayer == localplayer then continue end
+				if framework:InMenu(targetPlayer) then continue end
+				if whitelisted(targetPlayer) then continue end
+
+				local targetChar = targetPlayer.Character
+				if not targetChar then continue end
+
+				local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
+				local targetHumanoid = targetChar:FindFirstChild("Humanoid")
+
+				if not targetRoot or not targetHumanoid then continue end
+				if targetHumanoid.Health <= 0 then continue end
+				if targetChar:FindFirstChildOfClass("ForceField") then continue end
+
+				local root = driver or humanoidrootpart
 				taskspawn(LPH_JIT_MAX(function()
-					while
-						isAliveFlag
-						and getgenv().loopkillall
-						and targetChar.Parent
-						and targetChar.Humanoid.Health > 0
-					do
-						if framework:InMenu(localplayer) then
-							break;
-						end;
-						local rootToUse = driver or humanoidrootpart;
-						local attachRoot = targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart");
-						if rootToUse and attachRoot then
-							rootToUse.CFrame = attachRoot.CFrame;
-							sethiddenproperty(rootToUse, "PhysicsRepRootPart", attachRoot);
-						end;
-						AttemptKillTarget(targetPlayer);
-						task.wait(0.05);
-					end;
-				end));
-				task.wait(0.1);
-			end;
-			task.wait(0.2);
-		end;
-	end));
-end;
+					while isAliveFlag and targetRoot.Parent and targetHumanoid.Health > 0 do
+						if framework:InMenu(localplayer) then break end
+						root = driver or humanoidrootpart
+						if root and targetRoot then
+							root.CFrame = targetRoot.CFrame
+							sethiddenproperty(root, "PhysicsRepRootPart", targetRoot)
+							AttachRoot = targetRoot
+						end
+						task.wait()
+					end
+					AttachRoot = nil
+				end))
+
+				AttemptKillTarget(targetPlayer)
+				task.wait(0.05)
+			end
+
+			task.wait(0.2)
+		end
+	end))
+end
 if localplayer.Character then
-	StartKillLoop(localplayer.Character);
-end;
+	StartKillLoop(localplayer.Character)
+end
 localplayer.CharacterAdded:Connect(StartKillLoop);
-runservice.Heartbeat:Connect(function(dt)
+runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
 	if humanoidrootpart then
 		if AttachRoot then
 			local rootToUse = driver or humanoidrootpart;
@@ -5391,7 +5656,7 @@ runservice.Heartbeat:Connect(function(dt)
 			sethiddenproperty(rootToUse, "PhysicsRepRootPart", AttachRoot);
 		end;
 	end;
-end);
+end));
 end;
 network:BindEvents({
 	KilledPlayer = function(statData)
@@ -5479,7 +5744,7 @@ end);
 local FlingThread;
 local CanFlingAll = false;
 if not getgenv().safe_mode then
-auto:AddToggle("loopflingall", {
+kill:AddToggle("loopflingall", {
     Text = "loop attempt fling all";
     Default = false;
     Callback = function(Value)
@@ -6343,6 +6608,24 @@ OldCorrection = ColorCorrection.TintColor;
 local lastupdate = 0;
 local interval = 3;
 local looping = false;
+local cachedWaterParts = nil;
+local function getWaterParts()
+    if cachedWaterParts then return cachedWaterParts end;
+    cachedWaterParts = {};
+    local mapObj = workspace:FindFirstChild("Map");
+    if not mapObj then return cachedWaterParts end;
+    for _, v in ipairs(mapObj:GetDescendants()) do
+        if v:IsA("BasePart") and v.Name == "WaterArea" then
+            table.insert(cachedWaterParts, v);
+        end;
+    end;
+    mapObj.DescendantAdded:Connect(function(v)
+        if v:IsA("BasePart") and v.Name == "WaterArea" then
+            table.insert(cachedWaterParts, v);
+        end;
+    end);
+    return cachedWaterParts;
+end;
 framework:BindToRenderStep(LPH_JIT_MAX(function(dt)
     local value = Toggles.walkonwater.Value;
     if value then
@@ -6353,16 +6636,16 @@ framework:BindToRenderStep(LPH_JIT_MAX(function(dt)
         lastupdate = lastupdate + dt;
         if lastupdate >= interval then
             lastupdate = 0;
-            for _, v in workspace:WaitForChild("Map"):GetDescendants() do
-                if v:IsA("BasePart") and v.Name == "WaterArea" then
+            for _, v in ipairs(getWaterParts()) do
+                if v and v.Parent then
                     v.CanCollide = true;
                 end;
             end;
         end;
     else
         if looping then
-            for _, v in workspace:WaitForChild("Map"):GetDescendants() do
-                if v:IsA("BasePart") and v.Name == "WaterArea" then
+            for _, v in ipairs(getWaterParts()) do
+                if v and v.Parent then
                     v.CanCollide = false;
                 end;
             end;
@@ -6476,46 +6759,1238 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
 	nil,
 	Enum.RenderPriority.Last
 );
+local function esp1()
+local GetService = game.GetService
+local Service = function(Name)
+    return cloneref(GetService(game, Name))
+end
+local Players = Service("Players")
+local RunService = Service("RunService")
+local HttpService = Service("HttpService")
+local Workspace = Service("Workspace")
 
-espsection:AddToggle("ESP", {
-	Text = "enabled";
-	Default = false;
-	Tooltip = "Show enemies locations";
+local Instance_new = Instance.new
+local Color3_fromRGB = Color3.fromRGB
+local Color3_new = Color3.new
+local Color3_fromHSV = Color3.fromHSV
+local Color3_fromHex = Color3.fromHex
+local table_clear = table.clear
+local table_insert = table.insert
+local table_remove = table.remove
+local table_unpack = table.unpack
+local table_find = table.find
+local table_sort = table.sort
+local table_concat = table.concat
+local string_find = string.find
+local string_match = string.match
+local string_format = string.format
+local string_gsub = string.gsub
+local string_lower = string.lower
+local string_upper = string.upper
+local string_sub = string.sub
+local task_wait = task.wait
+local task_spawn = task.spawn
+local task_delay = task.delay
+local task_defer = task.defer
+local coroutine_wrap = coroutine.wrap
+local coroutine_close = coroutine.close
+local coroutine_create = coroutine.create
+local coroutine_resume = coroutine.resume
+local os_clock = os.clock
+local os_date = os_date
+local Vector2_new = Vector2.new
+local Vector3_new = Vector3.new
+local Vector3_one = Vector3.one
+local Vector3_zero = Vector3.zero
+local UDim2_new = UDim2.new
+local UDim2_fromScale = UDim2.fromScale
+local UDim2_fromOffset = UDim2.fromOffset
+local UDim_new = UDim.new
+local CFrame_Angles = CFrame.Angles
+local CFrame_new = CFrame.new
+local math_clamp = math.clamp
+local math_round = math.round
+local math_floor = math.floor
+local math_huge = math.huge
+local math_sin = math.sin
+local math_min = math.min
+local math_max = math.max
+local math_random = math.random
+local Drawing_new = Drawing.new
+local Rect_new = Rect.new
+local Font_new = Font.new
+local ColorSequence_new = ColorSequence.new
+local ColorSequenceKeypoint_new = ColorSequenceKeypoint.new
+local TweenInfo_new = TweenInfo.new
+local NumberSequence_new = NumberSequence.new
+local NumberSequenceKeypoint_new = NumberSequenceKeypoint.new
+local FindFirstChild = game.FindFirstChild
+local GetChildren = game.GetChildren
+local GetDescendants = game.GetDescendants
+local WaitForChild = game.WaitForChild
+local FindFirstChildWhichIsA = game.FindFirstChildWhichIsA
+local IsA = game.IsA
+
+getgenv().ESP = {
+    Settings = {
+        Enabled = false,
+        LocalPlayer = false,
+
+        Font = "Tahoma",
+        FontSize = 15,
+        FontType = "lowercase", -- uppercase, lowercase, none
+
+        MaxDistance = 1000,
+
+        BoundingBox = {
+            Enabled = false,
+            DynamicBox = false, -- may drop fps
+            IncludeAccessories = false,
+            
+            Rotation = 90,
+            Color = {Color3_fromRGB(105, 187, 245), Color3_fromRGB(105, 187, 245)},
+            Transparency = {0, 0},
+
+            Glow = {
+                Enabled = false,
+                Rotation = 90,
+                Color = {Color3_fromRGB(105, 187, 245), Color3_fromRGB(105, 187, 245)},
+                Transparency = {0.75, 0.75},
+            },
+
+            Fill = {
+                Enabled = false,
+                Rotation = 90,
+                Color = {Color3_fromRGB(105, 187, 245), Color3_fromRGB(105, 187, 245)},
+                Transparency = {1, 0.5},
+            },
+        },
+
+        Bars = {
+            HealthBar = {
+                Enabled = false,
+                Position = "Left",
+                Color = {Color3_fromRGB(131, 245, 78), Color3_fromRGB(255, 255, 0), Color3_fromRGB(252, 71, 77)},
+
+                Type = function(Player, TargetInfo)
+                    return TargetInfo.HealthBarValue or 1
+                end,
+
+                Text = {
+                    Enabled = false,
+                    FollowBar = true,
+                    Ending = "",
+                    Position = "Left", -- // will ignore if FollowBar is true
+                    Color = Color3_fromRGB(255, 255, 255),
+                    Transparency = 0,
+
+                    Type = function(Player, TargetInfo)
+                        local health = TargetInfo.LastHealth or 100
+                        local maxHealth = TargetInfo.LastMaxHealth or 100
+                        return health, health ~= maxHealth -- Value the text follows, Value the text turns visible if follow bar is on
+                    end,
+                },
+            },
+
+            ArmorBar = {
+                Enabled = false,
+                Position = "Bottom",
+                Color = {Color3_fromRGB(52, 131, 235), Color3_fromRGB(52, 131, 235), Color3_fromRGB(52, 131, 235)},
+
+                Type = function(Player, TargetInfo)
+                    return TargetInfo.HealthBarValue or 1
+                end,
+
+                Text = {
+                    Enabled = false,
+                    FollowBar = true,
+                    Ending = "%",
+                    Position = "Left", -- // will ignore if FollowBar is true
+                    Color = Color3_fromRGB(255, 255, 255),
+                    Transparency = 0,
+
+                    Type = function(Player, TargetInfo)
+                        local health = TargetInfo.LastHealth or 100
+                        local maxHealth = TargetInfo.LastMaxHealth or 100
+                        return health, health ~= maxHealth -- value the text follows, value the text turns visible if follow bar is on
+                    end,
+                },
+            },
+        },
+
+        Name = {
+            Enabled = false,
+            UseDisplay = false,
+            Position = "Top",
+            Color = Color3_fromRGB(255, 255, 255),
+            Transparency = 0,
+        },
+
+        Distance = {
+            Enabled = false,
+            Ending = "st",
+            Position = "Bottom",
+            Color = Color3_fromRGB(255, 255, 255),
+            Transparency = 0,
+        },
+
+        Weapon = {
+            Enabled = false,
+            Position = "Bottom",
+            Color = Color3_fromRGB(255, 255, 255),
+            Transparency = 0,
+        },
+
+        Flags = {
+            Enabled = false,
+            Position = "Right",
+            Color = Color3_fromRGB(255, 255, 255),
+            Transparency = 0,
+
+            Type = function(Player, TargetInfo)
+                local currentTick = os_clock()
+                if currentTick - TargetInfo.FlagsDelay < 0.25 then
+                    return TargetInfo.CachedFlagsString or ""
+                end
+                
+                TargetInfo.FlagsDelay = currentTick
+                local Flags = {}
+
+                if not IsA(Player, "Player") then 
+                    TargetInfo.CachedFlagsString = ""
+                    return "" 
+                end
+
+                local Character = Player.Character
+                local Humanoid = Character and Character:FindFirstChild("Humanoid")
+                if not Humanoid then 
+                    TargetInfo.CachedFlagsString = ""
+                    return "" 
+                end
+
+                if Humanoid.MoveDirection.Magnitude > 0 then
+                    table_insert(Flags, "moving")
+                end
+
+                if Humanoid.Jump then
+                    table_insert(Flags, "jumping")
+                end
+
+                TargetInfo.CachedFlagsString = table_concat(Flags, "\n")
+                return TargetInfo.CachedFlagsString
+            end
+        },
+    },
+
+    Connections = {},
+    Errors = {},
+    Objects = {},
+    Targets = {},
+    Folder = "ESP",
+    Font = nil,
+    Holder = nil,
+}
+
+local Client = Players.LocalPlayer
+local Camera = FindFirstChildWhichIsA(Workspace, "Camera")
+local Viewport = Camera.ViewportSize
+local ConnectionsTable = ESP.Connections
+local ObjectsTable = ESP.Objects
+local FolderLocation = ESP.Folder
+local ESPErrors = ESP.Errors
+local ESPSettings = ESP.Settings
+local WorldToViewportPoint = Camera.WorldToViewportPoint
+
+local Utility = {}
+local FontsToDownload = {
+    ["Tahoma"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/main/zekton_rg.ttf"},
+    ["Minecraftia"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/refs/heads/main/Minecraftia.ttf"},
+    ["Silkscreen"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/refs/heads/main/Silkscreen.ttf"},
+}
+
+do -- Folders
+    if not isfolder(FolderLocation) then
+        makefolder(FolderLocation)
+    end
+
+    if not isfolder(FolderLocation .. "\\Fonts") then
+        makefolder(FolderLocation .. "\\Fonts")
+    end
+end
+
+do -- Fonts
+    for Name, Table in FontsToDownload do
+        if not isfile(FolderLocation .. "\\Fonts\\" .. Name .. ".ttf") then
+            writefile(FolderLocation .. "\\Fonts\\" .. Name .. ".ttf", game:HttpGet(Table.Link))
+        end
+        
+        if not isfile(FolderLocation .. "\\Fonts\\" .. Name .. ".font") then
+            local Config = {
+                name = Name,
+                faces = {{
+                    name = "Regular",
+                    weight = 9e9,
+                    style = "normal",
+                    assetId = getcustomasset(FolderLocation .. "\\Fonts\\" .. Name .. ".ttf")
+                }}
+            }
+            
+            writefile(FolderLocation .. "\\Fonts\\" .. Name .. ".font", HttpService:JSONEncode(Config))
+        end
+    end
+
+    if not getgenv().Fonts then
+        getgenv().Fonts = {
+            Loaded = {}
+        }
+
+        for _, FontPath in listfiles(FolderLocation .. "\\Fonts") do
+            local Name = string_match(FontPath, FolderLocation .. "\\Fonts\\(.+)%.font")
+
+            if Name then
+                Fonts.Loaded[Name] = Font_new(getcustomasset(FontPath), Enum.FontWeight.Regular)
+            end
+        end
+    end
+end
+
+do -- Utility
+    function Utility.AddConnection(Signal, Function)
+        local Connection = Signal:Connect(function(...)
+            local Args = {...}
+            
+            local Success, Message = pcall(function() coroutine_wrap(Function)(table_unpack(Args)) end)
+            
+            if not Success and not ESPErrors[Message] then
+                local ErrorMessage = string_format("[ERROR] | An error has occured:\n%s", Message)
+
+                warn(ErrorMessage)
+                
+                ESPErrors[Message] = Message
+                
+                if ConnectionsTable[Connection] then
+                    ConnectionsTable[Connection] = nil
+                end
+                
+                return Connection and Connection:Disconnect()
+            end
+        end)
+        
+        if Connection and ConnectionsTable then
+            table_insert(ConnectionsTable, Connection)
+        end
+        
+        return Connection
+    end
+
+    function Utility.CreateObject(Type, Properties, Hidden)
+        local Hidden = Hidden or false
+        local Object = Instance_new(Type)
+
+        for Index, Value in Properties do
+            Object[Index] = Value
+        end
+
+        table_insert(ObjectsTable, Object)
+
+        return Object
+    end
+
+    function Utility.CalculateBox(Target, RootPart, Parts)
+        local MinX, MinY, MaxX, MaxY = 9000, 9000, -9000, -9000
+        local BoxWidth, BoxHeight = 0, 0
+        local Position, OnScreen = WorldToViewportPoint(Camera, RootPart.Position)
+
+        if ESPSettings.BoundingBox.DynamicBox then
+            for _, Part in Parts do
+                if Part.ClassName ~= "HumanoidRootPart" and (Part:IsA("BasePart")) then
+                    local Size = Part.Size / 2
+                    local CFrame = Part.CFrame
+                    
+                    local Top, TopOnScreen = WorldToViewportPoint(Camera, (CFrame * CFrame.new(0, Size.Y, 0)).Position)
+                    local Bottom, BottomOnScreen = WorldToViewportPoint(Camera, (CFrame * CFrame.new(0, -Size.Y, 0)).Position)
+
+                    if TopOnScreen or BottomOnScreen then
+                        local Height = math_abs(Top.Y - Bottom.Y)
+                        local Width = Height * (Size.X / Size.Y)
+                        
+                        local Center = (Top + Bottom) / 2
+                        
+                        MinX = math_min(MinX, Center.X - Width)
+                        MinY = math_min(MinY, Center.Y - Height)
+                        MaxX = math_max(MaxX, Center.X + Width)
+                        MaxY = math_max(MaxY, Center.Y + Height)
+                    end
+                end
+            end
+            
+            BoxWidth, BoxHeight = MaxX - MinX, MaxY - MinY
+        else
+            local Scale = (RootPart.Size.Y * Camera.ViewportSize.Y) / (Position.Z * 2)
+
+            BoxWidth, BoxHeight = 3 * Scale, 4.5 * Scale
+            MinX, MinY = Position.X - (BoxWidth / 2), Position.Y - (BoxHeight / 2)
+        end
+
+        return BoxWidth, BoxHeight, MinX, MinY, OnScreen
+    end
+
+    function Utility.GetFontType(Text)
+        local FontType = string_lower(ESPSettings.FontType)
+
+        if FontType == "uppercase" then
+            return string_upper(Text)
+        elseif FontType == "lowercase" then
+            return string_lower(Text)
+        else
+            return Text
+        end
+    end
+end
+Utility.AddConnection(Camera:GetPropertyChangedSignal("ViewportSize"), function()
+    Viewport = Camera.ViewportSize
+end)
+do -- Functions
+    ESP.Font = Fonts.Loaded[ESPSettings.Font]
+    ESP.Holder = Utility.CreateObject("ScreenGui", {
+		Name = "\n",
+		ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets,
+		ZIndexBehavior = Enum.ZIndexBehavior.Global,
+		ResetOnSpawn = false,
+		DisplayOrder = 1,
+		IgnoreGuiInset = true,
+		Parent = gethui()
+	})
+
+    function ESP.AddTarget(Target)
+        if ESP.Targets[Target] then return end
+
+        local TargetInfo = {
+            Objects = {},
+            CharacterObjects = {},
+            CharacterConnection = nil,
+            HealthConnection = nil,
+            ToolConnection = {Added = nil, Removed = nil},
+            CurrentTool = Utility.GetFontType("none"),
+            TargetName = Utility.GetFontType(if ESPSettings.Name.UseDisplay then (IsA(Target, "Player") and Target.DisplayName or Target.Name) else Target.Name),
+            DistanceEnding = Utility.GetFontType(ESPSettings.Distance.Ending),
+            HealthBarValue = 1,
+            LastHealth = 100,
+            LastMaxHealth = 100,
+            FlagsDelay = 0,
+            CachedFlagsString = "",
+            LastTick = os_clock(),
+            LastLazyUpdate = 0,
+            LastDistanceText = "",
+            LastDistanceValue = -1,
+        }
+
+        local Objects = TargetInfo.Objects
+        local LastTick = TargetInfo.LastTick
+        local ToolConnection = TargetInfo.ToolConnection
+        local CharacterObjects = TargetInfo.CharacterObjects
+        local ESPFont = ESP.Font
+        local ESPFontSize = ESPSettings.FontSize
+        local ESPHolder = ESP.Holder
+        local TextAlignments = {
+            ["Left"] = "Right",
+            ["Right"] = "Left",
+            ["Top"] = "Center",
+            ["Bottom"] = "Center",
+        }
+
+        CharacterObjects.Character = if IsA(Target, "Player") then Target.Character else Target
+        CharacterObjects.Children = if CharacterObjects.Character then CharacterObjects.Character:GetChildren() else {}
+        CharacterObjects.Descendants = if CharacterObjects.Character then CharacterObjects.Character:GetDescendants() else {}
+
+        if IsA(Target, "Player") then
+            CharacterObjects.HumanoidRootPart = if CharacterObjects.Character then CharacterObjects.Character:FindFirstChild("HumanoidRootPart") else nil
+            CharacterObjects.Humanoid = if CharacterObjects.Character then CharacterObjects.Character:FindFirstChildWhichIsA("Humanoid") else nil
+        end
+
+        do -- Functions
+            function TargetInfo.Init()
+                if #Objects > 0 then return end
+
+                if IsA(Target, "Player") then
+                    TargetInfo.CharacterConnection = Utility.AddConnection(Target.CharacterAdded, function(Character)
+                        CharacterObjects.Character = Character
+                        CharacterObjects.HumanoidRootPart = Character:WaitForChild("HumanoidRootPart", 10)
+                        
+                        local Humanoid = Character:WaitForChild("Humanoid", 10)
+                        CharacterObjects.Humanoid = Humanoid
+                        CharacterObjects.Children = Character:GetChildren()
+                        CharacterObjects.Descendants = Character:GetDescendants()
+
+                        if TargetInfo.HealthConnection then TargetInfo.HealthConnection:Disconnect() end
+                        if Humanoid then
+                            TargetInfo.LastHealth = Humanoid.Health
+                            TargetInfo.LastMaxHealth = Humanoid.MaxHealth
+                            TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth
+
+                            TargetInfo.HealthConnection = Utility.AddConnection(Humanoid.HealthChanged, function(Health)
+                                TargetInfo.LastHealth = Health
+                                TargetInfo.LastMaxHealth = Humanoid.MaxHealth
+                                TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth
+                            end)
+                        end
+                        
+                        if ToolConnection.Added then ToolConnection.Added:Disconnect() end
+                        if ToolConnection.Removed then ToolConnection.Removed:Disconnect() end
+                        TargetInfo.CurrentTool = Utility.GetFontType("none")
+                        local existingTool = Character:FindFirstChildWhichIsA("Tool")
+                        if existingTool then
+                            TargetInfo.CurrentTool = Utility.GetFontType(existingTool.Name)
+                        end
+                        
+                        ToolConnection.Added = Utility.AddConnection(Character.ChildAdded, function(Child)
+                            if IsA(Child, "Tool") then 
+                                TargetInfo.CurrentTool = Utility.GetFontType(Child.Name)
+                            end 
+                        end)
+                        
+                        ToolConnection.Removed = Utility.AddConnection(Character.ChildRemoved, function(Child)
+                            if IsA(Child, "Tool") then 
+                                TargetInfo.CurrentTool = Utility.GetFontType("none")
+                            end 
+                        end)
+                    end)
+
+                    if CharacterObjects.Character then
+                        local Humanoid = CharacterObjects.Character:FindFirstChildWhichIsA("Humanoid")
+                        if Humanoid then
+                            TargetInfo.LastHealth = Humanoid.Health
+                            TargetInfo.LastMaxHealth = Humanoid.MaxHealth
+                            TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth
+                            
+                            if TargetInfo.HealthConnection then TargetInfo.HealthConnection:Disconnect() end
+                            TargetInfo.HealthConnection = Utility.AddConnection(Humanoid.HealthChanged, function(Health)
+                                TargetInfo.LastHealth = Health
+                                TargetInfo.LastMaxHealth = Humanoid.MaxHealth
+                                TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth
+                            end)
+                        end
+
+                        TargetInfo.CurrentTool = Utility.GetFontType("none")
+                        local existingTool = CharacterObjects.Character:FindFirstChildWhichIsA("Tool")
+                        if existingTool then
+                            TargetInfo.CurrentTool = Utility.GetFontType(existingTool.Name)
+                        end
+
+                        ToolConnection.Added = Utility.AddConnection(CharacterObjects.Character.ChildAdded, function(Child)
+                            if IsA(Child, "Tool") then 
+                                TargetInfo.CurrentTool = Utility.GetFontType(Child.Name)
+                            end 
+                        end)
+                        
+                        ToolConnection.Removed = Utility.AddConnection(CharacterObjects.Character.ChildRemoved, function(Child)
+                            if IsA(Child, "Tool") then 
+                                TargetInfo.CurrentTool = Utility.GetFontType("none")
+                            end 
+                        end)
+                    end
+                end
+
+                Objects["TargetHolder"] = Utility.CreateObject("Frame", {Parent = ESPHolder, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                Objects["TopHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, AnchorPoint = Vector2_new(0, 1), Position = UDim2_new(0, -2, 0, -5), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 4, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                Objects["BottomHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, -2, 1, 3), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 4, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                Objects["LeftHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], AutomaticSize = Enum.AutomaticSize.X, Visible = true, BackgroundTransparency = 1, AnchorPoint = Vector2_new(1, 0), Position = UDim2_new(0, -4, 0, -2), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 4), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                Objects["RightHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], AutomaticSize = Enum.AutomaticSize.X, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(1, 8, 0, -2), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 4), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                
+                do -- Text Holders
+                    Objects["TopTextHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TopHolder"], AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["TopTextHolder"], VerticalAlignment = Enum.VerticalAlignment.Bottom, HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["TopTextHolder"], PaddingBottom = UDim_new(0, 2)})
+
+                    Objects["BottomTextHolder"] = Utility.CreateObject("Frame", {Parent = Objects["BottomHolder"], LayoutOrder = 2, AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["BottomTextHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["BottomTextHolder"], PaddingTop = UDim_new(0, 2)})
+
+                    Objects["LeftTextHolder"] = Utility.CreateObject("Frame", {Parent = Objects["LeftHolder"], AutomaticSize = Enum.AutomaticSize.XY, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["LeftTextHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Right, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["LeftTextHolder"], PaddingTop = UDim_new(0, -3)})
+
+                    Objects["RightTextHolder"] = Utility.CreateObject("Frame", {Parent = Objects["RightHolder"], LayoutOrder = 2, AutomaticSize = Enum.AutomaticSize.XY, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["RightTextHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Left, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["RightTextHolder"], PaddingTop = UDim_new(0, -3)})
+                end
+
+                do -- Bar Holders
+                    Objects["TopBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = Objects["TopHolder"], AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["TopBarHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 1), VerticalAlignment = Enum.VerticalAlignment.Bottom, SortOrder = Enum.SortOrder.LayoutOrder})
+
+                    Objects["BottomBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = Objects["BottomHolder"], AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["BottomBarHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 1), VerticalAlignment = Enum.VerticalAlignment.Bottom, SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["BottomBarHolder"], PaddingTop = UDim_new(0, 2)})
+
+                    Objects["LeftBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = Objects["LeftHolder"], AutomaticSize = Enum.AutomaticSize.X, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["LeftBarHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Right, Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["LeftBarHolder"], PaddingRight = UDim_new(0, 1)})
+
+                    Objects["RightBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = Objects["RightHolder"], AutomaticSize = Enum.AutomaticSize.X, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["RightBarHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Left, Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["RightBarHolder"], PaddingLeft = UDim_new(0, -3)})
+                end
+                
+                do -- List Layouts
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["TopHolder"], VerticalAlignment = Enum.VerticalAlignment.Bottom, Padding = UDim_new(0, 3), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["BottomHolder"], Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["LeftHolder"], PaddingRight = UDim_new(0, 1)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["LeftHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Left, Padding = UDim_new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["RightHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Left, Padding = UDim_new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder})
+                end
+
+                do -- Box
+                    Objects["BoxGlow"] = Utility.CreateObject("ImageLabel", {Parent = Objects["TargetHolder"], Image = "rbxassetid://110204605000367", ScaleType = Enum.ScaleType.Slice, SliceCenter = Rect_new(Vector2_new(21, 21), Vector2_new(79, 79)), AutomaticSize = Enum.AutomaticSize.XY, ImageTransparency = 0.65, ResampleMode = Enum.ResamplerMode.Pixelated, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, -21, 0, -21), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Objects["BoxGlowGradient"] = Utility.CreateObject("UIGradient", {Parent = Objects["BoxGlow"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(0, 0, 0))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["BoxGlow"], PaddingTop = UDim_new(0, 21), PaddingBottom = UDim_new(0, 20), PaddingLeft = UDim_new(0, 21), PaddingRight = UDim_new(0, 20)})
+
+                    Objects["BoxOutlineHolder"] = Utility.CreateObject("Frame", {Parent = Objects["BoxGlow"], Visible = false, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Objects["BoxOutline"] = Utility.CreateObject("UIStroke", {Parent = Objects["BoxOutlineHolder"], Thickness = 3, LineJoinMode = Enum.LineJoinMode.Miter})
+                    Objects["BoxOutlineGradient"] = Utility.CreateObject("UIGradient", {Parent = Objects["BoxOutline"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(0, 0, 0))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}})
+
+                    Objects["BoxInlineHolder"] = Utility.CreateObject("Frame", {Parent = Objects["BoxGlow"], Visible = false, BackgroundTransparency = 1, Position = UDim2_new(0, -1, 0, -1), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Objects["BoxInline"] = Utility.CreateObject("UIStroke", {Parent = Objects["BoxInlineHolder"], Color = Color3_fromRGB(255, 255, 255), LineJoinMode = Enum.LineJoinMode.Miter})
+                    Objects["BoxInlineGradient"] = Utility.CreateObject("UIGradient", {Parent = Objects["BoxInline"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}})
+
+                    Objects["BoxFill"] = Utility.CreateObject("Frame", {Parent = Objects["BoxGlow"], Visible = false, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Objects["BoxFillGradient"] = Utility.CreateObject("UIGradient", {Parent = Objects["BoxFill"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 1), NumberSequenceKeypoint_new(1, 1)}})
+                end
+
+                do -- Bars
+                    for BarName, Bar in ESPSettings.Bars do
+                        Objects[BarName .. "Outline"] = Utility.CreateObject("Frame", {Parent = Objects[Bar.Position .. "BarHolder"], ZIndex = 5, LayoutOrder = 0, Visible = true, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(0, 0, 0)})
+                        Utility.CreateObject("UIStroke", {Parent = Objects[BarName .. "Outline"], Thickness = 1, LineJoinMode = Enum.LineJoinMode.Miter})
+
+                        Objects[BarName] = Utility.CreateObject("Frame", {Parent = Objects[BarName .. "Outline"], ZIndex = 6, LayoutOrder = 0, Visible = true, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                        Objects[BarName .. "Gradient"] = Utility.CreateObject("UIGradient", {Parent = Objects[BarName], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}})
+                    
+                        Objects[BarName .. "Text"] = Utility.CreateObject("TextLabel", {
+                            Parent = Objects[Bar.Position .. "TextHolder"],
+                            FontFace = ESPFont,
+                            TextSize = ESPFontSize,
+                            LayoutOrder = 2,
+                            TextColor3 = Color3_fromRGB(255, 255, 255),
+                            Text = "",
+                            AnchorPoint = Vector2_new(0, 1),
+                            BorderSizePixel = 0,
+                            Visible = true,
+                            BackgroundTransparency = 1,
+                            ZIndex = 5,
+                            AutomaticSize = Enum.AutomaticSize.Y,
+                            Size = UDim2_new(1, 0, 0, 0)
+                        }); Utility.CreateObject("UIStroke", {Parent = Objects[BarName .. "Text"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+                    end
+                end
+
+                do -- Texts
+                    Objects["TargetName"] = Utility.CreateObject("TextLabel", {
+                        Parent = Objects["TopTextHolder"],
+                        FontFace = ESPFont,
+                        TextSize = ESPFontSize,
+                        LayoutOrder = 2,
+                        TextColor3 = Color3_fromRGB(255, 255, 255),
+                        Text = "",
+                        AnchorPoint = Vector2_new(0, 1),
+                        BorderSizePixel = 0,
+                        Visible = true,
+                        BackgroundTransparency = 1,
+                        ZIndex = 5,
+                        AutomaticSize = Enum.AutomaticSize.Y,
+                        Size = UDim2_new(1, 0, 0, 0)
+                    }); Utility.CreateObject("UIStroke", {Parent = Objects["TargetName"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+
+                    Objects["Distance"] = Utility.CreateObject("TextLabel", {
+                        Parent = Objects["BottomTextHolder"],
+                        FontFace = ESPFont,
+                        TextSize = ESPFontSize,
+                        LayoutOrder = 2,
+                        TextColor3 = Color3_fromRGB(255, 255, 255),
+                        Text = "",
+                        AnchorPoint = Vector2_new(0, 1),
+                        BorderSizePixel = 0,
+                        Visible = true,
+                        BackgroundTransparency = 1,
+                        ZIndex = 5,
+                        AutomaticSize = Enum.AutomaticSize.Y,
+                        Size = UDim2_new(1, 0, 0, 0)
+                    }); Utility.CreateObject("UIStroke", {Parent = Objects["Distance"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+
+                    Objects["Flags"] = Utility.CreateObject("TextLabel", {
+                        Parent = Objects["RightTextHolder"],
+                        FontFace = ESPFont,
+                        TextSize = ESPFontSize,
+                        LayoutOrder = 2,
+                        TextColor3 = Color3_fromRGB(255, 255, 255),
+                        Text = "",
+                        AnchorPoint = Vector2_new(0, 1),
+                        BorderSizePixel = 0,
+                        Visible = true,
+                        BackgroundTransparency = 1,
+                        ZIndex = 5,
+                        AutomaticSize = Enum.AutomaticSize.Y,
+                        Size = UDim2_new(1, 0, 0, 0)
+                    }); Utility.CreateObject("UIStroke", {Parent = Objects["Flags"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+
+                    Objects["Weapon"] = Utility.CreateObject("TextLabel", {
+                        Parent = Objects["BottomTextHolder"],
+                        FontFace = ESPFont,
+                        TextSize = ESPFontSize,
+                        LayoutOrder = 2,
+                        TextColor3 = Color3_fromRGB(255, 255, 255),
+                        Text = "none",
+                        AnchorPoint = Vector2_new(0, 1),
+                        BorderSizePixel = 0,
+                        Visible = true,
+                        BackgroundTransparency = 1,
+                        ZIndex = 5,
+                        AutomaticSize = Enum.AutomaticSize.Y,
+                        Size = UDim2_new(1, 0, 0, 0)
+                    }); Utility.CreateObject("UIStroke", {Parent = Objects["Weapon"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+                end
+
+                ESP.Targets[Target] = TargetInfo
+            end
+
+            function TargetInfo.Update()
+                if (not ESPSettings.LocalPlayer) and Target == Client then 
+                    Objects["TargetHolder"].Visible = false
+                    return 
+                end
+                if not CharacterObjects.Character then 
+                    Objects["TargetHolder"].Visible = false
+                    return 
+                end
+                
+                if IsA(Target, "Player") then
+                    if not CharacterObjects.HumanoidRootPart then
+                        CharacterObjects.HumanoidRootPart = FindFirstChild(CharacterObjects.Character, "HumanoidRootPart")
+                        Objects["TargetHolder"].Visible = false
+                        return
+                    end
+                    
+                    if not CharacterObjects.Humanoid then
+                        CharacterObjects.Humanoid = FindFirstChildWhichIsA(CharacterObjects.Character, "Humanoid")
+                        Objects["TargetHolder"].Visible = false
+                        return
+                    end
+                else
+                    if not CharacterObjects.HumanoidRootPart then
+                        CharacterObjects.HumanoidRootPart = IsA(Target, "BasePart") and Target or CharacterObjects.Character.PrimaryPart
+                        if not CharacterObjects.HumanoidRootPart then 
+                            Objects["TargetHolder"].Visible = false
+                            return 
+                        end
+                    end
+                end
+
+                local Distance = (Camera.CFrame.Position - CharacterObjects.HumanoidRootPart.Position).Magnitude
+                if Distance > ESPSettings.MaxDistance then 
+                    Objects["TargetHolder"].Visible = false
+                    return 
+                end
+
+                local BodyParts = nil
+                if ESPSettings.BoundingBox.DynamicBox then
+                    BodyParts = if ESPSettings.BoundingBox.IncludeAccessories then CharacterObjects.Descendants else CharacterObjects.Children
+                    if IsA(Target, "BasePart") then BodyParts = {Target} end
+                end
+                
+                local BoxWidth, BoxHeight, BoxPositionX, BoxPositionY, OnScreen = Utility.CalculateBox(Target, CharacterObjects.HumanoidRootPart, BodyParts)
+                if not OnScreen then 
+                    Objects["TargetHolder"].Visible = false
+                    return 
+                end
+
+
+                local BoxSize, BoxPosition = UDim2_fromOffset(math_floor(BoxWidth), math_floor(BoxHeight)), UDim2_fromOffset(math_floor(BoxPositionX), math_floor(BoxPositionY))
+                local TargetHolder = Objects["TargetHolder"]; do
+                    if not TargetHolder.Visible then TargetHolder.Visible = true end
+                    if TargetHolder.Position ~= BoxPosition then TargetHolder.Position = BoxPosition end
+                    if TargetHolder.Size ~= BoxSize then TargetHolder.Size = BoxSize end
+                end
+
+                local BoxOutline, BoxInline, BoxFill, BoxGlow = Objects["BoxOutline"], Objects["BoxInline"], Objects["BoxFill"], Objects["BoxGlow"]; do
+                    local BoxEnabled, BoxColor, BoxTransparency, BoxRotation = ESPSettings.BoundingBox.Enabled, ESPSettings.BoundingBox.Color, ESPSettings.BoundingBox.Transparency, ESPSettings.BoundingBox.Rotation
+
+                    if BoxEnabled then
+                        if not BoxOutline.Parent.Visible then BoxOutline.Parent.Visible = true end
+                        local CachedBoxSize = UDim2_fromOffset(BoxWidth, BoxHeight)
+                        if BoxOutline.Parent.Size ~= CachedBoxSize then BoxOutline.Parent.Size = CachedBoxSize end
+                        
+                        if not BoxInline.Parent.Visible then BoxInline.Parent.Visible = true end
+                        local InlineSize = UDim2_fromOffset(BoxWidth + 2, BoxHeight + 2)
+                        if BoxInline.Parent.Size ~= InlineSize then BoxInline.Parent.Size = InlineSize end
+
+                        local BoxInlineGradient, BoxOutlineGradient = Objects["BoxInlineGradient"], Objects["BoxOutlineGradient"]; do
+                            if TargetInfo.LastBoxColor1 ~= BoxColor[1] or TargetInfo.LastBoxColor2 ~= BoxColor[2] then
+                                TargetInfo.LastBoxColor1 = BoxColor[1]
+                                TargetInfo.LastBoxColor2 = BoxColor[2]
+                                BoxInlineGradient.Color = ColorSequence_new{ColorSequenceKeypoint_new(0, BoxColor[1]), ColorSequenceKeypoint_new(1, BoxColor[2])}
+                            end
+                            if TargetInfo.LastBoxTrans1 ~= BoxTransparency[1] or TargetInfo.LastBoxTrans2 ~= BoxTransparency[2] then
+                                TargetInfo.LastBoxTrans1 = BoxTransparency[1]
+                                TargetInfo.LastBoxTrans2 = BoxTransparency[2]
+                                local transSeq = NumberSequence_new{NumberSequenceKeypoint_new(0, BoxTransparency[1]), NumberSequenceKeypoint_new(1, BoxTransparency[2])}
+                                BoxInlineGradient.Transparency = transSeq
+                                BoxOutlineGradient.Transparency = transSeq
+                            end
+                            if BoxInlineGradient.Rotation ~= BoxRotation then BoxInlineGradient.Rotation = BoxRotation end
+                            if BoxOutlineGradient.Rotation ~= BoxRotation then BoxOutlineGradient.Rotation = BoxRotation end
+                        end
+
+                        local BoxGlowGradient = Objects["BoxGlowGradient"]; do
+                            local BoxGlowEnabled, BoxGlowColor, BoxGlowTransparency, BoxGlowRotation = ESPSettings.BoundingBox.Glow.Enabled, ESPSettings.BoundingBox.Glow.Color, ESPSettings.BoundingBox.Glow.Transparency, ESPSettings.BoundingBox.Glow.Rotation
+
+                            if BoxGlowEnabled then
+                                if BoxGlow.ImageTransparency ~= 0 then BoxGlow.ImageTransparency = 0 end
+                                if BoxGlowGradient.Rotation ~= BoxGlowRotation then BoxGlowGradient.Rotation = BoxGlowRotation end
+                                
+                                if TargetInfo.LastGlowColor1 ~= BoxGlowColor[1] or TargetInfo.LastGlowColor2 ~= BoxGlowColor[2] then
+                                    TargetInfo.LastGlowColor1 = BoxGlowColor[1]
+                                    TargetInfo.LastGlowColor2 = BoxGlowColor[2]
+                                    BoxGlowGradient.Color = ColorSequence_new{ColorSequenceKeypoint_new(0, BoxGlowColor[1]), ColorSequenceKeypoint_new(1, BoxGlowColor[2])}
+                                end
+                                if TargetInfo.LastGlowTrans1 ~= BoxGlowTransparency[1] or TargetInfo.LastGlowTrans2 ~= BoxGlowTransparency[2] then
+                                    TargetInfo.LastGlowTrans1 = BoxGlowTransparency[1]
+                                    TargetInfo.LastGlowTrans2 = BoxGlowTransparency[2]
+                                    BoxGlowGradient.Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, BoxGlowTransparency[1]), NumberSequenceKeypoint_new(1, BoxGlowTransparency[2])}
+                                end
+                            else
+                                if BoxGlow.ImageTransparency ~= 1 then BoxGlow.ImageTransparency = 1 end
+                            end
+                        end
+
+                        local BoxFillGradient = Objects["BoxFillGradient"]; do
+                            local BoxFillColor, BoxFillTransparency, BoxFillRotation = ESPSettings.BoundingBox.Fill.Color, ESPSettings.BoundingBox.Fill.Transparency, ESPSettings.BoundingBox.Fill.Rotation
+
+                            if BoxFill.Visible ~= ESPSettings.BoundingBox.Fill.Enabled then BoxFill.Visible = ESPSettings.BoundingBox.Fill.Enabled end
+                            if BoxFill.Size ~= CachedBoxSize then BoxFill.Size = CachedBoxSize end
+                            if BoxFillGradient.Rotation ~= BoxFillRotation then BoxFillGradient.Rotation = BoxFillRotation end
+                            
+                            if TargetInfo.LastFillColor1 ~= BoxFillColor[1] or TargetInfo.LastFillColor2 ~= BoxFillColor[2] then
+                                TargetInfo.LastFillColor1 = BoxFillColor[1]
+                                TargetInfo.LastFillColor2 = BoxFillColor[2]
+                                BoxFillGradient.Color = ColorSequence_new{ColorSequenceKeypoint_new(0, BoxFillColor[1]), ColorSequenceKeypoint_new(1, BoxFillColor[2])}
+                            end
+                            if TargetInfo.LastFillTrans1 ~= BoxFillTransparency[1] or TargetInfo.LastFillTrans2 ~= BoxFillTransparency[2] then
+                                TargetInfo.LastFillTrans1 = BoxFillTransparency[1]
+                                TargetInfo.LastFillTrans2 = BoxFillTransparency[2]
+                                BoxFillGradient.Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, BoxFillTransparency[1]), NumberSequenceKeypoint_new(1, BoxFillTransparency[2])}
+                            end
+                        end
+                    else
+                        if BoxGlow.ImageTransparency ~= 1 then BoxGlow.ImageTransparency = 1 end
+                        if BoxOutline.Parent.Visible then BoxOutline.Parent.Visible = false end
+                        if BoxInline.Parent.Visible then BoxInline.Parent.Visible = false end
+                        if BoxFill.Visible then BoxFill.Visible = false end
+                    end
+                end
+
+                for BarName, BarInfo in ESPSettings.Bars do
+                    local Bar, BarOutline, BarGradient = Objects[BarName], Objects[BarName .. "Outline"], Objects[BarName .. "Gradient"]; do
+                        local BarEnabled, BarColor, BarTransparency = BarInfo.Enabled, BarInfo.Color, BarInfo.Transparency
+                        local Position = BarInfo.Position
+                        local NewParent = Objects[Position .. "BarHolder"]
+
+                        if BarEnabled and IsA(Target, "Player") then
+                            local BarValue = BarInfo.Type(Target, TargetInfo)
+                            
+                            if not NewParent.Visible then NewParent.Visible = true end
+
+                            local isVertical = (Position == "Left" or Position == "Right")
+                            local barSize = isVertical and UDim2_new(0, 1, BarValue, 0) or UDim2_new(BarValue, 0, 0, 1)
+                            local outlineSize = isVertical and UDim2_new(0, 1, 1, 0) or UDim2_new(1, 0, 0, 1)
+                            local gradRot = isVertical and 90 or -180
+                            local gradOff = isVertical and Vector2_new(0, BarValue - 1) or Vector2_new(1 - BarValue, 0)
+                            local barAnchor = isVertical and Vector2_new(0, 1) or Vector2_new(0, 0)
+                            local barPos = isVertical and UDim2_new(0, 0, 1, 0) or UDim2_new(0, 0, 0, 0)
+
+                            if Bar.AnchorPoint ~= barAnchor then Bar.AnchorPoint = barAnchor end
+                            if Bar.Position ~= barPos then Bar.Position = barPos end
+                            if Bar.Size ~= barSize then Bar.Size = barSize end
+
+                            if BarOutline.Parent ~= NewParent then BarOutline.Parent = NewParent end
+                            if BarOutline.Size ~= outlineSize then BarOutline.Size = outlineSize end
+
+                            if BarGradient.Rotation ~= gradRot then BarGradient.Rotation = gradRot end
+                            if BarGradient.Offset ~= gradOff then BarGradient.Offset = gradOff end
+                            
+                            if TargetInfo[BarName.."LastColor1"] ~= BarColor[1] or TargetInfo[BarName.."LastColor2"] ~= BarColor[2] or TargetInfo[BarName.."LastColor3"] ~= BarColor[3] then
+                                TargetInfo[BarName.."LastColor1"] = BarColor[1]
+                                TargetInfo[BarName.."LastColor2"] = BarColor[2]
+                                TargetInfo[BarName.."LastColor3"] = BarColor[3]
+                                BarGradient.Color = ColorSequence_new{
+                                    ColorSequenceKeypoint_new(0, BarColor[1]), 
+                                    ColorSequenceKeypoint_new(0, BarColor[2]), 
+                                    ColorSequenceKeypoint_new(1, BarColor[3])
+                                }
+                            end
+                        else
+                            if NewParent.Visible then NewParent.Visible = false end
+                        end
+                    end
+
+                    local BarText = Objects[BarName .. "Text"]; do
+                        local BarTextEnabled, BarTextColor, BarTextTransparency = BarInfo.Text.Enabled, BarInfo.Text.Color, BarInfo.Text.Transparency
+                        local TextPosition = BarInfo.Text.Position
+                        
+                        if BarTextEnabled and IsA(Target, "Player") then
+                            local TextValue, TextVisible = BarInfo.Text.Type(Target, TargetInfo)
+                            
+                            local newText = tostring(math_floor(TextValue)) .. BarInfo.Text.Ending
+                            if BarText.Text ~= newText then BarText.Text = newText end
+                            if BarText.TextColor3 ~= BarTextColor then BarText.TextColor3 = BarTextColor end
+                            if BarText.TextTransparency ~= BarTextTransparency then BarText.TextTransparency = BarTextTransparency end
+                            if BarText.UIStroke.Transparency ~= BarTextTransparency then BarText.UIStroke.Transparency = BarTextTransparency end
+
+                            if BarInfo.Text.FollowBar then
+                                if BarText.Visible ~= TextVisible then BarText.Visible = TextVisible end
+                                if BarText.Parent ~= Bar then BarText.Parent = Bar end
+                                if BarText.ZIndex ~= 10 then BarText.ZIndex = 10 end
+                                
+                                local align = (BarInfo.Position == "Left" or BarInfo.Position == "Right") and Enum.TextXAlignment.Center or Enum.TextXAlignment.Right
+                                local anchor = (BarInfo.Position == "Left" or BarInfo.Position == "Right") and Vector2_new(0.5, 0) or Vector2_new(0, 0.5)
+                                
+                                if BarText.TextXAlignment ~= align then BarText.TextXAlignment = align end
+                                if BarText.AnchorPoint ~= anchor then BarText.AnchorPoint = anchor end
+                            end
+
+                            if not BarInfo.Text.FollowBar then
+                                if not BarText.Visible then BarText.Visible = true end
+                                local newParent = Objects[TextPosition .. "TextHolder"]
+                                if BarText.Parent ~= newParent then BarText.Parent = newParent end
+                                
+                                local align = TextAlignments[TextPosition]
+                                if BarText.TextXAlignment ~= align then BarText.TextXAlignment = align end
+                                if BarText.AnchorPoint ~= Vector2_new(0, 0) then BarText.AnchorPoint = Vector2_new(0, 0) end
+                            end
+                        else
+                            if BarText.Visible then BarText.Visible = false end
+                        end
+                    end
+                end
+
+                local NameText = Objects["TargetName"]; do
+                    local NameEnabled, NameColor, NameTransparency = ESPSettings.Name.Enabled, ESPSettings.Name.Color, ESPSettings.Name.Transparency
+                    
+                    if NameEnabled then
+                        TargetInfo.TargetName = Utility.GetFontType(if ESPSettings.Name.UseDisplay then (IsA(Target, "Player") and Target.DisplayName or Target.Name) else Target.Name)
+                        local newText = TargetInfo.TargetName
+                        local newParent = Objects[ESPSettings.Name.Position .. "TextHolder"]
+
+                        if not NameText.Visible then NameText.Visible = true end
+                        if NameText.Text ~= newText then NameText.Text = newText end
+                        if NameText.TextXAlignment ~= TextAlignments[ESPSettings.Name.Position] then NameText.TextXAlignment = TextAlignments[ESPSettings.Name.Position] end
+                        if NameText.Parent ~= newParent then NameText.Parent = newParent end
+                        if NameText.TextColor3 ~= NameColor then NameText.TextColor3 = NameColor end
+                        if NameText.TextTransparency ~= NameTransparency then NameText.TextTransparency = NameTransparency end
+                        if NameText.UIStroke.Transparency ~= NameTransparency then NameText.UIStroke.Transparency = NameTransparency end
+                    else
+                        if NameText.Visible then NameText.Visible = false end
+                    end
+                end
+
+                local DistanceText = Objects["Distance"]; do
+                    local DistanceEnabled, DistanceColor, DistanceTransparency = ESPSettings.Distance.Enabled, ESPSettings.Distance.Color, ESPSettings.Distance.Transparency
+                    
+                    if DistanceEnabled then
+                        local roundedDistance = math_floor(Distance)
+                        if TargetInfo.LastDistanceValue ~= roundedDistance then
+                            TargetInfo.LastDistanceValue = roundedDistance
+                            TargetInfo.LastDistanceText = tostring(roundedDistance) .. TargetInfo.DistanceEnding
+                        end
+                        
+                        local newText = TargetInfo.LastDistanceText
+                        local newParent = Objects[ESPSettings.Distance.Position .. "TextHolder"]
+
+                        if not DistanceText.Visible then DistanceText.Visible = true end
+                        if DistanceText.TextXAlignment ~= TextAlignments[ESPSettings.Distance.Position] then DistanceText.TextXAlignment = TextAlignments[ESPSettings.Distance.Position] end
+                        if DistanceText.Parent ~= newParent then DistanceText.Parent = newParent end
+                        if DistanceText.TextColor3 ~= DistanceColor then DistanceText.TextColor3 = DistanceColor end
+                        if DistanceText.TextTransparency ~= DistanceTransparency then DistanceText.TextTransparency = DistanceTransparency end
+                        if DistanceText.UIStroke.Transparency ~= DistanceTransparency then DistanceText.UIStroke.Transparency = DistanceTransparency end
+                        if DistanceText.Text ~= newText then DistanceText.Text = newText end
+                    else
+                        if DistanceText.Visible then DistanceText.Visible = false end
+                    end
+                end
+
+                local WeaponText = Objects["Weapon"]; do
+                    local WeaponEnabled, WeaponColor, WeaponTransparency = ESPSettings.Weapon.Enabled, ESPSettings.Weapon.Color, ESPSettings.Weapon.Transparency
+                    
+                    if IsA(Target, "Player") and WeaponEnabled then
+                        local newText = TargetInfo.CurrentTool
+                        local newParent = Objects[ESPSettings.Weapon.Position .. "TextHolder"]
+
+                        if not WeaponText.Visible then WeaponText.Visible = true end
+                        if WeaponText.TextXAlignment ~= TextAlignments[ESPSettings.Weapon.Position] then WeaponText.TextXAlignment = TextAlignments[ESPSettings.Weapon.Position] end
+                        if WeaponText.Parent ~= newParent then WeaponText.Parent = newParent end
+                        if WeaponText.TextColor3 ~= WeaponColor then WeaponText.TextColor3 = WeaponColor end
+                        if WeaponText.TextTransparency ~= WeaponTransparency then WeaponText.TextTransparency = WeaponTransparency end
+                        if WeaponText.UIStroke.Transparency ~= WeaponTransparency then WeaponText.UIStroke.Transparency = WeaponTransparency end
+                        if WeaponText.Text ~= newText then WeaponText.Text = newText end
+                    else
+                        if WeaponText.Visible then WeaponText.Visible = false end
+                    end
+                end
+
+                local FlagsText = Objects["Flags"]; do
+                    local FlagsEnabled, FlagsColor, FlagsTransparency = ESPSettings.Flags.Enabled, ESPSettings.Flags.Color, ESPSettings.Flags.Transparency
+                    
+                    if FlagsEnabled then
+                        local newText = ESPSettings.Flags.Type(Target, TargetInfo)
+                        local newParent = Objects[ESPSettings.Flags.Position .. "TextHolder"]
+
+                        if not FlagsText.Visible then FlagsText.Visible = true end
+                        if FlagsText.TextXAlignment ~= TextAlignments[ESPSettings.Flags.Position] then FlagsText.TextXAlignment = TextAlignments[ESPSettings.Flags.Position] end
+                        if FlagsText.Parent ~= newParent then FlagsText.Parent = newParent end
+                        if FlagsText.TextColor3 ~= FlagsColor then FlagsText.TextColor3 = FlagsColor end
+                        if FlagsText.TextTransparency ~= FlagsTransparency then FlagsText.TextTransparency = FlagsTransparency end
+                        if FlagsText.UIStroke.Transparency ~= FlagsTransparency then FlagsText.UIStroke.Transparency = FlagsTransparency end
+                        if FlagsText.Text ~= newText then FlagsText.Text = newText end
+                    else
+                        if FlagsText.Visible then FlagsText.Visible = false end
+                    end
+                end
+            end
+
+            function TargetInfo.Remove()
+                for _, Object in Objects do
+                    Object:Destroy()
+                end
+
+                if TargetInfo.CharacterConnection then
+                    TargetInfo.CharacterConnection:Disconnect()
+                    TargetInfo.CharacterConnection = nil
+                end
+
+                if ToolConnection.Added then
+                    ToolConnection.Added:Disconnect()
+                    ToolConnection.Added = nil
+                end
+
+                if ToolConnection.Removed then
+                    ToolConnection.Removed:Disconnect()
+                    ToolConnection.Removed = nil
+                end
+
+                ESP.Targets[Target] = nil
+            end
+        end
+
+        TargetInfo.Init()
+    end
+    
+    function ESP.RemoveTarget(NewTarget)
+        for Target, TargetInfo in ESP.Targets do
+            if Target == NewTarget then
+                TargetInfo.Remove()
+            end
+        end
+    end
+
+    function ESP.Unload()
+        for _, Connection in ESP.Connections do
+            Connection:Disconnect()
+        end
+
+        for _, Object in ESP.Objects do
+            Object:Destroy()
+        end
+
+        getgenv().Fonts = nil
+    end
+end
+
+do -- Connections
+    for _, Player in Players:GetPlayers() do
+        ESP.AddTarget(Player)
+    end
+
+    Utility.AddConnection(Players.PlayerAdded, LPH_NO_VIRTUALIZE(function(Player)
+        ESP.AddTarget(Player)
+    end))
+
+    Utility.AddConnection(Players.PlayerRemoving, LPH_NO_VIRTUALIZE(function(Player)
+        ESP.RemoveTarget(Player)
+    end))
+
+    RunService:BindToRenderStep("ESP_Update", Enum.RenderPriority.First.Value, LPH_JIT_MAX(function()
+        for _, Target in ESP.Targets do
+            Target.Update()
+        end
+    end))
+end
+end;
+esp1();
+espsection:AddToggle("esp_box", {
+    Text = "bounding box";
+    Default = getgenv().ESP.Settings.BoundingBox.Enabled;
+    Callback = function(v)
+        getgenv().ESP.Settings.BoundingBox.Enabled = v;
+    end;
+}):AddColorPicker("esp_box_color1", {
+    Default = getgenv().ESP.Settings.BoundingBox.Color[1];
+    Title = "box color";
+    Transparency = getgenv().ESP.Settings.BoundingBox.Transparency[1];
+    Callback = function(Value)
+        getgenv().ESP.Settings.BoundingBox.Color[1] = Value
+    end;
+}):AddColorPicker("esp_box_color2", {
+    Default = getgenv().ESP.Settings.BoundingBox.Color[2];
+    Title = "box color";
+    Transparency = getgenv().ESP.Settings.BoundingBox.Transparency[2];
+    Callback = function(Value)
+        getgenv().ESP.Settings.BoundingBox.Color[2] = Value
+    end;
 });
-espsection:AddSlider("ESPMaxDistance", {
-	Text = "max distance";
-	Default = 5000;
-	Min = 250;
-	Max = 5000;
-	Rounding = 0;
+espsection:AddToggle("esp_box_glow", {
+    Text = "box glow";
+    Default = getgenv().ESP.Settings.BoundingBox.Glow.Enabled;
+    Callback = function(v)
+        getgenv().ESP.Settings.BoundingBox.Glow.Enabled = v;
+    end;
+}):AddColorPicker("esp_glow_color1", {
+    Default = getgenv().ESP.Settings.BoundingBox.Glow.Color[1];
+    Title = "glow color";
+    Transparency = getgenv().ESP.Settings.BoundingBox.Glow.Transparency[1];
+    Callback = function(Value)
+        getgenv().ESP.Settings.BoundingBox.Glow.Color[1] = Value
+    end;
+}):AddColorPicker("esp_glow_color2", {
+    Default = getgenv().ESP.Settings.BoundingBox.Glow.Color[2];
+    Title = "glow color";
+    Transparency = getgenv().ESP.Settings.BoundingBox.Glow.Transparency[2];
+    Callback = function(Value)
+        getgenv().ESP.Settings.BoundingBox.Glow.Color[2] = Value
+    end;
+});
+espsection:AddToggle("esp_box_fill", {
+    Text = "box fill";
+    Default = getgenv().ESP.Settings.BoundingBox.Fill.Enabled;
+    Callback = function(v)
+        getgenv().ESP.Settings.BoundingBox.Fill.Enabled = v;
+    end;
+}):AddColorPicker("esp_fill_color1", {
+    Default = getgenv().ESP.Settings.BoundingBox.Fill.Color[1];
+    Title = "fill color";
+    Transparency = getgenv().ESP.Settings.BoundingBox.Fill.Transparency[1];
+    Callback = function(Value)
+        getgenv().ESP.Settings.BoundingBox.Fill.Color[1] = Value
+    end;
+}):AddColorPicker("esp_fill_color2", {
+    Default = getgenv().ESP.Settings.BoundingBox.Fill.Color[2];
+    Title = "fill color";
+    Transparency = getgenv().ESP.Settings.BoundingBox.Fill.Transparency[2];
+    Callback = function(Value)
+        getgenv().ESP.Settings.BoundingBox.Fill.Color[2] = Value
+    end;
+});
+espsection:AddToggle("esp_healthbar", {
+    Text = "health bar";
+    Default = getgenv().ESP.Settings.Bars.HealthBar.Enabled;
+    Callback = function(v)
+        getgenv().ESP.Settings.Bars.HealthBar.Enabled = v;
+    end;
+}):AddColorPicker("esp_health_color1", {
+    Default = getgenv().ESP.Settings.Bars.HealthBar.Color[1];
+    Title = "health high";
+    Callback = function(Value)
+        getgenv().ESP.Settings.Bars.HealthBar.Color[1] = Value
+    end;
+}):AddColorPicker("esp_health_color2", {
+    Default = getgenv().ESP.Settings.Bars.HealthBar.Color[2];
+    Title = "health mid";
+    Callback = function(Value)
+        getgenv().ESP.Settings.Bars.HealthBar.Color[2] = Value
+    end;
+}):AddColorPicker("esp_health_color3", {
+    Default = getgenv().ESP.Settings.Bars.HealthBar.Color[3];
+    Title = "health low";
+    Callback = function(Value)
+        getgenv().ESP.Settings.Bars.HealthBar.Color[3] = Value
+    end;
+});
+espsection:AddToggle("esp_name", {
+    Text = "name";
+    Default = getgenv().ESP.Settings.Name.Enabled;
+    Callback = function(v)
+        getgenv().ESP.Settings.Name.Enabled = v;
+    end;
+}):AddColorPicker("esp_name_color", {
+    Default = getgenv().ESP.Settings.Name.Color;
+    Title = "name color";
+    Transparency = getgenv().ESP.Settings.Name.Transparency;
+    Callback = function(Value)
+        getgenv().ESP.Settings.Name.Color = Value
+    end;
+});
+espsection:AddToggle("esp_distance", {
+    Text = "distance";
+    Default = getgenv().ESP.Settings.Distance.Enabled;
+    Callback = function(v)
+        getgenv().ESP.Settings.Distance.Enabled = v;
+    end;
+}):AddColorPicker("esp_distance_color", {
+    Default = getgenv().ESP.Settings.Distance.Color;
+    Title = "distance color";
+    Transparency = getgenv().ESP.Settings.Distance.Transparency;
+    Callback = function(Value)
+        getgenv().ESP.Settings.Distance.Color = Value
+    end;
+});
+espsection:AddToggle("esp_weapon", {
+    Text = "weapon";
+    Default = getgenv().ESP.Settings.Weapon.Enabled;
+    Callback = function(v)
+        getgenv().ESP.Settings.Weapon.Enabled = v;
+    end;
+}):AddColorPicker("esp_weapon_color", {
+    Default = getgenv().ESP.Settings.Weapon.Color;
+    Title = "weapon color";
+    Transparency = getgenv().ESP.Settings.Weapon.Transparency;
+    Callback = function(Value)
+        getgenv().ESP.Settings.Weapon.Color = Value
+    end;
+});
+espsection:AddToggle("esp_flags", {
+    Text = "flags";
+    Default = getgenv().ESP.Settings.Flags.Enabled;
+    Callback = function(v)
+        getgenv().ESP.Settings.Flags.Enabled = v;
+    end;
+}):AddColorPicker("esp_flags_color", {
+    Default = getgenv().ESP.Settings.Flags.Color;
+    Title = "flags color";
+    Transparency = getgenv().ESP.Settings.Flags.Transparency;
+    Callback = function(Value)
+        getgenv().ESP.Settings.Flags.Color = Value
+    end;
+});
+espsection:AddDropdown("name_type", {
+	Values = {"display name", "name"};
+	Default = "display name";
+	Multi = false;
+	Text = "name type";
+	Callback = function(v)
+		if Options.name_type.Value == "display name" then
+			getgenv().ESP.Settings.Name.UseDisplay = true;
+		else
+			getgenv().ESP.Settings.Name.UseDisplay = false;
+		end;
+	end;
+});
+espsection:AddSlider("max_distance", {
+    Text = "max distance";
+    Default = getgenv().ESP.Settings.MaxDistance;
+	Min = 100;
+	Max = 100000;
 	Compact = true;
-	Suffix = " studs";
-	Tooltip = "How far does the ESP goes";
-});
-espsection:AddToggle("Boxes", {
-	Text = "box";
-	Default = false;
-	Tooltip = "Show enemies location as boxes";
-}):AddColorPicker("BoxColor", {
-	Default = Color3.new(1, 1, 1);
-	Title = "Box Color";
-	Transparency = 0;
-});
-espsection:AddToggle("Highlight", {
-	Text = "highlight";
-	Default = false;
-}):AddColorPicker("HighlightColor", {
-	Default = Color3.new(1, 1, 1);
-	Title = "highlight color";
-});
-espsection:AddToggle("Names", {
-	Text = "name";
-	Default = false;
-	Tooltip = "Show enemies names";
-}):AddColorPicker("NameColor", {
-	Default = Color3.new(1, 1, 1);
-	Title = "Name Color";
-	Transparency = 0;
+	Rounding = 0;
+    Callback = function(v)
+        getgenv().ESP.Settings.MaxDistance = v;
+    end;
 });
 espsection:AddToggle("Tracer", {
 	Text = "tracer";
@@ -6541,6 +8016,21 @@ espsection:AddDropdown("TracerOrigin", {
 	Default = "Bottom";
 	Values = {"Bottom", "Cursor"};
 	Tooltip = "Where tracers originate from";
+});
+espsection:AddToggle("TracerAutoSelect", {
+	Text = "tracer autoselect";
+	Default = false;
+	Tooltip = "shows tracer to your current target";
+});
+espsection:AddSlider("TracerAutoSelectDistance", {
+	Text = "autoselect distance";
+	Default = 1000;
+	Min = 100;
+	Max = 5000;
+	Rounding = 0;
+	Compact = true;
+	Suffix = " studs";
+	Tooltip = "Max distance for autoselect tracer";
 });
 
 
@@ -6652,7 +8142,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 		Outline = drawingnew("Circle"),
 		Fill = drawingnew("Circle")
 	}
-	local lashFOVCirclePos = userinputservice:GetMouseLocation()
+	local lastFOVCirclePos = userinputservice:GetMouseLocation()
 	local currentFOVCircleSize = 50
 
 	local FOVCircleSilent = FOVCircles.Silent
@@ -6829,11 +8319,6 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 		end
 	end
 
-	local SwingImage = "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"
-	local ParryImage = "iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkCAYAAAB+TFE1AAAgAElEQVR4Ae2dB7gsRdW1QXLOGUmSM0iWnAUEQYIEAZEokkSyEgxIEBMGUD8BlaAiiCAiSI4iQZGgSJQcJKgYv/9fXy3OnjtzzpmZ012dqqpXP8997pyZDtVvVVd11d577ckm0yYCIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACItBWAgDmBrAagFUBrAxgRQArAFgOwDIAlgKwJIDFASwGYFEACwNYCMCCAOYHMC+AeQDMBWBOALMDmBXALABmAjAjgOkBTAtgGgBTAZgCwDvayl33LQIiIAIiMIYAgM0AXAfg1wDucH/fDuBWALcAuAnADQB+Zfv8EsA1AK52g9hVAK4EcAWAy91AdhmAS91A9mM3kP3QDWQXu4HsIgAXAvi+G8guAHC+G8i+6way7wD4NoBzAZxgg98UY4qmP0VABERABNpEAMD2AF5Ac9vfAdwJ4KOcNbWJve5VBERABESghwCAHQC82Nx49PaV/z+Af9vMaysAM2s5r6eS9FEEREAE2kAAwAcAvNTwgNR7+VecPeqbbrlwQwAztKEOdI8iIAIiIAKTTTYZgB3dctnLvSNCAJ//nxsofw/gk3SqUEWJgAiIgAi0gACAnQBwVhLi9jdzptiT3nstqA7dogiIgAi0lwCAnQG8GuJoZGXibOk18+LbAMDU7a0t3bkIiIAIJEwAwAcB/CXgAam3aG+5GKevWnzU9AlXi25NBERABNpHAMCuAF7v7fUD//y/AO4FcCSApQFM2b5a0x2LgAiIQIIEAOwG4I3AB6F+xeMgej2AD1MRIsGq0S2JgAiIQLsIANgdwJv9evxIvmNQ7/dcDNMa7ao53a0IiIAIJEYAwB4A/hrJ4DOomFzGe9rFLZ1p2nvTJFZNuh0REAERSJ8AALpU0706le0BtwR5uAnAyr6UfhPWHYqACKRCAMBeAKgnl9L2LxN6pUv77KnUle5DBERABJImAGBvAHSnTm3rLONRUXyDpCtRNycCIiAC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zNX7pogHJM6GngfwK3PKYM6h2VXBIiACIiACkREw6Zu/Rjog3eiysJ5m97CEkt9F1vhUXBEQARHoELCMsBeavSWWMek5AN8CsCOAdzFvU+d+9L8IiIAIiECEBCwQdmsATwQ8EnE57u8WL0R9PQqZUjVhWtmGImx0KrIIiIAI9CNgs6OzAw2EpYfcgwCuAnAEgGW0HNevFvWdCIiACCRAwDTafhfY7IiirpwJMXX6Ohw0E0CtWxABERABERhEgHYXAJ+y5HIhjEm3OUHX4wEwy+oibkBSrNCgytP3IiACIpASAQCLArijoZGIdiGm+uZsiAnu6Ka9ILOspsRY9yICIiACIjABAXNmOLbmwYiD0BsA/gjgMhuEZpigqPpZBERABEQgZQImE3R3jQPSAwAutgR3S8k5IeXWpXsTAREQgRwEAOxUQ9wRcwv9EMBxTkFhXQAz5yiidhUBERABEUidgMv7M4tTur60wtnRvaaLRw+5BeSckHqL0v2JgAiIgCcBANua7lsZYxLzCtEu9CiAsyyf0mwApvIsng4TAREQARFoAwFLvfBtt4xGRWzfjc4JrwO4x5bktpR3XBtaj+5RBERABEokAGAjAA/7jkROtofOCecC+BiAJeWcUGLl6FQiIAIi0BYCZjv6vEcg7F8AUHz1QFN2kJBpWxqN7lMEREAEqiBgKbvzZIR9xNma9gewnAtenUuzoSpqRecUAREQgZYRoI0HwIlOKohOCP02fv+i2YVOB7AYlbQZQNsyVLpdERABERCBKgmYNly/2RE95G5xv58P4P0ApqmyHDq3CIiACIhAywkA2AfAP3umRlyOo5v2vuacICHTlrcR3b4IiIAIVE4AwAwArnE5hd4EcAmA3V2OodWUZbVy9LqACIiACIhALwEAm7jA1d1cyu/5zdNuit7f9VkEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAERKA2Av8HNUDh8/6XipQAAAAASUVORK5CYII="
-	SwingImage = base64.decode(SwingImage)
-	ParryImage = base64.decode(ParryImage)
-
 	function New(Type, Outline, Name)
 		local drawing = drawingnew(Type)
 		for i, v in pairs(ESPSettings[Type]) do
@@ -6849,6 +8334,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 	local PlrConnections = {}
 	local function Add(Player)
 		if not PlayerDrawings[Player] then
+            local Character = Player.Character
 			if not PlrConnections[Player] then
 				PlrConnections[Player] = {}
 			end
@@ -6921,12 +8407,6 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 				end)
 			)
 
-			local Character = Player.Character
-			local LastSwing = New("Image", nil, "LastSwing")
-			local LastParry = New("Image", nil, "LastParry")
-			LastSwing.Data = SwingImage
-			LastParry.Data = ParryImage
-
 			local Root = Character and Character:FindFirstChild("HumanoidRootPart")
 			local Hum = Root and Character:FindFirstChild("Humanoid")
 
@@ -6990,7 +8470,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 	end
 
 	-- Initialize players
-	for _, Player in pairs(cachedplayers) do
+	for Player, _ in pairs(getgenv().cachedplayers) do
 		if Player ~= localplayer then
 			Add(Player)
 		end
@@ -7107,36 +8587,53 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
 		Distance.ZIndex = 1
 	end
 
+	local _espSkipKeys = {RootPart = true, Humanoid = true, SessionData = true, Highlight = true};
+
+    -- Drawing Cleanup for Re-execution
+    if getgenv().SereniumPlayerDrawings then
+        for _, drawings in pairs(getgenv().SereniumPlayerDrawings) do
+            for _, drawing in pairs(drawings) do
+                if type(drawing) == "table" and drawing.Remove then pcall(function() drawing:Remove() end) end
+            end
+        end
+    end
+    getgenv().SereniumPlayerDrawings = PlayerDrawings
+
+    if getgenv().SereniumUtilityDrawings then
+        for _, drawings in pairs(getgenv().SereniumUtilityDrawings) do
+            for _, drawing in pairs(drawings) do
+                if type(drawing) == "table" and drawing.Remove then pcall(function() drawing:Remove() end) end
+            end
+        end
+    end
+    getgenv().SereniumUtilityDrawings = UtilityDrawings
+
+    if getgenv().SereniumFOVCircle then
+        for _, drawing in pairs(getgenv().SereniumFOVCircle) do
+            if type(drawing) == "table" and drawing.Remove then pcall(function() drawing:Remove() end) end
+        end
+    end
+    getgenv().SereniumFOVCircle = FOVCircles
+
 		runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
 		local mousePos = userinputservice:GetMouseLocation();
 		local screenCenter = camera.ViewportSize / 2;
         getgenv().serenium_global_rainbow_color = Color3.fromHSV(tick() % 5 / 5, 1, 1)
-		
-        -- Calculate smoothed mouse position and size
+
         local smoothAmount = math.max(1, Classes.FOVCircleSmoothing.Value)
-        lashFOVCirclePos = lashFOVCirclePos + (mousePos - lashFOVCirclePos) / smoothAmount
+        lastFOVCirclePos = lastFOVCirclePos + (mousePos - lastFOVCirclePos) / smoothAmount
         
         local targetSize = Classes.FOVCircleSize.Value
         currentFOVCircleSize = currentFOVCircleSize + (targetSize - currentFOVCircleSize) / smoothAmount
 
 		if Classes.ShowFOV and Classes.ShowFOV.Value then
 			FOVCircleSilent.Visible = true;
-			FOVCircleSilent.Position = lashFOVCirclePos;
+			FOVCircleSilent.Position = lastFOVCirclePos;
 			FOVCircleSilent.Radius = Options.FOVSize.Value;
             FOVCircleSilent.Color = Options.FOVCircleSilentColor and Options.FOVCircleSilentColor.Value or Color3.new(1, 1, 1);
             FOVCircleSilent.Thickness = 0.1
 		else
 			FOVCircleSilent.Visible = false;
-		end;
-		
-		if Classes.ShowFOVAimbot and Classes.ShowFOVAimbot.Value then
-			FOVCircleAimbot.Visible = true;
-			FOVCircleAimbot.Position = screenCenter;
-			FOVCircleAimbot.Radius = Classes.FOVSize.ValueAimbot.Value;
-            FOVCircleAimbot.Color = Options.FOVCircleAimbotColor and Options.FOVCircleAimbotColor.Value or Color3.new(1, 1, 1);
-            FOVCircleAimbot.Thickness = 0.1
-		else
-			FOVCircleAimbot.Visible = false;
 		end;
 
         -- Visuals FOV Circle
@@ -7186,8 +8683,7 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
             FOVCircleVisualsFill.Visible = false
         end
 
-        -- Hitlogs Performance Update (Redundant code removed as HitDetectionImpl takes care of its own rendering)
-
+        -- removed typo assignment
 	end));
 
 	runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
@@ -7239,46 +8735,53 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
         local mousePos = userinputservice:GetMouseLocation()
         local closestDistance = math.huge
         
-        for _, Player in pairs(cachedplayers) do
+        -- Pre-calculate closest player for tracer/selection
+        for Player, _ in pairs(getgenv().cachedplayers) do
             if Player == localplayer then continue end
-            local PlayerDrawing = PlayerDrawings[Player]
-            if not PlayerDrawing then continue end
-            local RootPart = PlayerDrawing.RootPart
-            if not Player.Character or not RootPart then continue end
-            local DistanceFromCharacter = (camera.CFrame.Position - RootPart.Position).Magnitude
-            -- Removed ESPMaxDistance check to allow infinite range for Silent Aim targeting
-            local Pos, OnScreen = camera:WorldToViewportPoint(RootPart.Position)
+            local char = Player.Character
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            if not root then continue end
+            
+            local Pos, OnScreen = camera:WorldToViewportPoint(root.Position)
             if OnScreen then
-                local screenDistance = (vector2new(Pos.X, Pos.Y) - mousePos).Magnitude
-                if screenDistance < closestDistance then
-                    closestDistance = screenDistance
+                local screenDist = (vector2new(Pos.X, Pos.Y) - mousePos).Magnitude
+                if screenDist < closestDistance then
+                    closestDistance = screenDist
                     closestPlayerToCursor = Player
                 end
             end
         end
+        
+        local maxDist = getgenv().ESP.Settings.MaxDistance;
+        local tracerEnabled = Classes.Tracer.Value
+        local tracerMaxDist = Classes.TracerMaxDist.Value
+        
+        local rageTarget = getgenv().serenium_ragebot_target or getgenv().LockedTarget
+        local saTarget = getgenv().serenium_sa_target
+        
+        for Player, _ in pairs(getgenv().cachedplayers) do
+            if Player == localplayer then continue end
+            local PlayerDrawing = PlayerDrawings[Player]
+            if not PlayerDrawing then continue end
+            
+            -- Visibility reset (optimized)
+            PlayerDrawing.Offscreen.Visible = false
+            PlayerDrawing.Name.Visible = false
+            PlayerDrawing.Tool.Visible = false
+            PlayerDrawing.Distance.Visible = false
+            PlayerDrawing.Box.Visible = false
+            PlayerDrawing.BoxOutline.Visible = false
+            PlayerDrawing.Health.Visible = false
+            PlayerDrawing.HealthOutline.Visible = false
+            PlayerDrawing.Tracer.Visible = false
+            PlayerDrawing.TracerOutline.Visible = false
 
-        local drawTarget = closestPlayerToCursor
-        if Classes.Tracer.Value then
-            if getgenv().stick and StickTarget then
-                drawTarget = StickTarget
-            elseif getgenv().ragebot then
-                drawTarget = getgenv().serenium_ragebot_target
-            end
-        end
-
-		for _, Player in pairs(cachedplayers) do
-			local PlayerDrawing = PlayerDrawings[Player]
-			if not PlayerDrawing then continue end
-
-			for Ind, Drawing in pairs(PlayerDrawing) do
-				if Ind ~= "RootPart" and Ind ~= "Humanoid" and Ind ~= "SessionData" and Ind ~= "Highlight" then
-					if Drawing and Drawing.Visible ~= nil then
-						Drawing.Visible = false
-					end
-				end
-			end
-            local isRageTarget = (getgenv().ragebot and getgenv().serenium_ragebot_target == Player)
-            local isSATarget = (getgenv().serenium_sa_target == Player)
+            local RootPart = PlayerDrawing.RootPart
+            local Humanoid = PlayerDrawing.Humanoid
+            if not Player.Character or not RootPart or not Humanoid then continue end
+            
+            local isRageTarget = (rageTarget == Player)
+            local isSATarget = (saTarget == Player)
             if PlayerDrawing.Highlight then
                 if (isRageTarget and Classes.ShowRageBotTarget.Value) or (isSATarget and Classes.ShowTargetSA.Value) then
                     PlayerDrawing.Highlight.Enabled = true
@@ -7288,209 +8791,151 @@ local function InitializeESP() -- ESP/Visuals Scope (fixes register limit)
                     PlayerDrawing.Highlight.Enabled = false
                 end
             end
+            
+            local DistFromChar = (camera.CFrame.Position - RootPart.Position).Magnitude
+            local Pos, OnScreen = camera:WorldToViewportPoint(RootPart.Position)
 
-			if not Classes.ESP.Value then continue end
+            if DistFromChar > maxDist then continue end
 
-			local RootPart = PlayerDrawing.RootPart
-			local Humanoid = PlayerDrawing.Humanoid
-			if not Player.Character or not RootPart or not Humanoid then continue end
+            if not OnScreen then
+                if Classes.OutOfFOV.Value then
+                    local RootPos = RootPart.Position
+                    local CameraVector = camera.CFrame.Position
+                    local LookVector = camera.CFrame.LookVector
+                    local Dot = LookVector:Dot(RootPos - CameraVector)
 
-			local DistanceFromCharacter = (camera.CFrame.Position - RootPart.Position).Magnitude
-			if Classes.ESPMaxDistance.Value < DistanceFromCharacter then continue end
+                    if Dot <= 0 then
+                        RootPos = CameraVector + ((RootPos - CameraVector) - ((LookVector * Dot) * 1.01))
+                    end
 
-			local Pos, OnScreen = camera:WorldToViewportPoint(RootPart.Position)
-			if not OnScreen then
-				if Classes.OutOfFOV.Value then
-					local RootPos = RootPart.Position
-					local CameraVector = camera.CFrame.Position
-					local LookVector = camera.CFrame.LookVector
-					local Dot = LookVector:Dot(RootPos - CameraVector)
+                    local ScreenPos, OS = camera:WorldToScreenPoint(RootPos)
+                    if not OS then
+                        local Drawing = PlayerDrawing.Offscreen
+                        local FOV = 800 - Classes.OutFOVOffset.Value
+                        local Size = Classes.OutFOVSize.Value
+                        local Center = camera.ViewportSize / 2
+                        local Direction = (vector2new(ScreenPos.X, ScreenPos.Y) - Center).Unit
+                        local Radian = math.atan2(Direction.X, Direction.Y)
+                        local Angle = (((math.pi * 2) / FOV) * Radian)
+                        local ClampedPosition = Center + (Direction * math.min(math.abs(((Center.Y - FOV) / math.sin(Angle)) * FOV), math.abs((Center.X - FOV) / (mathcos(Angle)) / 2)))
+                        local Point = vector2new(mathfloor(ClampedPosition.X - (Size / 2)), mathfloor((ClampedPosition.Y - (Size / 2) - 15)))
 
-					if Dot <= 0 then
-						RootPos = CameraVector + ((RootPos - CameraVector) - ((LookVector * Dot) * 1.01))
-					end
+                        local OFFSettings = Classes.OFFSettings.Value
+                        local Rotation = mathfloor(-math.deg(Radian)) - 47
+                        Drawing.PointA = Rotate(Point + vector2new(Size, Size), Point, Rotation)
+                        Drawing.PointB = Rotate(Point + vector2new(-Size, -Size), Point, Rotation)
+                        Drawing.PointC = Rotate(Point + vector2new(-Size, Size), Point, Rotation)
+                        Drawing.Color = ESPSettings.Triangle.Color
+                        Drawing.Filled = not ((OFFSettings == "Outline" or OFFSettings == "Both") or false)
+                        Drawing.Transparency = ((OFFSettings == "Blinking" or OFFSettings == "Both") or false) and (math.sin(tick() * 5) + 1) / 2 or 1
+                        Drawing.Visible = true
+                    end
+                end
+            else
+                local Size = (camera:WorldToViewportPoint(RootPart.Position - vector3new(0, 3, 0)).Y - camera:WorldToViewportPoint(RootPart.Position + vector3new(0, 2.6, 0)).Y) / 2
+                local BoxSize = vector2new(mathfloor(Size * 1.5), mathfloor(Size * 1.9))
+                local BoxPos = vector2new(mathfloor(Pos.X - Size * 1.5 / 2), mathfloor(Pos.Y - Size * 1.6 / 2))
 
-					local ScreenPos, OnScreen = camera:WorldToScreenPoint(RootPos)
-					if not OnScreen then
-						local Drawing = PlayerDrawing.Offscreen
-						local FOV = 800 - Classes.OutFOVOffset.Value
-						local Size = Classes.OutFOVSize.Value
-						local Center = camera.ViewportSize / 2
-						local Direction = (vector2new(ScreenPos.X, ScreenPos.Y) - Center).Unit
-						local Radian = math.atan2(Direction.X, Direction.Y)
-						local Angle = (((math.pi * 2) / FOV) * Radian)
-						local ClampedPosition = Center + (Direction * math.min(math.abs(((Center.Y - FOV) / math.sin(Angle)) * FOV), math.abs((Center.X - FOV) / (mathcos(Angle)) / 2)))
-						local Point = vector2new(mathfloor(ClampedPosition.X - (Size / 2)), mathfloor((ClampedPosition.Y - (Size / 2) - 15)))
+                local Name = PlayerDrawing.Name
+                local Tool = PlayerDrawing.Tool
+                local Distance = PlayerDrawing.Distance
+                local Box = PlayerDrawing.Box
+                local BoxOutline = PlayerDrawing.BoxOutline
+                local Health = PlayerDrawing.Health
+                local HealthOutline = PlayerDrawing.HealthOutline
+                local LastSwing = PlayerDrawing.Swing
+                local LastParry = PlayerDrawing.Parry
 
-						local OFFSettings = Classes.OFFSettings.Value
-						local Rotation = mathfloor(-math.deg(Radian)) - 47
-						Drawing.PointA = Rotate(Point + vector2new(Size, Size), Point, Rotation)
-						Drawing.PointB = Rotate(Point + vector2new(-Size, -Size), Point, Rotation)
-						Drawing.PointC = Rotate(Point + vector2new(-Size, Size), Point, Rotation)
-						Drawing.Color = ESPSettings.Triangle.Color
-						Drawing.Filled = not ((OFFSettings == "Outline" or OFFSettings == "Both") or false)
-						Drawing.Transparency = ((OFFSettings == "Blinking" or OFFSettings == "Both") or false) and (math.sin(tick() * 5) + 1) / 2 or 1
-						Drawing.Visible = true
-					end
-				end
-			else
-				local Size = (camera:WorldToViewportPoint(RootPart.Position - vector3new(0, 3, 0)).Y - camera:WorldToViewportPoint(RootPart.Position + vector3new(0, 2.6, 0)).Y) / 2
-				local BoxSize = vector2new(mathfloor(Size * 1.5), mathfloor(Size * 1.9))
-				local BoxPos = vector2new(mathfloor(Pos.X - Size * 1.5 / 2), mathfloor(Pos.Y - Size * 1.6 / 2))
+                Name.ZIndex = 2
+                Tool.ZIndex = 2
+                Distance.ZIndex = 2
+                Box.ZIndex = 2
+                BoxOutline.ZIndex = 1
+                Health.ZIndex = 2
+                HealthOutline.ZIndex = 1
 
-				local Name = PlayerDrawing.Name
-				local Tool = PlayerDrawing.Tool
-				local Distance = PlayerDrawing.Distance
-				local Box = PlayerDrawing.Box
-				local BoxOutline = PlayerDrawing.BoxOutline
-				local Health = PlayerDrawing.Health
-				local HealthOutline = PlayerDrawing.HealthOutline
-				local LastSwing = PlayerDrawing.Swing
-				local LastParry = PlayerDrawing.Parry
-
-				Name.ZIndex = 2
-				Tool.ZIndex = 2
-				Distance.ZIndex = 2
-				Box.ZIndex = 2
-				BoxOutline.ZIndex = 1
-				Health.ZIndex = 2
-				HealthOutline.ZIndex = 1
-
-				local State = framework:GetSessionData(Player)
-				if State then
-					State = State:getState()
-				else
-					State = { parry = {} }
-				end
-
-				if Classes.Boxes.Value then
-					Box.Size = BoxSize
-					Box.Position = BoxPos
-					Box.Visible = true
-					Box.Color = Classes.BoxColor.Value or Color3.new(1, 1, 1)
-					BoxOutline.Size = BoxSize
-					BoxOutline.Position = BoxPos
-					BoxOutline.Visible = true
-				end
-                
-                
-                if Classes.Highlight.Value and PlayerDrawing.Highlight then
-                    pcall(function()
-                        PlayerDrawing.Highlight.Enabled = true
-                        if PlayerDrawing.Highlight.Parent ~= Player.Character then
-                            PlayerDrawing.Highlight.Parent = Player.Character
-                        end
-                        PlayerDrawing.Highlight.OutlineColor = Classes.HighlightColor.Value or Color3.new(1, 1, 1)
-                    end)
-                elseif PlayerDrawing.Highlight then
-                    pcall(function()
-                        PlayerDrawing.Highlight.Enabled = false
-                    end)
+                local State = framework:GetSessionData(Player)
+                if State then
+                    State = State:getState()
+                else
+                    State = { parry = {} }
                 end
 
-				if Classes.SwingCooldown.Value then
-					LastSwing.Visible = true
-					local SwingCooldown = Player:GetAttribute("SwingCooldown") or 1
-					local Cooldown = Player:GetAttribute("LastSwing") and tick() - Player:GetAttribute("LastSwing") or false
-					LastSwing.Position = vector2new((BoxSize.X + BoxPos.X + 5), BoxPos.Y)
-					LastSwing.Transparency = (Cooldown and (Cooldown / SwingCooldown)) or 1
-					LastSwing.Size = vector2new(BoxSize.X * 0.2, BoxSize.Y * 0.1579)
-				end
+                if Classes.SwingCooldown.Value then
+                    LastSwing.Visible = true
+                    local SwingCooldown = Player:GetAttribute("SwingCooldown") or 1
+                    local Cooldown = Player:GetAttribute("LastSwing") and tick() - Player:GetAttribute("LastSwing") or false
+                    LastSwing.Position = vector2new((BoxSize.X + BoxPos.X + 5), BoxPos.Y)
+                    LastSwing.Transparency = (Cooldown and (Cooldown / SwingCooldown)) or 1
+                    LastSwing.Size = vector2new(BoxSize.X * 0.2, BoxSize.Y * 0.1579)
+                end
 
-				if Classes.ParryCooldown.Value then
-					if Classes.SwingCooldown.Value then
-						LastParry.Position = vector2new((BoxSize.X + BoxPos.X + 5), (BoxPos.Y + LastSwing.Size.Y + 5))
-					else
-						LastParry.Position = vector2new((BoxSize.X + BoxPos.X + 5), BoxPos.Y)
-					end
-					local parryTime = (State.parry and State.parry.lastParrySucceeded) and 0.33 or 3
-					LastParry.Transparency = math.clamp((tick() - (Player:GetAttribute("LastParry") or 1)) / parryTime, 0, 1)
-					LastParry.Size = vector2new(BoxSize.X * 0.2, BoxSize.Y * 0.1579)
-					LastParry.Visible = true
-				end
+                if Classes.ParryCooldown.Value then
+                    if Classes.SwingCooldown.Value then
+                        LastParry.Position = vector2new((BoxSize.X + BoxPos.X + 5), (BoxPos.Y + LastSwing.Size.Y + 5))
+                    else
+                        LastParry.Position = vector2new((BoxSize.X + BoxPos.X + 5), BoxPos.Y)
+                    end
+                    local parryTime = (State.parry and State.parry.lastParrySucceeded) and 0.33 or 3
+                    LastParry.Transparency = math.clamp((tick() - (Player:GetAttribute("LastParry") or 1)) / parryTime, 0, 1)
+                    LastParry.Size = vector2new(BoxSize.X * 0.2, BoxSize.Y * 0.1579)
+                    LastParry.Visible = true
+                end
 
-				if Classes.Health.Value then
-					local healthPercent = Humanoid.Health / Humanoid.MaxHealth
-					Health.From = vector2new((BoxPos.X - 5), BoxPos.Y + BoxSize.Y)
-					Health.To = vector2new(Health.From.X, Health.From.Y - healthPercent * BoxSize.Y)
-					Health.Color = Classes.HealthColor.Value or Color3.new(0, 1, 0)
-					Health.Visible = true
-					HealthOutline.From = vector2new(Health.From.X, BoxPos.Y + BoxSize.Y + 1)
-					HealthOutline.To = vector2new(Health.From.X, Health.From.Y - BoxSize.Y - 1)
-					HealthOutline.Visible = true
-				end
+                if tracerEnabled and not whitelisted(Player) then
+                    local autoSelect = Classes.TracerAutoSelect.Value
+                    local autoDist = Classes.TracerAutoSelectDistance.Value
+                    
+                    local drawTarget = nil
+                    if autoSelect then
+                        if getgenv().ragebot and (getgenv().serenium_ragebot_target or getgenv().LockedTarget) then
+                            drawTarget = getgenv().serenium_ragebot_target or getgenv().LockedTarget
+                        elseif getgenv().stick and getgenv().stickTarget then
+                            drawTarget = getgenv().stickTarget
+                        elseif DistFromChar <= autoDist then
+                            drawTarget = closestPlayerToCursor
+                        end
+                    elseif DistFromChar <= tracerMaxDist then
+                        -- If auto-select is OFF, we might want to show tracers for EVERYONE in range
+                        -- But usually, that's what causes "duplicates" (visual clutter).
+                        -- If the user wants NO duplicates, they should probably use AutoSelect.
+                        -- If they don't use it, we'll just show for everyone in range.
+                        
+                        -- However, to specifically fix "duplicate tracers" from rage target,
+                        -- we ensure that if ragebot is on, we don't draw EXTRA tracers if it's already drawing for them.
+                        -- Actually, let's just make it strictly one target if they want clarity.
+                    end
+                    
+                    if Player == drawTarget or (not autoSelect and DistFromChar <= tracerMaxDist) then
+                        local tracer = PlayerDrawing.Tracer
+                        local tracerOutline = PlayerDrawing.TracerOutline
+                        if tracer and tracerOutline then
+                            local origin = Classes.TracerOrigin.Value
+                            local fromPos = (origin == "Cursor") and mousePos or vector2new(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
+                            local toPos = vector2new(Pos.X, Pos.Y)
+                            
+                            local tracerColor = Classes.TracerColor.Value or Color3.new(1, 1, 1)
+                            
+                            tracer.From = fromPos
+                            tracer.To = toPos
+                            tracer.Color = tracerColor
+                            tracer.Thickness = 1
+                            tracer.ZIndex = 1
+                            tracer.Visible = true
+                            
+                            tracerOutline.From = fromPos
+                            tracerOutline.To = toPos
+                            tracerOutline.Color = Color3.new(0, 0, 0)
+                            tracerOutline.Thickness = 2
+                            tracerOutline.ZIndex = 0
+                            tracerOutline.Visible = true
+                        end
+                    end
+                end
+            end
+        end
+    end))
 
-				if Classes.Names.Value then
-					Name.Text = Player.Name
-					Name.Position = vector2new(BoxSize.X / 2 + BoxPos.X, BoxPos.Y - 16)
-					Name.Color = Classes.NameColor.Value or Color3.new(1, 1, 1)
-					Name.Size = ESPSettings.Text.Size
-					Name.Visible = true
-				end
-
-				local isRageTarget = (getgenv().ragebot and getgenv().serenium_ragebot_target == Player)
-				if Classes.Tracer.Value and (isRageTarget or DistanceFromCharacter <= Classes.TracerMaxDist.Value) and not whitelisted(Player) then
-					if Player ~= drawTarget and not isRageTarget then
-					else
-						local tracer = PlayerDrawing.Tracer
-						local tracerOutline = PlayerDrawing.TracerOutline
-						if tracer and tracerOutline then
-							local origin = Classes.TracerOrigin.Value
-							local fromPos
-							
-							if origin == "Cursor" then
-								fromPos = userinputservice:GetMouseLocation()
-							else
-								fromPos = vector2new(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
-							end
-							
-							local toPos = vector2new(Pos.X, Pos.Y)
-							
-
-							local tracerColor = Classes.TracerColor.Value or Color3.new(1, 1, 1)
-							
-							-- Draw main tracer first
-							tracer.From = fromPos
-							tracer.To = toPos
-							tracer.Color = tracerColor
-							tracer.Thickness = 1
-							tracer.ZIndex = 1
-							tracer.Visible = true
-							
-							-- Draw outline behind (slightly thicker, black)
-							tracerOutline.From = fromPos
-							tracerOutline.To = toPos
-							tracerOutline.Color = Color3.new(0, 0, 0)
-							tracerOutline.Thickness = 3
-							tracerOutline.ZIndex = 0
-							tracerOutline.Visible = true
-						end
-					end
-				end
-
-				if Classes.Indicators.Value then
-					local BottomOffset = BoxSize.Y + BoxPos.Y + 1
-					local ESPType = Classes.ESPTypes.Value
-					if ESPType == "Tool" or ESPType == "Both" then
-						local tool = Player.Character:FindFirstChildOfClass("Tool")
-						Tool.Text = tool and tool.Name or "None"
-						Tool.Position = vector2new(BoxSize.X / 2 + BoxPos.X, BottomOffset)
-						Tool.Color = ESPSettings.Text.Color
-						Tool.Size = ESPSettings.Text.Size
-						Tool.Visible = true
-						BottomOffset = BottomOffset + 15
-					end
-					if ESPType == "Distance" or ESPType == "Both" then
-						Distance.Text = mathfloor(DistanceFromCharacter) .. "m"
-						Distance.Position = vector2new(BoxSize.X / 2 + BoxPos.X, BottomOffset)
-						Distance.Color = ESPSettings.Text.Color
-						Distance.Size = ESPSettings.Text.Size
-						Distance.Visible = true
-					end
-				end
-			end
-		end
-	end))
 end
 InitializeESP()
 
@@ -7572,9 +9017,11 @@ local function InitializeVisuals()
             LastWeaponChams.Color = chamsColor
             LastWeaponChams.Highlight = highlightEnabled
             LastWeaponChams.HighlightColor = highlightColor
+        else
+            return -- Nothing changed, skip expensive GetDescendants
         end
         
-        -- Apply to all parts in the tool
+        -- Apply to all parts in the tool (only runs when weapon/settings changed)
         for _, part in pairs(tool:GetDescendants()) do
             if part:IsA("BasePart") then
                 -- Store original properties if not already stored
@@ -7691,276 +9138,6 @@ InitializeVisuals()
 local function InitializeCombat() -- Combat/Rage Scope (fixes register limit)
 -- ranged tab
 
--- aimbot niggas
-local lockedTarget = nil
-local lastPlayerRefresh = 0
-local cachedPlayers = {}
-local lastKeybindState = false
-local Players = players
-local localPlayer = localplayer
-local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
-
-localPlayer.CharacterAdded:Connect(function(char)
-	character = char
-end)
-
-local function isFakePlayer(player)
-	if not player then return true end
-	return false
-end
-
-for _, player in pairs(cachedplayers) do
-	if player ~= localPlayer and not isFakePlayer(player) then
-		cachedPlayers[player] = true
-		player.CharacterAdded:Connect(function()
-			cachedPlayers[player] = true
-		end)
-	end
-end
-
-Players.PlayerAdded:Connect(function(player)
-	if player ~= localPlayer and not isFakePlayer(player) then
-		cachedPlayers[player] = true
-		player.CharacterAdded:Connect(function()
-			cachedPlayers[player] = true
-		end)
-	end
-end)
-
-Players.PlayerRemoving:Connect(function(player)
-	cachedPlayers[player] = nil
-	if lockedTarget == player then
-		lockedTarget = nil
-	end
-end)
-
-aimbot:AddToggle("Aimbot", {
-	Text = "aimbot";
-	Default = false;
-	Callback = function(value)
-		if value then
-			getgenv().AimbotEnabled = true
-			lockedTarget = nil
-			
-			spawn(LPH_JIT_MAX(function()
-				while getgenv().AimbotEnabled do
-					task.wait()
-					
-					local keybindPressed = Options.AimbotKeybind:GetState()
-					
-					if keybindPressed then
-						local camera = workspace.CurrentCamera
-						local mouse = localPlayer:GetMouse()
-						
-						local fovRadius = Options.FOVCircleSize.Value or 500
-						local hitPartName = Options.AimbotHitPart.Value or "Head"
-						
-						local needsNewTarget = not lockedTarget or not lockedTarget.Character or not lockedTarget.Character:FindFirstChild("Humanoid") or lockedTarget.Character.Humanoid.Health <= 0
-						local keybindJustPressed = keybindPressed and not lastKeybindState
-						
-						if Toggles.AutoSelect.Value or needsNewTarget or (not Toggles.AutoSelect.Value and keybindJustPressed) then
-							local closestTarget = nil
-							local closestDistance = math.huge
-							
-							for player, _ in pairs(cachedPlayers) do
-								if player and player.Parent and player ~= localPlayer and player.Character then
-									local inMenu = framework and framework.InMenu and framework:InMenu(player)
-									
-									if not inMenu then
-										local humanoid = player.Character:FindFirstChild("Humanoid")
-										local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-										local targetPart = player.Character:FindFirstChild(hitPartName)
-										
-										if humanoid and humanoid.Health > 0 and hrp and targetPart then
-											local screenPos, onScreen = camera:WorldToViewportPoint(targetPart.Position)
-											
-											if onScreen then
-												local mousePos = vector2new(mouse.X, mouse.Y)
-												local targetPos = vector2new(screenPos.X, screenPos.Y)
-												local distance = (mousePos - targetPos).Magnitude
-												
-												if distance < fovRadius and distance < closestDistance then
-													closestDistance = distance
-													closestTarget = player
-												end
-											end
-										end
-									end
-								end
-							end
-							
-							lockedTarget = closestTarget
-						end
-						
-						lastKeybindState = keybindPressed
-						
-						if lockedTarget and lockedTarget.Character then
-							local inMenu = framework and framework.InMenu and framework:InMenu(lockedTarget)
-							
-							if not inMenu then
-                                local hitPartName = hitPartName
-                                if hitPartName == "Random" then
-                                    hitPartName = R6BodyParts[mathrandom(1, #R6BodyParts)]
-                                end
-								local targetPart = lockedTarget.Character:FindFirstChild(hitPartName) or lockedTarget.Character:FindFirstChild("HumanoidRootPart")
-								
-								if targetPart then
-									local aimPos = targetPart.Position
-									
-									if Toggles.Prediction.Value then
-                                        local hrp = lockedTarget.Character:FindFirstChild("HumanoidRootPart")
-                                        if hrp then
-                                            local targetVelocity = hrp.Velocity or vector3new(0, 0, 0)
-                                            local predictionAmount = Options.PredictionAmount.Value or 0.13
-                                            aimPos = aimPos + (targetVelocity * predictionAmount)
-                                        end
-									end
-									
-									if Toggles.Smooth.Value then
-										local smoothAmount = Options.SmoothAmount.Value or 0.15
-										local currentCFrame = camera.CFrame
-										local targetCFrame = cframenew(camera.CFrame.Position, aimPos)
-										camera.CFrame = currentCFrame:Lerp(targetCFrame, smoothAmount)
-									else
-										camera.CFrame = cframenew(camera.CFrame.Position, aimPos)
-									end
-								end
-							else
-								lockedTarget = nil
-							end
-						end
-					else
-						lastKeybindState = keybindPressed
-					end
-				end
-			end))
-		else
-			getgenv().AimbotEnabled = false
-			getgenv().AimbotActive = false
-			lockedTarget = nil
-		end
-	end
-}):AddKeyPicker("AimbotKeybind", {
-	Default = "MB2";
-	SyncToggleState = false;
-	Mode = "Hold";
-	Text = "aimbot";
-	NoUI = false;
-});
-aimbot:AddToggle("FOVCircleAimbotColor1", {
-    Text = "fov color";
-	Default = false;
-}):AddColorPicker("FOVCircleAimbotColor", {
-    Default = Color3.new(1, 1, 1);
-    Text = "fov color";
-});
-
-aimbot:AddToggle("AutoSelect", {
-	Text = "auto select";
-	Default = false;
-});
-aimbot:AddToggle("Smooth", {
-	Text = "smooth out";
-	Default = false;
-});
-
-aimbot:AddSlider("SmoothAmount", {
-	Text = "smooth amount";
-	Default = 0.15;
-	Min = 0.01;
-	Max = 1;
-	Rounding = 2;
-	Compact = true;
-});
-
-aimbot:AddToggle("Prediction", {
-	Text = "prediction";
-	Default = false;
-});
-
-aimbot:AddSlider("PredictionAmount", {
-	Text = "prediction amount";
-	Default = 0.13;
-	Min = 0.01;
-	Max = 0.5;
-	Rounding = 2;
-	Compact = true;
-});
-
-
-
-aimbot:AddDropdown("AimbotHitPart", {
-	Text = "hit part";
-	Default = "Head";
-	Values = {"Head", "Torso", "Random"};
-});
-
--- Silent Aim Section
-silentaim:AddDropdown("ClosestType", {
-	Text = "check type";
-	Default = "Closest To Mouse";
-	Values = {"Closest To Mouse", "Closest To Arrow", "Only Redirect To Target"};
-});
-
-silentaim:AddDropdown("SilentHitPart", {
-	Text = "hit part";
-	Default = "Head";
-	Values = {"Head", "Torso", "Random"};
-});
-
-silentaim:AddSlider("SilentAimRange", {
-	Text = "velocity";
-	Default = 1;
-	Min = 1;
-	Max = 19;
-	Rounding = 0;
-	Compact = true;
-	Suffix = " studs";
-	Tooltip = "lower for more accuracy, higher for faster projectiles"
-});
-
-silentaim:AddSlider("HitChance", {
-	Text = "hit chance";
-	Default = 100;
-	Min = 1;
-	Max = 100;
-	Rounding = 0;
-	Compact = true;
-	Suffix = "%";
-});
-silentaim:AddToggle("ShowFOV", {
-	Text = "show fov";
-	Default = false;
-});
-silentaim:AddSlider("FOVSize", {
-	Text = "fov size";
-	Default = 100;
-	Min = 10;
-	Max = 1000;
-	Rounding = 0;
-	Compact = true;
-});
-silentaim:AddToggle("Resolver", {
-	Text = "resolver";
-	Default = false;
-});
-silentaim:AddToggle("avoidprojectiles", {
-	Text = "avoid projectiles";
-	Default = false;
-});
-silentaim:AddToggle("ShowTargetSA", {
-	Text = "show target";
-	Default = false;
-	Tooltip = "Shows silent aim target";
-	Callback = function(value)
-		if not value then
-			if SilentAimHighlight then
-				SilentAimHighlight.Adornee = nil;
-			end;
-		end;
-	end;
-});
-
 -- Gun Mods Section
 gunmods:AddToggle("NoSpread", {
 	Text = "no spread";
@@ -8072,7 +9249,6 @@ if not Classes.Aimbot then
 	Classes.ShowFOVAimbot = Toggles.ShowFOVAimbot;
 
 	Classes.ShowTargetAB = Toggles.ShowTargetAB;
-	Classes.FOVSize.ValueAimbot = Options.FOVSizeAimbot;
 	Classes.AimbotHitPart = Options.AimbotHitPart;
 	Classes.SilentAim = Toggles.SilentAim;
 	Classes.ClosestType = Options.ClosestType;
@@ -8081,7 +9257,7 @@ if not Classes.Aimbot then
 	Classes.HitChance = Options.HitChance;
 	Classes.ShowFOV = Toggles.ShowFOV;
 
-	Classes.FOVSize.Value = Options.FOVSize;
+	Classes.FOVSize = Options.FOVSize;
 	Classes.Resolver = Toggles.Resolver;
 	Classes.ShowTargetSA = Toggles.ShowTargetSA;
 	Classes.NoSpread = Toggles.NoSpread;
@@ -8132,7 +9308,6 @@ function KalmanFilter:update(measured_pos, measured_vel, dt)
 
 	return self.x, self.v
 end
-
 function PredictTargetPosition(origin, destination, weapon_speed, ping, gravity)
 	local filter = destination.KalmanFilter or KalmanFilter.new()
 	destination.KalmanFilter = filter
@@ -8245,7 +9420,9 @@ function HitDetection:ConnectToCaster(caster)
         end
     end)
 end
+
 local Camera = workspace.CurrentCamera
+    -- Active Monitor Loop to ensure Casters are connected even if hook misses
     framework:BindToRenderStep(LPH_JIT_MAX(function()
         local char = localplayer.Character
         if not char then return end
@@ -8296,9 +9473,11 @@ do -- Silent Aim
 	local currentSilentAimTarget = nil
 	local OldSimulateCast = getupvalue(ActiveCast.new, 6)
 	local OldCalculateFire = modules.Name["RangedWeaponHandler"].calculateFireDirection
+
 	function newSimulate(...)
 		local args = { ... }
 		local caster = args[1]
+		local terminated = false
 
 		pcall(LPH_JIT_MAX(function()
 			local weapon, metadata = framework:GetRanged()
@@ -8307,39 +9486,40 @@ do -- Silent Aim
 			if not Chance then
 				table.insert(chanceCache, caster)
 			end
+
 			if Toggles.avoidprojectiles.Value
-                and caster
-                and caster.UserData
-                and caster.UserData.tool ~= weapon then
+				and caster
+				and caster.UserData
+				and caster.UserData.tool ~= weapon then
 
-                local rootPart = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                if not rootPart then return end
+				local rootPart = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+				if not rootPart then return end
 
-                local pos = caster:GetPosition()
-                if not pos then return end
-                local projectileSpeed = metadata._itemConfig.speed
-                if not projectileSpeed or projectileSpeed <= 0 then return end
-                local distance = (rootPart.Position - pos).Magnitude
-                local travelTime = distance / projectileSpeed
-                local stats = game:GetService("Stats")
-                local pingValue = stats.Network.ServerStatsItem["Data Ping"]:GetValue()
-                local pingSeconds = pingValue / 1000
-                local casterVelocity = Vector3.zero
-                if caster.GetVelocity then
-                    casterVelocity = caster:GetVelocity()
-                end
-                local predictedPos = pos + (casterVelocity * pingSeconds)
-                local predictedDistance = (rootPart.Position - predictedPos).Magnitude
-                local predictedTravelTime = predictedDistance / projectileSpeed
-                local safetyBuffer = 0.05
-                local adjustedTime = predictedTravelTime - pingSeconds - safetyBuffer
-                if adjustedTime <= 0.15 then
-                    setrunning("AvoidProjectiles", true)
-                    task.delay(0.5, function()
-                        setrunning("AvoidProjectiles", false)
-                    end)
-                end
-            end
+				local pos = caster:GetPosition()
+				if not pos then return end
+				local projectileSpeed = metadata._itemConfig.speed
+				if not projectileSpeed or projectileSpeed <= 0 then return end
+				local distance = (rootPart.Position - pos).Magnitude
+				local stats = game:GetService("Stats")
+				local pingValue = stats.Network.ServerStatsItem["Data Ping"]:GetValue()
+				local pingSeconds = pingValue / 1000
+				local casterVelocity = Vector3.zero
+				if caster.GetVelocity then
+					casterVelocity = caster:GetVelocity()
+				end
+				local predictedPos = pos + (casterVelocity * pingSeconds)
+				local predictedDistance = (rootPart.Position - predictedPos).Magnitude
+				local predictedTravelTime = predictedDistance / projectileSpeed
+				local safetyBuffer = 0.05
+				local adjustedTime = predictedTravelTime - pingSeconds - safetyBuffer
+				if adjustedTime <= 0.15 then
+					setrunning("AvoidProjectiles", true)
+					task.delay(0.5, function()
+						setrunning("AvoidProjectiles", false)
+					end)
+				end
+			end
+
 			if
 				not table.find(chanceCache, caster)
 				and Chance
@@ -8366,8 +9546,8 @@ do -- Silent Aim
 					local Head = Player:FindFirstChild("Head")
 					local Character = LocalPlayer.Character
 					local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
-					if getgenv().ragebot and Head and HumanoidRootPart then
 
+					if getgenv().ragebot and Head and HumanoidRootPart then
 						if Toggles.ShowLine.Value then
 							local part = Instance.new("Part")
 							part.Anchored = true
@@ -8399,6 +9579,8 @@ do -- Silent Aim
 						}, nil, caster.RayInfo.CosmeticBulletObject)
 
 						caster:Terminate()
+						terminated = true
+						return
 					end
 				end
 
@@ -8417,13 +9599,11 @@ do -- Silent Aim
 									and (HitPart.Position - caster:GetPosition()).Magnitude
 										<= Classes.SilentAimRange.Value
 								then
+									local targetPos = HitPart.Position
 									local origin = caster:GetPosition()
-									local direction = (HitPart.Position - origin)
+									local direction = (targetPos - origin)
 									local distance = direction.Magnitude
 									local speed = 3000
-									if distance < 5 then
-    									speed = distance * 200
-									end
 									local Vel = direction.Unit * speed
 									caster:SetVelocity(Vel)
 									caster.RayInfo.Direction = Vel.Unit
@@ -8444,7 +9624,8 @@ do -- Silent Aim
 								and (HitPart.Position - caster:GetPosition()).Magnitude
 									<= Classes.SilentAimRange.Value
 							then
-								local Vel = (HitPart.Position - caster:GetPosition()).Unit * 3000
+								local targetPos = HitPart.Position
+								local Vel = (targetPos - caster:GetPosition()).Unit * 3000
 								caster:SetVelocity(Vel)
 							end
 						end
@@ -8453,6 +9634,8 @@ do -- Silent Aim
 			end
 		end))
 
+		if terminated then return end
+
 		if caster and caster.UserData and caster.StateInfo then
 			return OldSimulateCast(...)
 		end
@@ -8460,72 +9643,75 @@ do -- Silent Aim
 		return
 	end
 
-    function newCalculateFire(...)
-        local args = {...}
-        local target = framework:GetClosestToMouse(Options.FOVSize.Value)
-        if getgenv().stick and getgenv().stickTarget then
-            target = getgenv().stickTarget
-        end
-        local ranged, metadata = framework:GetRanged()
-        if
-            Classes.SilentAim.Value
-            and target
-            and ranged
-            and metadata
-            and framework:Chance(Classes.HitChance.Value)
-            and not framework:InMenu(target)
-        then
-            local hitPart = target.Character:FindFirstChild(Classes.SilentHitPart.Value)
-            local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
+	function newCalculateFire(...)
+		local args = {...}
+		local target = framework:GetClosestToMouse(Options.FOVSize.Value)
+		if getgenv().stick and getgenv().stickTarget then
+			target = getgenv().stickTarget
+		end
+		local ranged, metadata = framework:GetRanged()
+		if
+			Classes.SilentAim.Value
+			and target
+			and ranged
+			and metadata
+			and framework:Chance(Classes.HitChance.Value)
+			and not framework:InMenu(target)
+		then
+			local hitPart = target.Character:FindFirstChild(Classes.SilentHitPart.Value)
+			local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
 
-            if hitPart and humanoid then
-                local cheatedOrigin = metadata:getCheatedBackOriginIfInObject(
-                    metadata._mainCasterBehavior.RaycastParams
-                )
+			if hitPart and humanoid then
+				local cheatedOrigin = metadata:getCheatedBackOriginIfInObject(
+					metadata._mainCasterBehavior.RaycastParams
+				)
 
-                if cheatedOrigin then
-                    currentSilentAimTarget = target.Character
-	                local projectileSpeed = metadata._itemConfig.speed;
-                	local projectileGravity = metadata._itemConfig.gravity or Vector3.new(0, 0, 0)
-                    local aimPos = PredictTargetPosition(cheatedOrigin, {Position = hitPart.Position, Velocity = (Classes.Resolver.Value and humanoid.MoveDirection or hitPart.Velocity), }, projectileSpeed, LocalPlayer:GetNetworkPing() * 1000, projectileGravity)
-                    args[1] = CFrame.lookAt(vector3new(), (aimPos - cheatedOrigin).Unit)
-                    local oldParams = metadata._mainCasterBehavior.RaycastParams
-                    local newParams = RaycastParams.new()
-                    newParams.FilterType = Enum.RaycastFilterType.Blacklist
-                    newParams.IgnoreWater = oldParams.IgnoreWater
+				if cheatedOrigin then
+					currentSilentAimTarget = target.Character
+					local projectileSpeed = metadata._itemConfig.speed
+					local projectileGravity = metadata._itemConfig.gravity or Vector3.new(0, 0, 0)
+					local aimPos = PredictTargetPosition(cheatedOrigin, {
+						Position = hitPart.Position,
+						Velocity = (Classes.Resolver.Value and humanoid.MoveDirection or hitPart.Velocity),
+					}, projectileSpeed, LocalPlayer:GetNetworkPing() * 1000, projectileGravity)
+					args[1] = CFrame.lookAt(vector3new(), (aimPos - cheatedOrigin).Unit)
+					local oldParams = metadata._mainCasterBehavior.RaycastParams
+					local newParams = RaycastParams.new()
+					newParams.FilterType = Enum.RaycastFilterType.Blacklist
+					newParams.IgnoreWater = oldParams.IgnoreWater
 
-                    local ignoreList = {}
-                    if oldParams.FilterDescendantsInstances then
-                        for _, v in ipairs(oldParams.FilterDescendantsInstances) do
-                            table.insert(ignoreList, v)
-                        end
-                    end
-                    for _, plr in pairs(cachedplayers) do
-                        local plrChar = plr.Character
-                        if plrChar and plrChar ~= target.Character then
-                            table.insert(ignoreList, plrChar)
-                        end
-                    end
+					local ignoreList = {}
+					if oldParams.FilterDescendantsInstances then
+						for _, v in ipairs(oldParams.FilterDescendantsInstances) do
+							table.insert(ignoreList, v)
+						end
+					end
+					for _, plr in pairs(game.Players:GetPlayers()) do
+						local plrChar = plr.Character
+						if plrChar and plrChar ~= target.Character then
+							table.insert(ignoreList, plrChar)
+						end
+					end
 
-                    if not table.find(ignoreList, workspace.Terrain) then
-                        table.insert(ignoreList, workspace.Terrain)
-                    end
-                    newParams.FilterDescendantsInstances = ignoreList;
-                    metadata._mainCasterBehavior.RaycastParams = newParams
+					if not table.find(ignoreList, workspace.Terrain) then
+						table.insert(ignoreList, workspace.Terrain)
+					end
+					newParams.FilterDescendantsInstances = ignoreList
+					metadata._mainCasterBehavior.RaycastParams = newParams
 					task.defer(function()
-						metadata._mainCasterBehavior.RaycastParams = oldParams;
-					end);
-                end
-            end
-        end
-        return OldCalculateFire(unpack(args))
-    end
+						metadata._mainCasterBehavior.RaycastParams = oldParams
+					end)
+				end
+			end
+		end
+		return OldCalculateFire(unpack(args))
+	end
 
-    setupvalue(ActiveCast.new, 6, newcclosure(function(...)
-        return newSimulate(...)
-    end))
+	setupvalue(ActiveCast.new, 6, newcclosure(function(...)
+		return newSimulate(...)
+	end))
 
-    modules.Name["RangedWeaponHandler"].calculateFireDirection = newCalculateFire
+	modules.Name["RangedWeaponHandler"].calculateFireDirection = newCalculateFire
 
     local VisualizerFolder = Instance.new("Folder", game.Workspace.Terrain)
     VisualizerFolder.Name = "FastCastVisualizationObjects"
@@ -8534,14 +9720,15 @@ do -- Silent Aim
         local Debris = game:GetService("Debris")
         Debris:AddItem(child, 0.7)
     end)
-    local Activeragebot = true;
-	taskspawn(LPH_JIT_MAX(function()
+local Activeragebot = true;
+	task.spawn(LPH_JIT_MAX(function()
 		while task.wait() do
 			if not Activeragebot then
 				break
 			end
 
 			if not getgenv().ragebot then
+				task.wait(0.2)
 				continue
 			end
 
@@ -8582,7 +9769,7 @@ do -- Silent Aim
 					continue
 				end
 			end
-			
+
 			if metadata._clientAmmoVO.Value <= 0 then
 				continue;
 			end;
@@ -8614,7 +9801,6 @@ do -- Silent Aim
 			end
 
 			metadata.canShootBulletssss = false
-
 			LockedTarget = player
 
 			metadata._mainCasterBehavior.RaycastParams.FilterDescendantsInstances = {
@@ -8626,7 +9812,7 @@ do -- Silent Aim
 
 			local origin = metadata:getCheatedBackOriginIfInObject(metadata._mainCasterBehavior.RaycastParams)
 			local projectileSpeed = metadata._itemConfig.speed or 200
-			local projectileGravity = metadata._itemConfig.gravity or vector3new(0, 0, 0)
+			local projectileGravity = metadata._itemConfig.gravity or Vector3.new(0, 0, 0)
 
 			local finalPos = PredictTargetPosition(
 				origin,
@@ -8636,12 +9822,12 @@ do -- Silent Aim
 				projectileGravity
 			)
 
-			local CF = cframenew(vector3new(), (finalPos - origin).Unit)
+			local CF = CFrame.new(Vector3.new(), (finalPos - origin).Unit)
 			local dir = OldCalculateFire(CF, 0, 0, 5000)
 
 			local fakeBehavior = {
 				RaycastParams = metadata._mainCasterBehavior.RaycastParams,
-				Acceleration = vector3new(),
+				Acceleration = Vector3.new(),
 				MaxDistance = 5000,
 				HighFidelityBehavior = 1,
 				HighFidelitySegmentSize = 0.5,
@@ -8689,12 +9875,12 @@ do -- Silent Aim
 							part.CanCollide = false
 							part.Material = Enum.Material.Neon
 							part.Color = Options.linecolor.Value
-							part.Size = vector3new(0.1, 0.1, (Head.Position - HumanoidRootPart.Position).Magnitude)
-							part.CFrame = cframenew(HumanoidRootPart.Position, Head.Position)
-								* cframenew(0, 0, -part.Size.Z / 2)
+							part.Size = Vector3.new(0.1, 0.1, (Head.Position - HumanoidRootPart.Position).Magnitude)
+							part.CFrame = CFrame.new(HumanoidRootPart.Position, Head.Position)
+								* CFrame.new(0, 0, -part.Size.Z / 2)
 							part.Transparency = 0
 							part.Parent = workspace
-							taskspawn(function()
+							task.spawn(function()
 								local fadeTime = 2
 								local steps = 30
 								for i = 1, steps do
@@ -8715,26 +9901,32 @@ do -- Silent Aim
 					end
 				end)
 			end
+
 			if metadata._clientAmmoVO.Value ~= 0 then
-				task.wait(metadata._itemConfig.cooldown + 0.06);
+				local cooldown = metadata._itemConfig.cooldown;
+				if Toggles.safe_mode_ragebot.Value then
+					cooldown = cooldown + Options.safe_mode_slider1.Value
+				end;
+				task.wait(cooldown);
 			end;
+
 			metadata.canShootBulletssss = true;
 		end
 	end));
 end
 end
 local snipertext = "";
-local status = sniper:AddLabel("status: idle")
-sniper:AddInput("sniper", {
-    Text = "search username";
-    PlaceholderText = "type name or display";
+misc3 = misc_tab:AddTab("sniper");
+local status = misc3:AddLabel("status: idle")
+misc3:AddInput("sniper", {
+    Placeholder = "enter username or userid";
     Default = "";
     ClearTextOnFocus = false;
     Callback = function(Text)
         snipertext = Text;
     end;
 });
-sniper:AddButton({
+misc3:AddButton({
     Text = "snipe player";
     Func = function()
         local input = snipertext;
@@ -8849,7 +10041,7 @@ do
         
         if Toggles.WatermarkEnabled and Toggles.WatermarkEnabled.Value then
             local ping = mathfloor(localplayer:GetNetworkPing() * 1000)
-            library:SetWatermark(('serenium.hvh | %s fps | %s ms'):format(mathfloor(FPS), ping))
+            library:SetWatermark(('nil.solutions | %s fps | %s ms'):format(mathfloor(FPS), ping))
         end
     end));
 end
@@ -9199,7 +10391,7 @@ local function CreateMoreVisuals()
             local smoothAmount = math.max(1, Classes.CrosshairSmoothing.Value)
             lastCrosshairPos = lastCrosshairPos + (mouseLoc - lastCrosshairPos) / smoothAmount
             
-            local center = lastCrosshairPos
+            local center = vector2new(math.round(lastCrosshairPos.X), math.round(lastCrosshairPos.Y))
             local size = Classes.CrosshairSize.Value
             local gap = Classes.CrosshairGap.Value
             local thick = Classes.CrosshairThickness.Value
@@ -9222,14 +10414,25 @@ local function CreateMoreVisuals()
 
             -- Update Lines
             local function updateLine(line, outline, fromOff, toOff)
-                local f = center + getRotated(fromOff)
-                local t = center + getRotated(toOff)
+                local fRot = getRotated(fromOff)
+                local tRot = getRotated(toOff)
+                local f = vector2new(math.round((center + fRot).X), math.round((center + fRot).Y))
+                local t = vector2new(math.round((center + tRot).X), math.round((center + tRot).Y))
                 
                 if Classes.CrosshairOutline and Classes.CrosshairOutline.Value then
-                    outline.From = f
-                    outline.To = t
-                    outline.Thickness = thick + 1.5 -- Small overlap
+                    local dir = (tRot - fRot)
+                    local len = dir.Magnitude
+                    if len > 0 then
+                        local norm = dir / len
+                        outline.From = vector2new(math.round((f - norm).X), math.round((f - norm).Y))
+                        outline.To = vector2new(math.round((t + norm).X), math.round((t + norm).Y))
+                    else
+                        outline.From = f
+                        outline.To = t
+                    end
+                    outline.Thickness = thick + 1.5
                     outline.Color = Color3.new(0, 0, 0)
+                    outline.ZIndex = 0.15
                     outline.Visible = true
                 else
                     outline.Visible = false
@@ -9239,6 +10442,7 @@ local function CreateMoreVisuals()
                 line.To = t
                 line.Thickness = thick
                 line.Color = color
+                line.ZIndex = 1
                 line.Visible = true
             end
 
