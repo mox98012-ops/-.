@@ -27,8 +27,11 @@ local modules, framework;
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/linoria-fork/refs/heads/main/linoria.lua"))();
 local savemanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/savemanager/refs/heads/main/linoria.lua"))();
 local thememanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/refs/heads/main/addons/ThemeManager.lua"))();
+setthreadidentity(8);
+setthreadidentity(8);
 local window = library:CreateWindow({Title = "                                                    nil.solutions - discord.gg/serenium     					<font color=\"#ff0000\">combat warriors</font>", Center = true, AutoShow = true, TabPadding = 8, MenuFadeTime = 0});
-local tabs = {main = window:AddTab('main'), ranged = window:AddTab("ranged"); charactertab = window:AddTab("character"), misc = window:AddTab("misc"), visuals = window:AddTab("visuals"), kill = window:AddTab("kill"), settings = window:AddTab("settings")};
+setthreadidentity(7);
+local tabs = {main = window:AddTab('main'), ranged = window:AddTab("ranged"); charactertab = window:AddTab("character"), misc = window:AddTab("misc"), visuals = window:AddTab("visuals"), settings = window:AddTab("settings")};
 local main = tabs.main:AddLeftGroupbox("main");
 local parrysection2 = tabs.main:AddRightGroupbox("auto parry")
 local parrysection = tabs.main:AddRightGroupbox("modifications")
@@ -45,7 +48,6 @@ local exploit1 = tabs.charactertab:AddRightGroupbox("character exploits");
 local settings = tabs.settings:AddLeftGroupbox("settings");
 local gunmods = tabs.ranged:AddLeftGroupbox("gun mods");
 local espsection = tabs.visuals:AddLeftGroupbox("esp");
-local kill = tabs.kill:AddLeftGroupbox("attempt kills");
 local whitelist = {};
 local viewing, driver, AttachRoot = nil;
 local camera = workspace.CurrentCamera;
@@ -98,6 +100,17 @@ getgenv().settings = {
     antiswim = false,
     spinenabled = false,
     jumppower = 50,
+    godmode = false,
+    dmgmultiplier = false,
+    mulamount = 1,
+    onehit = false,
+    anticc = false,
+    instanthits = false,
+    nocooldown = false,
+    parryduration = false,
+    resizer = 1,
+    safezonebypass = false,
+    gkacbypass = false,
     walkspeed = 16,
     flyspeed = 16,
     killaura = false,
@@ -937,6 +950,78 @@ function framework:hookclient(Table, Name, NewFunction)
 	OldHook = hookfunction(ToHook, (function(...) return NewFunction(...)end));
 	return OldHook;
 end;
+
+-- Advanced Exploits Logic Initialization
+task.spawn(function()
+    local network = modules.Name["Network"]
+    local originalBind = network.BindEvents
+    network.BindEvents = function(self, events)
+        if getgenv().settings.godmode then
+            local blocked = {"GotAttacked", "DamageInflicted", "KnockbackCharacterPart", "KnockbackCharacterPartAngular", "ImpulseCharacterPart", "ImpulseCharacterPartAngular"}
+            for _, name in pairs(blocked) do
+                events[name] = function() end
+            end
+        end
+        return originalBind(self, events)
+    end
+
+    runservice.Heartbeat:Connect(function()
+        if not character or not humanoid then return end
+        if getgenv().settings.godmode then
+            humanoid.Health = humanoid.MaxHealth
+        end
+        if getgenv().settings.anticc then
+            local sessData = framework:GetSessionData()
+            if sessData then
+                local state = sessData:getState()
+                if state.stunClient and state.stunClient.isStunned then
+                    sessData:dispatch({ type = "STUN_CLIENT_IS_STUNNED_COUNT_DECREMENT" })
+                end
+                if state.freeze and state.freeze.isFrozen then
+                     sessData:dispatch({ type = "FREEZE_IS_FROZEN_CHANGE", payload = false })
+                end
+                if state.down and state.down.isDowned then
+                    sessData:dispatch({ type = "DOWN_IS_DOWNED_CHANGE", payload = false })
+                end
+            end
+        end
+        if getgenv().settings.nocooldown then
+            local ok, weapon, metadata = pcall(function() return framework:GetWeapon() end)
+            if ok and weapon and metadata and metadata._itemConfig then
+                metadata._itemConfig.cooldown = 0.01
+                if metadata._lastSlashTick then metadata._lastSlashTick = 0 end
+            end
+        end
+        if getgenv().settings.gkacbypass then
+            if humanoidrootpart then humanoidrootpart.Anchored = false end
+            local ok, tool = pcall(function() return framework:GetWeapon() end)
+            if ok and tool and (tick() - (getgenv().lastgkspoof or 0)) > 2 then
+                getgenv().lastgkspoof = tick()
+                for _, p in pairs(players:GetPlayers()) do
+                    if p ~= localplayer and p.Character then
+                        network:FireServer("StartGloryKill", tool, p.Character, humanoidrootpart.CFrame, vector3new())
+                        break
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+framework:addhook("MeleeDamage", function(original, self, Name, ...)
+    local Args = {...}
+    if getgenv().settings.dmgmultiplier or getgenv().settings.onehit then
+        local count = getgenv().settings.onehit and 50 or (getgenv().settings.mulamount or 1)
+        if count > 1 and not getgenv().multiplier_loop then
+            getgenv().multiplier_loop = true
+            for i = 1, count - 1 do
+                original(self, Name, unpack(Args))
+            end
+            getgenv().multiplier_loop = false
+        end
+    end
+    return original(self, Name, unpack(Args))
+end)
 function framework:getmetadata(ItemName, ItemId)
 	local key = ItemName:lower():gsub(" ", ""):gsub("_","");
 	local id = weaponids[key] or ItemId;
@@ -1766,9 +1851,12 @@ do
     local RunService = game:GetService("RunService")
     local localplayer = Players.LocalPlayer
     local camera = workspace.CurrentCamera
+setthreadidentity(8);
     local lastKeybindState = false
     local character = localplayer.Character or localplayer.CharacterAdded:Wait()
+    setthreadidentity(8);
     local main_ranged = tabs.ranged:AddRightTabbox()
+    setthreadidentity(7);
     local silent_tab = main_ranged:AddTab("silent aim")
     local aimbot_tab = main_ranged:AddTab("aimbot")
     local ragebotsection = tabs.ranged:AddRightGroupbox("ragebot");
@@ -3886,140 +3974,7 @@ serverposition("heartbeat", "AvoidProjectiles", LPH_JIT_MAX(function(cf)
     return cf * CFrame.new(0, 60, 0);
 end), 2);
 if not getgenv().safe_mode then
-    kill:AddButton("attempt kill", function()
-        local targetplayer = SelectedPlayer;
-        if not targetplayer then return; end;
-        if framework:InMenu(targetplayer) then
-            library:Notify(targetplayer.Name .. " is in lobby", 3);
-            return;
-        end;
-        local realname = targetplayer.Name or targetplayer.Character.Name;
-        local isnpc = false;
-        local target = nil;
-        if not targetplayer:IsA("Player") then
-            local npcmodel = workspace.NPCs:FindFirstChild(realname);
-            if npcmodel then
-                isnpc = true;
-                target = {
-                    Character = npcmodel;
-                    Name = npcmodel.Name;
-                };
-            else
-                return;
-            end;
-        else
-            target = targetplayer;
-        end;
-        if framework:InMenu(localplayer) then
-            repeat task.wait(); until not framework:InMenu(localplayer);
-        end;
-        task.wait(0.1);
-        if not getgenv().falldamage then
-            setrunning("initattemptkill", true);
-            killphase = 1;
-            task.wait(0.2);
-            killphase = 2;
-            task.wait(0.05);
-            setrunning("initattemptkill", false);
-            getgenv().falldamage = true;
-        end;
-        local desync = false;
-        local desyncthreadref = nil;
-        local attachactive = true;
-        local function startjitter(rootpart)
-            if not rootpart or desyncthreadref then return; end;
-            desync = true;
-            local verticaloffset = 0.1;
-            desyncthreadref = taskspawn(LPH_JIT_MAX(function()
-                while desync and rootpart and rootpart.Parent do
-                    runservice.Heartbeat:Wait();
-                    local prevel = rootpart.AssemblyLinearVelocity;
-                    rootpart.AssemblyLinearVelocity = vector3new(mathrandom(-1500, 1500), mathrandom(-300, 300), mathrandom(-1500, 1500));
-                    runservice.RenderStepped:Wait();
-                    if rootpart.Parent then
-                        rootpart.AssemblyLinearVelocity = prevel;
-                    end;
-                    runservice.Stepped:Wait();
-                    if rootpart.Parent then
-                        rootpart.AssemblyLinearVelocity = prevel + vector3new(0, verticaloffset, 0);
-                        verticaloffset = -verticaloffset;
-                    end;
-                end;
-                desyncthreadref = nil;
-            end));
-        end;
-        local function stopjitter()
-            desync = false;
-        end;
-        local function getmychar()
-            local char = localplayer.Character;
-            if not char or not char.Parent then
-                char = localplayer.CharacterAdded:Wait();
-            end;
-            local root = char:FindFirstChild("HumanoidRootPart");
-            local hum = char:FindFirstChild("Humanoid");
-            return char, root, hum;
-        end;
-        local function gettargetchar()
-            if isnpc then
-                local char = target.Character;
-                if char and char.Parent then
-                    return char, char:FindFirstChild("HumanoidRootPart");
-                end;
-                return nil, nil;
-            else
-                local char = target.Character;
-                if not char or not char.Parent then
-                    char = target.CharacterAdded:Wait();
-                end;
-                return char, char:FindFirstChild("HumanoidRootPart");
-            end;
-        end;
-        local heartbeatconn;
-        heartbeatconn = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
-            if not attachactive then
-                heartbeatconn:Disconnect();
-                return;
-            end;
-            local mychar, myroot, myhumanoid = getmychar();
-            local targetchar, targetroot = gettargetchar();
-            if myroot and myhumanoid and targetroot then
-                local rootToUse = driver or myroot;
-                rootToUse.CFrame = targetroot.CFrame;
-                sethiddenproperty(rootToUse, "PhysicsRepRootPart", targetroot);
-                local ragdollremote = myhumanoid:FindFirstChild("RagdollRemoteEvent") or myhumanoid:WaitForChild("RagdollRemoteEvent");
-                if ragdollremote then
-                    ragdollremote:FireServer(true);
-                end;
-                startjitter(rootToUse);
-            end;
-        end));
-        taskspawn(LPH_JIT_MAX(function()
-            while attachactive do
-                if framework:InMenu(localplayer) then break; end;
-                local _, myroot, myhumanoid = getmychar();
-                local _, targetroot = gettargetchar();
-                if not myhumanoid or myhumanoid.Health <= 0 then
-                    task.wait(0.1);
-                else
-                    for i = 1, 10 do
-                        if framework:InMenu(localplayer) then break; end;
-                        if targetroot and targetroot.Parent then
-                            network:FireServer("TakeFallDamage", math.huge, vector3new(0, -1, 0), targetroot.Position);
-                        end;
-                        task.wait();
-                    end;
-                end;
-                task.wait(0.05);
-            end;
-            attachactive = false;
-            stopjitter();
-            if heartbeatconn then
-                heartbeatconn:Disconnect();
-            end;
-        end));
-    end);
-    kill:AddButton("attempt fling", function()
+    misc1:AddButton("attempt fling", function()
         local s, e = pcall(function()
             local target = SelectedPlayer
         end);
@@ -4105,67 +4060,6 @@ misc1:AddButton("remove from whitelist", function()
     end);
     if e then library:Notify("select a target", 3); end;
 end);
-local Desync = false
-local desyncThreadRef = nil
-local function Jitter(rootPart)
-    if not rootPart or desyncThreadRef then return end
-    Desync = true
-    desyncThreadRef = task.spawn(LPH_JIT_MAX(function()
-        while Desync and rootPart and rootPart.Parent do
-            runservice.Heartbeat:Wait()
-            rootPart.AssemblyLinearVelocity = vector3new(mathrandom(-1500, 1500), mathrandom(-300, 300), mathrandom(-1500, 1500));
-            runservice.Heartbeat:Wait()
-        end
-        desyncThreadRef = nil
-    end))
-end
-local function StopJitter()
-	Desync = false
-	desyncThreadRef = nil
-end
-local function AttemptKillTarget(targetPlayer)
-	if not targetPlayer then return end
-	local myCharacter = character or localplayer.CharacterAdded:Wait()
-	local myRoot = myCharacter:FindFirstChild("HumanoidRootPart")
-	local myHumanoid = myCharacter:FindFirstChild("Humanoid")
-	local targetCharacter = targetPlayer.Character or targetPlayer
-	local targetRoot = targetCharacter:FindFirstChild("HumanoidRootPart")
-	local targetHumanoid = targetCharacter:FindFirstChild("Humanoid")
-	if not myRoot or not myHumanoid or not targetRoot or not targetHumanoid then return end
-	if framework:InMenu(localplayer) then return end
-	local root = driver or humanoidrootpart
-	if root and targetRoot then
-		root.CFrame = targetRoot.CFrame
-		sethiddenproperty(root, "PhysicsRepRootPart", targetRoot)
-	end
-	local ragdollEvent = myHumanoid:FindFirstChild("RagdollRemoteEvent") or myHumanoid:WaitForChild("RagdollRemoteEvent", 0.5)
-	if ragdollEvent then ragdollEvent:FireServer(true) end
-	Jitter(myRoot)
-	AttachRoot = targetRoot
-	if targetRoot and targetRoot.Parent then
-		local pos = targetRoot.Position
-		for i = 1, 5 do network:FireServer("TakeFallDamage", math.huge, vector3new(0, -1, 0), pos) end
-	end
-	AttachRoot = nil
-	StopJitter()
-end
-if not getgenv().safe_mode then
-    kill:AddButton({ Text = "re-init attempt kill", Func = function()
-            if framework:InMenu(localplayer) then repeat task.wait(); until not framework:InMenu(localplayer); end;
-            task.wait(0.1);
-            if not humanoidrootpart then return; end;
-            local hrp = localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart");
-            if hrp then
-                task.wait(0.1);
-                setrunning("initattemptkill", true)
-                killphase = 1
-                task.wait(0.2)
-                killphase = 2
-                task.wait(0.05)
-                setrunning("initattemptkill", false);
-            end;
-        end, Tooltip = "re-initialize attempt kill incase it failed"; });
-end;
 misc1:AddToggle("spectateto", { Text = "spectate";
 	Default = false;
 	Callback = function(v)
@@ -4200,117 +4094,6 @@ misc1:AddToggle("spectateto", { Text = "spectate";
 			end);
 		end
 	end; });
-local loopkillthread = nil;
-local currentTarget = nil;
-local loopkilltarget_hb = nil;
-local attachactive = false;
-if not getgenv().safe_mode then
-    kill:AddToggle("loopkilltarget", { Text = "loop attempt kill target";
-        Default = false;
-        Callback = function(Value)
-            getgenv().settings.loopkilltarget = Value;
-            attachactive = Value;
-            if not Value then
-                currentTarget = nil;
-                attachactive = false;
-                if loopkillthread then
-                    task.cancel(loopkillthread);
-                    loopkillthread = nil;
-                end
-                if loopkilltarget_hb then
-                    loopkilltarget_hb:Disconnect();
-                    loopkilltarget_hb = nil;
-                end
-                return;
-            end
-            if framework:InMenu(localplayer) then repeat task.wait() until not framework:InMenu(localplayer); end
-            task.wait(0.1);
-            if not getgenv().falldamage then
-                setrunning("initattemptkill", true)
-                killphase = 1
-                task.wait(0.2)
-                killphase = 2
-                task.wait(0.05)
-                setrunning("initattemptkill", false)
-                getgenv().falldamage = true;
-            end;
-            if loopkilltarget_hb then
-                loopkilltarget_hb:Disconnect();
-                loopkilltarget_hb = nil;
-            end
-            loopkilltarget_hb = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
-                if not getgenv().settings.loopkilltarget or not attachactive or not currentTarget then return; end;
-                local targetChar = currentTarget.Character;
-                local myRoot = localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart");
-                if targetChar and targetChar:FindFirstChild("HumanoidRootPart") and myRoot then
-                    local rootToUse = driver or myRoot;
-                    rootToUse.CFrame = targetChar.HumanoidRootPart.CFrame;
-                    sethiddenproperty(rootToUse, "PhysicsRepRootPart", targetChar.HumanoidRootPart);
-                end
-            end));
-            if loopkillthread then
-                task.cancel(loopkillthread);
-                loopkillthread = nil;
-            end
-            loopkillthread = taskspawn(LPH_JIT_MAX(function()
-                while getgenv().settings.loopkilltarget and attachactive do
-                    local targetPlayer = SelectedPlayer;
-                    local lpChar = localplayer.Character;
-                    local lpHumanoid = lpChar and lpChar:FindFirstChild("Humanoid");
-                    if framework:InMenu(localplayer) or not lpHumanoid or lpHumanoid.Health <= 0 or not targetPlayer or targetPlayer == localplayer then
-                        currentTarget = nil;
-                        task.wait(0.2);
-                        continue;
-                    end
-                    local targetChar = targetPlayer.Character;
-                    if not targetChar or not targetChar:FindFirstChild("HumanoidRootPart") or not targetChar:FindFirstChild("Humanoid") or targetChar.Humanoid.Health <= 0 then
-                        currentTarget = nil;
-                        task.wait(0.2);
-                        continue;
-                    end
-                    if currentTarget ~= targetPlayer then currentTarget = targetPlayer; end
-                    while getgenv().settings.loopkilltarget and attachactive and currentTarget == targetPlayer and targetChar.Parent and targetChar:FindFirstChild("Humanoid") and targetChar.Humanoid.Health > 0 and lpHumanoid.Health > 0 and not framework:InMenu(localplayer)
-                    do
-                        AttemptKillTarget(targetPlayer);
-                        task.wait(0.1);
-                    end
-                    task.wait(0.1);
-                end
-                currentTarget = nil;
-                attachactive = false;
-                if loopkillthread then
-                    task.cancel(loopkillthread);
-                    loopkillthread = nil;
-                end
-                if loopkilltarget_hb then
-                    loopkilltarget_hb:Disconnect();
-                    loopkilltarget_hb = nil;
-                end
-            end));
-        end; });
-    local CanKillAll = false
-    kill:AddToggle("loopkillall", { Text = "loop attempt kill all", Default = false, Callback = function(Value)
-            getgenv().settings.loopkillall = Value
-            taskspawn(LPH_JIT_MAX(function()
-                if Value then
-                    if framework:InMenu(localplayer) then repeat task.wait() until not framework:InMenu(localplayer) end
-                    CanKillAll = false
-                    CanFireStartFallDamage = false
-                    setrunning("initattemptkill", true)
-                    killphase = 1
-                    task.wait(0.2)
-                    killphase = 2
-                    task.wait(0.05)
-                    setrunning("initattemptkill", false)
-                    CanKillAll = true
-                    CanFireStartFallDamage = true
-                else
-                    setrunning("initattemptkill", false)
-                    CanKillAll = false
-                    CanFireStartFallDamage = true
-                end
-            end));
-        end })
     local cas = game:GetService("ContextActionService");
     local function alive(player)
         local character = player.Character;
@@ -4334,66 +4117,6 @@ if not getgenv().safe_mode then
             bound = false;
         end;
     end));
-    local isAliveFlag = true
-    local function StartKillLoop(character)
-        local characterRoot = character:WaitForChild("HumanoidRootPart")
-        local characterHumanoid = character:WaitForChild("Humanoid")
-        isAliveFlag = true
-        characterHumanoid.Died:Connect(LPH_JIT_MAX(function() isAliveFlag = false end))
-        taskspawn(LPH_JIT_MAX(function()
-            while isAliveFlag and characterHumanoid.Health > 0 do
-                if not CanKillAll or not getgenv().settings.loopkillall or framework:InMenu(localplayer) then
-                    AttachRoot = nil
-                    task.wait(0.2)
-                    continue
-                end
-                local cachedPlayers = getgenv().cachedplayers
-                for targetPlayer in pairs(cachedPlayers) do
-                    if not isAliveFlag or not getgenv().settings.loopkillall then break end
-                    if framework:InMenu(localplayer) then
-                        AttachRoot = nil
-                        break
-                    end
-                    if targetPlayer == localplayer then continue end
-                    if framework:InMenu(targetPlayer) then continue end
-                    if whitelisted(targetPlayer) then continue end
-                    local targetChar = targetPlayer.Character
-                    if not targetChar then continue end
-                    local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
-                    local targetHumanoid = targetChar:FindFirstChild("Humanoid")
-                    if not targetRoot or not targetHumanoid then continue end
-                    if targetHumanoid.Health <= 0 then continue end
-                    if targetChar:FindFirstChildOfClass("ForceField") then continue end
-                    local root = driver or humanoidrootpart
-                    taskspawn(LPH_JIT_MAX(function()
-                        while isAliveFlag and targetRoot.Parent and targetHumanoid.Health > 0 do
-                            if framework:InMenu(localplayer) then break end
-                            root = driver or humanoidrootpart
-                            if root and targetRoot then
-                                root.CFrame = targetRoot.CFrame
-                                sethiddenproperty(root, "PhysicsRepRootPart", targetRoot)
-                                AttachRoot = targetRoot
-                            end
-                            task.wait()
-                        end
-                        AttachRoot = nil
-                    end))
-                    AttemptKillTarget(targetPlayer)
-                    task.wait(0.05)
-                end
-                task.wait(0.2)
-            end
-        end))
-    end
-    if localplayer.Character then StartKillLoop(localplayer.Character) end
-    localplayer.CharacterAdded:Connect(StartKillLoop);
-    runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
-        if not humanoidrootpart or not AttachRoot then return; end;
-        local rootToUse = driver or humanoidrootpart;
-        rootToUse.CFrame = AttachRoot.CFrame;
-        sethiddenproperty(rootToUse, "PhysicsRepRootPart", AttachRoot);
-    end));
-end;
 network:BindEvents({ KilledPlayer = function(statData)
 		local KillSayStuff = Data.KillSayStuff
 		local MockHandler = modules.Name["MockPlayerHandler"]
@@ -4454,6 +4177,7 @@ network:BindEvents({ KilledPlayer = function(statData)
 			if CanSend then TextChatService.TextChannels.RBXGeneral:SendAsync(Message) end
 		end
 	end })
+setthreadidentity(8); -- Re-enforce for kill tab
 local CachedPlayers = {};
 local function UpdateCachedPlayers()
     CachedPlayers = {};
@@ -4465,70 +4189,72 @@ players.PlayerAdded:Connect(function() UpdateCachedPlayers(); end);
 players.PlayerRemoving:Connect(function() UpdateCachedPlayers(); end);
 local FlingThread;
 local CanFlingAll = false;
+setthreadidentity(8);
 if not getgenv().safe_mode then
-kill:AddToggle("loopflingall", { Text = "loop attempt fling all";
-    Default = false;
-    Callback = function(Value)
-        if not Value then
-            CanFlingAll = false;
-            if FlingThread then
-                task.cancel(FlingThread);
-                FlingThread = nil;
-            end;
-            return;
-        end;
-        if framework:InMenu(localplayer) then repeat task.wait() until not framework:InMenu(localplayer) end
-        task.wait(0.05)
-        CanFlingAll = true;
-        FlingThread = taskspawn(LPH_JIT_MAX(function()
-            while CanFlingAll do
-                if framework:InMenu(localplayer) then repeat task.wait() until not framework:InMenu(localplayer) end
-                if not CanFlingAll then break; end;
-                local LocalRoot = localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart")
-                if not LocalRoot then
-                    task.wait(0.1);
-                    continue;
+    misc1:AddToggle("loopflingall", { Text = "loop attempt fling all";
+        Default = false;
+        Callback = function(Value)
+            if not Value then
+                CanFlingAll = false;
+                if FlingThread then
+                    task.cancel(FlingThread);
+                    FlingThread = nil;
                 end;
-                local playercount = 0;
-                for i = 1, #CachedPlayers do
+                return;
+            end;
+            if framework:InMenu(localplayer) then repeat task.wait() until not framework:InMenu(localplayer) end
+            task.wait(0.05)
+            CanFlingAll = true;
+            FlingThread = taskspawn(LPH_JIT_MAX(function()
+                while CanFlingAll do
+                    if framework:InMenu(localplayer) then repeat task.wait() until not framework:InMenu(localplayer) end
                     if not CanFlingAll then break; end;
-                    local Player = CachedPlayers[i];
-                    if not Player or not Player.Parent then continue; end;
-                    if framework:InMenu(Player) then continue; end;
-                    if table.find(whitelist, Player.Name) then continue; end;
-                    local Char = Player.Character;
-                    local targetroot = Char and Char:FindFirstChild("HumanoidRootPart");
-                    if not targetroot then continue; end;
-                    local targetpos = targetroot.Position;
-                    if targetpos.Y > 280 then continue; end;
-                    if (targetpos * vector3new(1, 0, 1)).Magnitude > 1200 then continue; end;
-                    playercount = playercount + 1;
-                    local movel = 0.1;
-                    local start = tick();
-                    while CanFlingAll and tick() - start < 0.15 do
-                        if not LocalRoot.Parent or not targetroot.Parent then break; end;
-                        if framework:InMenu(Player) then break; end;
-                        LocalRoot.CFrame = targetroot.CFrame;
-                        sethiddenproperty(LocalRoot, "PhysicsRepRootPart", targetroot);
-                        local vel = LocalRoot.Velocity;
-                        LocalRoot.Velocity = vel * 150000 + vector3new(0, 150000, 0);
-                        runservice.RenderStepped:Wait();
-                        if not CanFlingAll then break; end;
-                        LocalRoot.Velocity = vel + vector3new(0, movel, 0);
-                        movel = -movel;
-                        runservice.Heartbeat:Wait();
+                    local LocalRoot = localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart")
+                    if not LocalRoot then
+                        task.wait(0.1);
+                        continue;
                     end;
+                    local playercount = 0;
+                    for i = 1, #CachedPlayers do
+                        if not CanFlingAll then break; end;
+                        local Player = CachedPlayers[i];
+                        if not Player or not Player.Parent then continue; end;
+                        if framework:InMenu(Player) then continue; end;
+                        if table.find(whitelist, Player.Name) then continue; end;
+                        local Char = Player.Character;
+                        local targetroot = Char and Char:FindFirstChild("HumanoidRootPart");
+                        if not targetroot then continue; end;
+                        local targetpos = targetroot.Position;
+                        if targetpos.Y > 280 then continue; end;
+                        if (targetpos * vector3new(1, 0, 1)).Magnitude > 1200 then continue; end;
+                        playercount = playercount + 1;
+                        local movel = 0.1;
+                        local start = tick();
+                        while CanFlingAll and tick() - start < 0.15 do
+                            if not LocalRoot.Parent or not targetroot.Parent then break; end;
+                            if framework:InMenu(Player) then break; end;
+                            LocalRoot.CFrame = targetroot.CFrame;
+                            sethiddenproperty(LocalRoot, "PhysicsRepRootPart", targetroot);
+                            local vel = LocalRoot.Velocity;
+                            LocalRoot.Velocity = vel * 150000 + vector3new(0, 150000, 0);
+                            runservice.RenderStepped:Wait();
+                            if not CanFlingAll then break; end;
+                            LocalRoot.Velocity = vel + vector3new(0, movel, 0);
+                            movel = -movel;
+                            runservice.Heartbeat:Wait();
+                        end;
+                    end;
+                    if playercount == 0 then task.wait(0.5); end;
                 end;
-                if playercount == 0 then task.wait(0.5); end;
-            end;
-        end));
-    end; });
+            end));
+        end;
+    });
 end;
 auto:AddToggle("WhitelistFriends", { Text = "whitelist friends";
 	Default = false;
 	Callback = function(value)
 		Toggles.WhitelistFriends.Value = value;
-		getgenv().whitelistfriends = v;
+		getgenv().whitelistfriends = value;
 	end; });
 auto:AddToggle("autostomp", { Text = "auto stomp";
     Default = false;
@@ -4592,7 +4318,7 @@ auto:AddSlider("gloryrange", { Text = "glory range";
     Rounding = 1;
     Compact = true;
 	Callback = function(Value)
-		getgenv().settings.glorydelay = Value;
+		getgenv().settings.gloryrange = Value;
 	end; });
 local visuals = tabs.visuals;
 local crosshairsection = visuals:AddRightGroupbox("crosshair");
