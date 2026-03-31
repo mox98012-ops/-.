@@ -5,7 +5,10 @@ if (info.Creator.CreatorType ~= "Group" or info.Creator.CreatorTargetId ~= 51928
 getgenv().serenium_LOADED = true;
 repeat task.wait() until game:GetService("Players").LocalPlayer;
 game:GetService("Players").LocalPlayer:WaitForChild("DataLoaded");
-task.wait(1);
+game:GetService("Players").LocalPlayer:WaitForChild("DataLoadedClient");
+game:GetService("Players").LocalPlayer:WaitForChild("CharacterLoaded");
+game:GetService("ReplicatedStorage"):WaitForChild("ClientInitFinished");
+game:GetService("ReplicatedStorage"):WaitForChild("ServerInitFinished");
 workspace.FallenPartsDestroyHeight = -math.huge;
 for _, void in pairs(workspace:GetDescendants()) do
 	if (void.Name == "VoidCollidePart" and void:IsA("Part")) then
@@ -32,22 +35,23 @@ setthreadidentity(8);
 local window = library:CreateWindow({Title = "                                                    nil.solutions - discord.gg/serenium     					<font color=\"#ff0000\">combat warriors</font>", Center = true, AutoShow = true, TabPadding = 8, MenuFadeTime = 0});
 setthreadidentity(7);
 local tabs = {main = window:AddTab('main'), ranged = window:AddTab("ranged"); charactertab = window:AddTab("character"), misc = window:AddTab("misc"), visuals = window:AddTab("visuals"), settings = window:AddTab("settings")};
-local main = tabs.main:AddLeftGroupbox("main");
-local parrysection2 = tabs.main:AddRightGroupbox("auto parry")
-local parrysection = tabs.main:AddRightGroupbox("modifications")
-local mmisc = tabs.misc:AddLeftGroupbox("main");
-local miscauto = tabs.misc:AddLeftGroupbox("auto");
-local misc = tabs.misc:AddLeftGroupbox("cosmetic");
-local crates = tabs.misc:AddLeftGroupbox("crates");
-local misc_tab = tabs.misc:AddRightTabbox();
-local auto = tabs.misc:AddRightGroupbox("others")
-local charactertab = tabs.charactertab:AddLeftGroupbox("character");
-local othertabs = tabs.charactertab:AddLeftGroupbox("others");
-local exploit = tabs.charactertab:AddRightGroupbox("exploits");
-local exploit1 = tabs.charactertab:AddRightGroupbox("character exploits");
-local settings = tabs.settings:AddLeftGroupbox("settings");
-local gunmods = tabs.ranged:AddLeftGroupbox("gun mods");
-local espsection = tabs.visuals:AddLeftGroupbox("esp");
+main = tabs.main:AddLeftGroupbox("main");
+strafe_tab = tabs.main:AddLeftGroupbox("strafe");
+parrysection2 = tabs.main:AddRightGroupbox("auto parry")
+parrysection = tabs.main:AddRightGroupbox("modifications")
+mmisc = tabs.misc:AddLeftGroupbox("main");
+miscauto = tabs.misc:AddLeftGroupbox("auto");
+misc = tabs.misc:AddLeftGroupbox("cosmetic");
+crates = tabs.misc:AddLeftGroupbox("crates");
+misc_tab = tabs.misc:AddRightTabbox();
+auto = tabs.misc:AddRightGroupbox("others")
+charactertab = tabs.charactertab:AddLeftGroupbox("character");
+othertabs = tabs.charactertab:AddLeftGroupbox("others");
+exploit = tabs.charactertab:AddRightGroupbox("exploits");
+exploit1 = tabs.charactertab:AddRightGroupbox("character exploits");
+settings = tabs.settings:AddLeftGroupbox("settings");
+gunmods = tabs.ranged:AddLeftGroupbox("gun mods");
+espsection = tabs.visuals:AddLeftGroupbox("esp");
 local whitelist = {};
 local viewing, driver, AttachRoot = nil;
 local camera = workspace.CurrentCamera;
@@ -72,6 +76,8 @@ library.IgnoreWhileTyping = true;
 local spinspeed = 10;
 local spineabled = false;
 local KADebounce = false;
+local anti_parry_void = false;
+local ap_unequipped = false;
 local OnTp = false;
 local Active = true;
 local vector3new = Vector3.new;
@@ -244,208 +250,275 @@ do
     end));
 end;
 do
-    if getgenv().library_loaded then return; end;
-    getgenv().library_loaded = true;
-    local runservice = game:GetService("RunService");
-    local players = game:GetService("Players");
-    local localplayer = players.LocalPlayer;
-    local typeofcache = typeof;
-    local tickcache = tick;
-    local renderstepped = runservice.RenderStepped;
-    local primarypart;
-    local clientcframe;
-    local connection;
-    local currentlooptype;
-    local isspoofing = false;
-    local stopspoofing = false;
-    local executing = false;
-    local cframecallback;
-    local activespoofs = {};
-    local registeredspoofs = {};
-    local persistentloops = {};
-    local currentactive;
-    local function oncharacter(char)
-        primarypart = char:WaitForChild("HumanoidRootPart");
-        clientcframe = primarypart.CFrame;
-    end;
-    if localplayer.Character then oncharacter(localplayer.Character); end;
-    localplayer.CharacterAdded:Connect(oncharacter);
-    local mt = getrawmetatable(game);
-    local originalindex = mt.__index;
-    setreadonly(mt, false);
-    mt.__index = newcclosure(function(self, property)
-        if (not checkcaller() and self == primarypart and property == "CFrame" and isspoofing) then return clientcframe; end;
-        return originalindex(self, property);
-    end);
-    setreadonly(mt, true);
-    local looptypes = { heartbeat = runservice.Heartbeat, renderstepped = runservice.RenderStepped, stepped = runservice.Stepped };
-    local function evaluatecurrent()
-        local best;
-        for _, v in ipairs(activespoofs) do
-            if not best then
-                best = v;
-            else
-                if v.priority > best.priority then
-                    best = v;
-                elseif v.priority == best.priority and v.timestamp < best.timestamp then best = v; end;
-            end;
-        end;
-        currentactive = best;
-    end;
-    local function refreshconnection()
-        if not currentactive then
-            if connection then
-                connection:Disconnect();
-                connection = nil;
-                currentlooptype = nil;
-            end;
-            return;
-        end;
-        local looptype = currentactive.looptype;
-        if connection and currentlooptype == looptype then return; end;
-        if connection then
-            connection:Disconnect();
-            connection = nil;
-        end;
-        currentlooptype = looptype;
-        local event = looptypes[looptype] or runservice.Heartbeat;
-        connection = event:Connect(function()
-            if stopspoofing or executing then return; end;
-            if not (primarypart and primarypart.Parent) then return; end;
-            local spoof = currentactive;
-            if not spoof then return; end;
-            executing = true;
-            clientcframe = primarypart.CFrame;
-            local success, target = pcall(spoof.callback, clientcframe);
-            if success and target and typeofcache(target) == "CFrame" then
-                isspoofing = true;
-                primarypart.CFrame = target;
-                renderstepped:Wait();
-                primarypart.CFrame = clientcframe;
-                isspoofing = false;
-                if cframecallback then cframecallback(target); end;
-            elseif not success then warn("callback error [" .. spoof.name .. "]: " .. tostring(target)); end;
-            executing = false;
-        end);
-    end;
-    getgenv().serverposition = function(looptype, logicname, targetlogic, priority)
-        if typeofcache(logicname) ~= "string" then
-            warn("invalid logic name");
-            return;
-        end;
-        if registeredspoofs[logicname] then
-            warn("logic already registered: " .. logicname);
-            return;
-        end;
-        if typeofcache(targetlogic) ~= "function" then
-            warn("invalid callback for: " .. logicname);
-            return;
-        end;
-        if priority ~= nil and typeofcache(priority) ~= "number" then
-            warn("invalid priority for: " .. logicname);
-            return;
-        end;
-        if typeofcache(looptype) ~= "string" then
-            warn("invalid looptype for: " .. logicname);
-            return;
-        end;
-        local lt = looptype:lower();
-        registeredspoofs[logicname] = { priority = priority or 0, timestamp = tickcache(), callback = targetlogic, looptype = lt, name = logicname };
-    end;
-    getgenv().setrunning = function(logicname, booleanref, persistent)
-        local spoofdata = registeredspoofs[logicname];
-        if not spoofdata then
-            warn("invalid name: " .. tostring(logicname));
-            return;
-        end;
-        local function applystatus(s)
-            local status = s;
-            if typeofcache(s) == "function" then status = s(); end;
-            if status == true then
-                for _, v in ipairs(activespoofs) do if v.name == logicname then return; end; end;
-                table.insert(activespoofs, spoofdata);
-                if not currentactive then
-                    currentactive = spoofdata;
-                else
-                    if spoofdata.priority > currentactive.priority or (spoofdata.priority == currentactive.priority and spoofdata.timestamp < currentactive.timestamp) then currentactive = spoofdata; end;
-                end;
-                refreshconnection();
-            else
-                local removedcurrent = false;
-                for i, v in ipairs(activespoofs) do
-                    if v.name == logicname then
-                        if v == currentactive then removedcurrent = true; end;
-                        table.remove(activespoofs, i);
-                        break;
-                    end;
-                end;
-                if removedcurrent then evaluatecurrent(); end;
-                refreshconnection();
-            end;
-        end;
-        applystatus(booleanref);
-        if persistent then
-            persistentloops[logicname] = persistentloops[logicname] or {};
-            persistentloops[logicname].paused = false;
-            persistentloops[logicname].getter = booleanref;
-            if not persistentloops[logicname].connection then
-                persistentloops[logicname].connection = runservice.Heartbeat:Connect(function()
-                    local loop = persistentloops[logicname];
-                    if not loop.paused then
-                        local desired;
-                        if typeofcache(loop.getter) == "function" then
-                            desired = loop.getter();
-                        else
-                            desired = loop.getter;
-                        end;
-                        if desired ~= getrunning(logicname) then applystatus(loop.getter); end;
-                    end;
-                end);
-            end;
-        end;
-    end;
-    getgenv().getrunning = function(logicname)
-        if not registeredspoofs[logicname] then return false; end;
-        for _, v in ipairs(activespoofs) do if v.name == logicname then return true; end; end;
-        return false;
-    end;
-    getgenv().resetcframe = function()
-        stopspoofing = true;
-        isspoofing = false;
-        executing = false;
-        if primarypart and clientcframe then primarypart.CFrame = clientcframe; end;
-        for name, _ in pairs(registeredspoofs) do
-            for _, v in ipairs(activespoofs) do
-                if v.name == name then
-                    table.remove(activespoofs, _)
-                    break;
-                end
-            end
-            if persistentloops[name] then persistentloops[name].paused = true; end
-        end;
-        currentactive = nil;
-        if connection then
-            connection:Disconnect();
-            connection = nil;
-            currentlooptype = nil;
-        end;
-        stopspoofing = false;
-    end;
-    getgenv().clearspoofs = function()
-        for _, v in pairs(persistentloops) do if v.connection then v.connection:Disconnect(); end; end;
-        activespoofs = {};
-        registeredspoofs = {};
-        persistentloops = {};
-        currentactive = nil;
-        if connection then
-            connection:Disconnect();
-            connection = nil;
-            currentlooptype = nil;
-        end;
-    end;
-    getgenv().servercallback = function(callback)
-        if typeofcache(callback) == "function" then cframecallback = callback; end;
-    end;
+	if getgenv().library_loaded then
+		return;
+	end;
+	getgenv().library_loaded = true;
+	local typeofcache = typeof;
+	local tickcache = tick;
+	local renderstepped = runservice.RenderStepped;
+	local connection, currentlooptype, cframecallback, currentactive;
+	local stopspoofing, executing = false, false;
+	local activespoofs, registeredspoofs, persistentloops = {}, {}, {};
+	local function oncharacter(char)
+		character = char;
+		humanoid = char:WaitForChild("Humanoid");
+		humanoidrootpart = char:WaitForChild("HumanoidRootPart");
+		primarypart = humanoidrootpart;
+		clientcframe = primarypart.CFrame;
+	end;
+	if localplayer.Character then
+		oncharacter(localplayer.Character);
+	end;
+	localplayer.CharacterAdded:Connect(oncharacter);
+	local mt = getrawmetatable(game);
+	local originalindex = mt.__index;
+	if (not getgenv().hooked) then
+		setreadonly(mt, false);
+		mt.__index = newcclosure(function(self, property)
+			if (not checkcaller() and self == primarypart and property == "CFrame" and isspoofing) then
+				return clientcframe;
+			end;
+			return originalindex(self, property);
+		end);
+		setreadonly(mt, true);
+		getgenv().hooked = true;
+	end;
+	local looptypes = {
+		heartbeat = runservice.Heartbeat,
+		renderstepped = runservice.RenderStepped,
+		stepped = runservice.Stepped
+	};
+	local function evaluatecurrent()
+		local best;
+		for _, v in ipairs(activespoofs) do
+			if not best then
+				best = v;
+			else
+				if v.priority > best.priority then
+					best = v;
+				elseif v.priority == best.priority and v.timestamp < best.timestamp then
+					best = v;
+				end;
+			end;
+		end;
+		currentactive = best;
+	end;
+	local function refreshconnection()
+		if not currentactive then
+			if connection then
+				connection:Disconnect();
+				connection = nil;
+				currentlooptype = nil;
+			end;
+			return;
+		end;
+		local looptype = currentactive.looptype;
+		if connection and currentlooptype == looptype then
+			return;
+		end;
+		if connection then
+			connection:Disconnect();
+			connection = nil;
+		end;
+		currentlooptype = looptype;
+		local event = looptypes[looptype] or runservice.Heartbeat;
+		connection = event:Connect(function()
+			if stopspoofing or executing then return; end;
+			if not (primarypart and primarypart.Parent) then return; end;
+			local spoof = currentactive;
+			if not spoof then return; end;
+			executing = true;
+			clientcframe = primarypart.CFrame;
+			local success, result = pcall(spoof.callback, clientcframe);
+			if success and result and typeofcache(result) == "CFrame" then
+				isspoofing = true;
+				local target;
+				if spoof.direction then
+					local _, _, _, r00, r01, r02, r10, r11, r12, r20, r21, r22 = result:GetComponents();
+					local pos = clientcframe.Position;
+					target = CFrame.new(pos.X, pos.Y, pos.Z, r00, r01, r02, r10, r11, r12, r20, r21, r22);
+				else
+					target = result;
+				end;
+				for _, v in ipairs(activespoofs) do
+					if v ~= spoof and v.direction and v.ignore_priority then
+						local ok, rot = pcall(v.callback, clientcframe);
+						if ok and rot and typeofcache(rot) == "CFrame" then
+							local _, _, _, r00, r01, r02, r10, r11, r12, r20, r21, r22 = rot:GetComponents();
+							local pos = target.Position;
+							target = CFrame.new(pos.X, pos.Y, pos.Z, r00, r01, r02, r10, r11, r12, r20, r21, r22);
+						end;
+					end;
+				end;
+				primarypart.CFrame = target;
+				renderstepped:Wait();
+				primarypart.CFrame = clientcframe;
+				isspoofing = false;
+				if cframecallback then cframecallback(target); end;
+			elseif not success then
+				warn("callback error . .. spoof.name .. : " .. tostring(result));
+			end;
+			executing = false;
+		end);
+	end;
+	getgenv().serverposition = function(looptype, logicname, targetlogic, priority, direction, ignore_priority)
+		if typeofcache(logicname) ~= "string" then
+			warn("invalid logic name");
+			return;
+		end;
+		if registeredspoofs[logicname] then
+			warn("logic already registered: " .. logicname);
+			return;
+		end;
+		if typeofcache(targetlogic) ~= "function" then
+			warn("invalid callback for: " .. logicname);
+			return;
+		end;
+		if priority ~= nil and typeofcache(priority) ~= "number" then
+			warn("invalid priority for: " .. logicname);
+			return;
+		end;
+		if typeofcache(looptype) ~= "string" then
+			warn("invalid looptype for: " .. logicname);
+			return;
+		end;
+		local lt = looptype:lower();
+		registeredspoofs[logicname] = {
+			priority = priority or 0,
+			timestamp = tickcache(),
+			callback = targetlogic,
+			looptype = lt,
+			name = logicname,
+			direction = direction == true,
+			ignore_priority = (direction == true) and (ignore_priority == true),
+		};
+	end;
+	getgenv().setrunning = function(logicname, booleanref, persistent)
+		local spoofdata = registeredspoofs[logicname];
+		if not spoofdata then
+			warn("invalid name: " .. tostring(logicname));
+			return;
+		end;
+		local function applystatus(s)
+			local status = s;
+			if typeofcache(s) == "function" then
+				status = s();
+			end;
+			if status == true then
+				for _, v in ipairs(activespoofs) do
+					if v.name == logicname then
+						return;
+					end;
+				end;
+				table.insert(activespoofs, spoofdata);
+				if not currentactive then
+					currentactive = spoofdata;
+				else
+					if spoofdata.priority > currentactive.priority or (spoofdata.priority == currentactive.priority and spoofdata.timestamp < currentactive.timestamp) then
+						currentactive = spoofdata;
+					end;
+				end;
+				refreshconnection();
+			else
+				local removedcurrent = false;
+				for i, v in ipairs(activespoofs) do
+					if v.name == logicname then
+						if v == currentactive then removedcurrent = true; end;
+						table.remove(activespoofs, i);
+						break;
+					end;
+				end;
+				if removedcurrent then evaluatecurrent(); end;
+				refreshconnection();
+			end;
+		end;
+		applystatus(booleanref);
+		if persistent then
+			persistentloops[logicname] = persistentloops[logicname] or {};
+			persistentloops[logicname].paused = false;
+			persistentloops[logicname].getter = booleanref;
+			if not persistentloops[logicname].connection then
+				persistentloops[logicname].connection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
+					local loop = persistentloops[logicname];
+					if not loop.paused then
+						local desired;
+						if typeofcache(loop.getter) == "function" then
+							desired = loop.getter();
+						else
+							desired = loop.getter;
+						end;
+						if desired ~= getrunning(logicname) then
+							applystatus(loop.getter);
+						end;
+					end;
+				end));
+			end;
+		end;
+	end;
+	getgenv().getrunning = function(logicname)
+		if not registeredspoofs[logicname] then
+			return false;
+		end;
+		for _, v in ipairs(activespoofs) do
+			if v.name == logicname then
+				return true;
+			end;
+		end;
+		return false;
+	end;
+	getgenv().resetcframe = function()
+		stopspoofing = true;
+		isspoofing = false;
+		executing = false;
+		if primarypart and clientcframe then
+			primarypart.CFrame = clientcframe;
+		end;
+		for name, _ in pairs(registeredspoofs) do
+			for _, v in ipairs(activespoofs) do
+				if v.name == name then
+					table.remove(activespoofs, _);
+					break;
+				end;
+			end;
+			if persistentloops[name] then
+				persistentloops[name].paused = true;
+			end;
+		end;
+		currentactive = nil;
+		if connection then
+			connection:Disconnect();
+			connection = nil;
+			currentlooptype = nil;
+		end;
+		stopspoofing = false;
+	end;
+	getgenv().clearspoofs = function()
+		for _, v in pairs(persistentloops) do
+			if v.connection then
+				v.connection:Disconnect();
+			end;
+		end;
+		activespoofs = {};
+		registeredspoofs = {};
+		persistentloops = {};
+		currentactive = nil;
+		if connection then
+			connection:Disconnect();
+			connection = nil;
+			currentlooptype = nil;
+		end;
+	end;
+	getgenv().retrieve_position = function(callback)
+		if (typeof(callback) ~= "function") then
+			warn("invalid callback for retrieve_position");
+			return;
+		end;
+		cframecallback = LPH_JIT_MAX(function(cf)
+			local is_spoofing = #activespoofs > 0 and currentactive ~= nil and currentactive.name ~= "exclude";
+			callback(cf, is_spoofing);
+		end);
+	end;
 end;
 local function connect(newchar)
     character = newchar;
@@ -458,17 +531,17 @@ serverposition("heartbeat", "exclude", LPH_JIT_MAX(function(cf)
 end), -9999999);
 setrunning("exclude", true);
 local function targetcframe(cf)
-    if getgenv().settings.tpenemy and CurrentTarget and is_teleport_valid(CurrentTarget) then
-        local targetChar = CurrentTarget.Character
-        local targetHRP = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
+    if getgenv().settings.tpenemy and getgenv().settings.follow_strafe_target and CurrentTarget and is_teleport_valid(CurrentTarget) then
+        local targetChar = CurrentTarget.Character;
+        local targetHRP = targetChar and targetChar:FindFirstChild("HumanoidRootPart");
         if targetHRP then
-            local targetpos = targetHRP.Position
-            local x = targetpos.X + mathrandom(-5, 5)
-            local y = mathrandom(-1000, 0)
-            local z = targetpos.Z + mathrandom(-5, 5)
-            return cframenew(x, y, z)
-        end
-    end
+            local targetpos = targetHRP.Position;
+            local x = targetpos.X + mathrandom(-5, 5);
+            local y = mathrandom(-1000, 0);
+            local z = targetpos.Z + mathrandom(-5, 5);
+            return cframenew(x, y, z);
+        end;
+    end;
     local basepos = cf.Position;
     local x = basepos.X;
     local y = mathrandom(-1000, 0);
@@ -476,13 +549,15 @@ local function targetcframe(cf)
     return cframenew(x, y, z);
 end;
 serverposition("heartbeat", "voidhidelogic", LPH_JIT_MAX(function(cf)
-    local hum = localplayer.Character and localplayer.Character:FindFirstChild("Humanoid");
-    if hum then hum:ChangeState(Enum.HumanoidStateType.Freefall); end;
     return targetcframe(cf);
 end), 3);
 local fly_cframe = nil;
 do
     runservice.Heartbeat:Connect(LPH_JIT_MAX(function(delta_time)
+        if getgenv().settings.voidenabled then
+            local hum = localplayer.Character and localplayer.Character:FindFirstChild("Humanoid");
+            if hum then hum:ChangeState(Enum.HumanoidStateType.Freefall); end;
+        end
         if (not getgenv().settings.flyenabled) then fly_cframe = nil; return; end;
         if (not humanoidrootpart) then return; end;
         fly_cframe = fly_cframe or humanoidrootpart.CFrame;
@@ -509,21 +584,16 @@ runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
         humanoidrootpart.AssemblyLinearVelocity = vector3new(0, vy, 0);
     end;
 end));
-local active = true;
-taskspawn(LPH_JIT_MAX(function()
-	while true do
-		task.wait(0.016);
-		if not active then break; end;
-		if not getgenv().desyncenabled or not character or not humanoidrootpart then task.wait(0.1); continue; end;
-		local vel = humanoidrootpart.Velocity;
-		local movel = 0.1;
-		humanoidrootpart.Velocity = vector3new(mathrandom(-1500, 1500), mathrandom(-300, 300), mathrandom(-1500, 1500));
-		runservice.RenderStepped:Wait();
-		if character.Parent and humanoidrootpart.Parent then humanoidrootpart.Velocity = vel; end;
-		runservice.Stepped:Wait();
-		if character.Parent and humanoidrootpart.Parent then humanoidrootpart.Velocity = vel + vector3new(0, movel, 0); end;
-	end;
-end));
+serverposition("heartbeat", "body_direction", LPH_JIT_MAX(function(cf)
+    local x = Options.desync_x and math.rad(Options.desync_x.Value) or 0;
+    local y = Options.desync_y and math.rad(Options.desync_y.Value) or 0;
+    local z = Options.desync_z and math.rad(Options.desync_z.Value) or 0;
+    if Toggles.desync_look and Toggles.desync_look.Value then
+        local _, real_y, _ = cf:ToEulerAnglesYXZ();
+        y = real_y;
+    end;
+    return CFrame.Angles(x, y, z);
+end), 0, true, true);
 local noclipParts = {};
 local function cacheNoclipParts(char)
     noclipParts = {};
@@ -1612,8 +1682,13 @@ do
 	end);
     framework:argmodify("MeleeDamage", {}, LPH_NO_UPVALUES(function(n,...)
         local args = {...};
-        if getgenv().AntiParry and not framework:Check(args[2].Parent) then return {[1] = nil} end
-        if Config.HitboxExpand and args[2].Name == "FakeHitbox" then
+        if getgenv().AntiParry and args[2] and args[2].Parent and not framework:Check(args[2].Parent) then
+            local modes = Classes.AntiParryModes and Classes.AntiParryModes.Value or {silent = true};
+            if modes.silent then
+                return {[1] = nil};
+            end;
+        end;
+        if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
             local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math.random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
             if part then return {[2] = part, [5] = CFrame.new( (math.random() * math.random(-1, 1)) * (part.Size.X / 2), (math.random() * math.random(-1, 1)) * (part.Size.Y / 2), (math.random() * math.random(-1, 1)) * (part.Size.Z / 2) )} end
         end;
@@ -2032,7 +2107,7 @@ main:AddDropdown("KillAuraType", { Values = {"single person", "multiple people"}
 	Text = "kill aura type"; });
 main:AddToggle("PlayAnimation", { Text = "play animation";
 	Default = false; });
-main:AddToggle("tpenemy", { Text = "strafe enemy";
+strafe_tab:AddToggle("tpenemy", { Text = "strafe enemy";
 	Default = false;
     Callback = function()
         updatefeature("tpenemy", "tpenemybind", function(state) getgenv().settings.tpenemy = state; end);
@@ -2042,6 +2117,41 @@ main:AddToggle("tpenemy", { Text = "strafe enemy";
     Callback = function()
         updatefeature("tpenemy", "tpenemybind", function(state) getgenv().settings.tpenemy = state; end);
     end; });
+local strafe_dep = strafe_tab:AddDependencyBox()
+strafe_dep:SetupDependencies({ { Toggles.tpenemy, true } })
+
+strafe_dep:AddToggle("strafe_look", { Text = "look"; Default = false; });
+strafe_dep:AddToggle("strafe_random_toggle", { Text = "random"; Default = false; });
+
+local orbit_dep = strafe_dep:AddDependencyBox()
+orbit_dep:SetupDependencies({
+    { Toggles.tpenemy, true },
+    { Toggles.strafe_random_toggle, false }
+})
+orbit_dep:AddSlider("orbit_radius_x", { Text = "range"; Default = 5; Min = 1; Max = 20; Rounding = 0; Compact = true; });
+orbit_dep:AddSlider("orbit_height_y", { Text = "height"; Default = 0; Min = -10; Max = 10; Rounding = 0; Compact = true; });
+
+local random_dep = strafe_dep:AddDependencyBox();
+random_dep:SetupDependencies({
+    { Toggles.tpenemy, true },
+    { Toggles.strafe_random_toggle, true }
+})
+random_dep:AddSlider("random_range", { Text = "range"; Default = 5; Min = 1; Max = 20; Rounding = 0; Compact = true; });
+
+strafe_dep:AddSlider("strafe_speed", { Text = "speed"; Default = 10; Min = 1; Max = 100; Rounding = 0; Compact = true; Callback = function(Value)
+    getgenv().tpspeed = Value;
+end; });
+
+strafe_dep:AddToggle("strafe_prediction", { Text = "prediction"; Default = false; Tooltip = "uses weld exploit if disabled"; });
+
+local pred_dep = strafe_dep:AddDependencyBox()
+pred_dep:SetupDependencies({
+    { Toggles.tpenemy, true; };
+    { Toggles.strafe_prediction, true };
+});
+pred_dep:AddSlider("strafe_pred_base", { Text = "base"; Default = 0; Min = 0; Max = 2; Rounding = 2; Compact = true; Tooltip = "predicts Y axis"; });
+pred_dep:AddSlider("strafe_pred_mult", { Text = "multiplier"; Default = 1; Min = 0; Max = 8; Rounding = 1; Compact = true; });
+
 main:AddToggle("spectateneemy", { Text = "spectate enemy";
 	Default = false;
 	Callback = function()
@@ -2059,31 +2169,6 @@ main:AddToggle("RageAutoParry", { Text = "rage auto parry";
         if not Classes.RageAutoParry then Classes.RageAutoParry = {} end;
         Classes.RageAutoParry.Value = value;
     end });
-main:AddDropdown("TPType", { Values = {"Behind", "Orbit", "Above", "Below", "Attach", "Random"};
-	Default = "Behind";
-	Multi = false;
-	Text = "tp type"; });
-main:AddSlider("TPRange", { Text = "tp range";
-	Default = 5;
-	Min = 1;
-	Max = 15;
-	Rounding = 0;
-	Compact = true; });
-main:AddSlider("TPSpeed", { Text = "tp speed";
-	Default = 10;
-	Min = 1;
-	Max = 60;
-	Rounding = 0;
-	Compact = true;
-	Callback = function(Value)
-		getgenv().tpspeed = Value;
-	end; });
-main:AddSlider("predmultiplier", { Text = "multiplier", Default = 0.15, Min = 0, Max = 8, Rounding = 2, Compact = true, Callback = function(Value)
-        getgenv().settings.multiplier = Value
-    end })
-main:AddSlider("predbase", { Text = "base", Default = 0, Min = 0, Max = 10, Rounding = 1, Compact = true, Callback = function(Value)
-        getgenv().settings.base = Value
-    end })
 local function waitUntilTimeout(signal, timeout)
 	if not signal then return "Signal creation failed"; end;
 	local result = nil
@@ -2589,15 +2674,15 @@ local StartSnowveilEffect = LPH_JIT_MAX(function()
 end);
 do
     local angle = 0;
-    local orbitCF = cframenew();
+    local random_t = 0;
     local Connection;
     local StickTarget;
     CurrentTarget = nil;
     Connection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
         if not Active then return; end;
-        local tpSpeedVal = (Classes.TPSpeed and Classes.TPSpeed.Value) or (getgenv().tpspeed) or 10;
+        local tpSpeedVal = (Options.strafe_speed and Options.strafe_speed.Value) or getgenv().tpspeed or 10;
         angle = (angle + dt * tpSpeedVal) % (2 * math.pi);
-        orbitCF = cframenew(mathcos(angle) * Classes.TPRange.Value, 0, math.sin(angle) * Classes.TPRange.Value);
+        random_t = random_t + dt * (tpSpeedVal * 0.75);
     end));
     serverposition("heartbeat", "combat_teleport", LPH_JIT_MAX(function(real_cframe)
         local Character = localplayer.Character;
@@ -2611,35 +2696,34 @@ do
         local targetHRP = targetChar:FindFirstChild("HumanoidRootPart");
         if not targetHRP then return; end;
         if not getgenv().settings.tpenemy then return; end;
-        local targetVel = targetHRP.Velocity or Vector3.new();
-        local multiplier = 0;
-        local base = 0;
-        local predictedCF = targetHRP.CFrame;
-        sethiddenproperty(hrp, "PhysicsRepRootPart", targetHRP);
-        local tpSpeedVal = (Options.TPSpeed and Options.TPSpeed.Value) or getgenv().tpspeed or 10;
-        local Type = Options.TPType.Value;
-        local look = -targetHRP.CFrame.LookVector;
-        local range = Options.TPRange.Value;
-        if Type == "Behind" then
-            return CFrame.new(predictedCF.Position + look * range, predictedCF.Position);
-        elseif Type == "Orbit" then
-            local pos = (CFrame.new(predictedCF.Position) * orbitCF).Position;
-            return CFrame.new(pos, predictedCF.Position)
-        elseif Type == "Above" then
-            local pos = predictedCF.Position + Vector3.new(0, range, 0);
-            return CFrame.new(pos, predictedCF.Position);
-        elseif Type == "Below" then
-            local pos = predictedCF.Position + Vector3.new(0, -range, 0);
-            return CFrame.new(pos, predictedCF.Position);
-        elseif Type == "Attach" then
-            return CFrame.new(predictedCF.Position, predictedCF.Position + look);
-        else
-            local X, Y, Z = math.random(-range, range), math.random(-range, range), math.random(-range, range);
-            local factor = tpSpeedVal / 10;
-            local XA, YA, ZA = math.random(-180,180) * factor, math.random(-180,180) * factor, math.random(-180,180) * factor;
-            local pos = (CFrame.new(predictedCF.Position) * CFrame.new(X, Y, Z) * CFrame.Angles(math.rad(XA), math.rad(YA), math.rad(ZA))).Position;
-            return CFrame.new(pos, predictedCF.Position);
-        end;
+		local predicted_cframe = targetHRP.CFrame;
+		if (Toggles.strafe_prediction and Toggles.strafe_prediction.Value) then
+			local vel = targetHRP.AssemblyLinearVelocity;
+			local base = Options.strafe_pred_base and Options.strafe_pred_base.Value or 0;
+			local mult = Options.strafe_pred_mult and Options.strafe_pred_mult.Value or 1;
+			predicted_cframe = predicted_cframe + vector3new(vel.X * mult, vel.Y * base, vel.Z * mult);
+		else
+			sethiddenproperty(hrp, "PhysicsRepRootPart", targetHRP);
+		end;
+		local function apply_look(pos)
+			if Toggles.strafe_look and Toggles.strafe_look.Value then
+				return cframenew(pos, predicted_cframe.Position);
+			end;
+			return cframenew(pos, pos + predicted_cframe.LookVector);
+		end;
+		if (Toggles.strafe_random_toggle and Toggles.strafe_random_toggle.Value) then
+			local range = Options.random_range and Options.random_range.Value or 5;
+			local nx = math.noise(random_t, 1.7) * range * 2;
+			local ny = math.noise(random_t, 3.1) * range * 2;
+			local nz = math.noise(random_t, 5.3) * range * 2;
+			local pos = predicted_cframe.Position + vector3new(nx, ny, nz);
+			return apply_look(pos);
+		else
+			local rx = Options.orbit_radius_x and Options.orbit_radius_x.Value or 5;
+			local ry = Options.orbit_height_y and Options.orbit_height_y.Value or 0;
+			local pos = predicted_cframe.Position + vector3new(mathcos(angle) * rx, ry, mathsin(angle) * rx);
+			return apply_look(pos);
+		end;
     end), 1);
     function is_teleport_valid(player)
         if not player then return false; end;
@@ -2670,7 +2754,7 @@ do
             getgenv().stickTarget = nil;
         end;
         local closestplayer = nil;
-        local needstarget = s.tpenemy or s.stick or getgenv().targeting_player;
+        local needstarget = s.tpenemy or s.stick or getgenv().targeting_player or getgenv().spectateneemy;
         if needstarget then
             if (s.stick or getgenv().targeting_player) and StickTarget then
                 closestplayer = StickTarget;
@@ -2908,9 +2992,13 @@ do
         parrysection:AddToggle("AntiParry", { Text = "anti parry";
             Default = false;
             Callback = function(value)
+                getgenv().AntiParry = value;
                 if not Classes.AntiParry then Classes.AntiParry = {} end;
                 Classes.AntiParry.Value = value;
             end; });
+        local AntiParryDep = parrysection:AddDependencyBox()
+        AntiParryDep:SetupDependencies({ { Toggles.AntiParry, true } })
+        AntiParryDep:AddDropdown("AntiParryModes", { Text = "modes", Default = "silent", Values = {"unequip", "void", "silent"}, Multi = true });
     end;
     parrysection:AddToggle("fakeswing", { Text = "fake swing";
         Default = false;
@@ -2958,16 +3046,9 @@ do
     local hitbox_container = workspace:WaitForChild("EffectsJunk"):WaitForChild("Hitboxes");
 
     local function auto_parry_sd()
-        local server_cf = getgenv().lastservercframe;
-        local server_time = getgenv().lastservertime;
-        local is_state_active = (
-            (getrunning("voidhidelogic") and getgenv().settings.voidenabled) or
-            (getgenv().settings.tpenemy and CurrentTarget and is_teleport_valid(CurrentTarget)) or
-            (getrunning("initattemptkill")) or
-            (getrunning("combat_teleport"))
-        );
-        if is_state_active and server_cf and server_time and (os.clock() - server_time) < 1 then
-            return server_cf.Position;
+        local isdesynced = getgenv().currently_spoofing;
+        if isdesynced and getgenv().lastservercframe then
+            return getgenv().lastservercframe.Position;
         end;
         local char = localplayer.Character;
         local hrp = char and char:FindFirstChild("HumanoidRootPart");
@@ -3172,8 +3253,7 @@ do
         end;
     end));
     if modules.Name["CharacterUtil"] and modules.Name["CharacterUtil"].getIsHittableCharacterPart then
-        local getIsHittableCharacterPartOld = modules.Name["CharacterUtil"].getIsHittableCharacterPart;
-        modules.Name["CharacterUtil"].getIsHittableCharacterPart = LPH_NO_UPVALUES(function(part, unused)
+        local getIsHittableCharacterPartOld = modules.Name["CharacterUtil"].getIsHittableCharacterPart; modules.Name["CharacterUtil"].getIsHittableCharacterPart = LPH_NO_UPVALUES(function(part, unused)
             if Classes.AntiParry.Value and part and part.Parent then
                 local character = part.Parent;
                 local Rodux = modules.Name["RoduxStore"];
@@ -3198,7 +3278,34 @@ do
                         end;
                     end;
                 end;
-                if not framework:Check(character) then return; end;
+                if not framework:Check(character) then
+                    local modes = Classes.AntiParryModes and Classes.AntiParryModes.Value or {silent = true};
+                    if modes.unequip and not ap_unequipped then
+                        local weapon = framework:GetWeapon();
+                        local hum = localplayer.Character and localplayer.Character:FindFirstChildOfClass("Humanoid");
+                        if weapon and hum then
+                            ap_unequipped = true;
+                            hum:UnequipTools();
+                            task.delay(0.05, function()
+                                if weapon and weapon.Parent == localplayer.Backpack then
+                                    hum:EquipTool(weapon);
+                                end;
+                                ap_unequipped = false;
+                            end);
+                        end;
+                    end;
+                    if modes.void and not anti_parry_void then
+                        anti_parry_void = true;
+                        setrunning("voidhidelogic", true);
+                        task.delay(0.2, function()
+                            setrunning("voidhidelogic", false);
+                            anti_parry_void = false;
+                        end);
+                    end;
+                    if modes.silent then
+                        return;
+                    end;
+                end;
             end;
             return getIsHittableCharacterPartOld(part, unused);
         end);
@@ -3318,6 +3425,68 @@ do
 	        spinrad = math.rad(Value);
 	    end; });
 end;
+
+local protection = tabs.charactertab:AddLeftGroupbox("protection")
+
+protection:AddToggle("voidenabled", { Text = "void", Default = false, Callback = function()
+    updatefeature("voidenabled", "voidenabledkey", function(state)
+        getgenv().settings.voidenabled = state;
+        if not getgenv().settings.void_spam then setrunning("voidhidelogic", state); end
+    end)
+end }):AddKeyPicker("voidenabledkey", { Text = "void";
+    Default = "Y";
+    Mode = "Toggle";
+    Callback = function()
+        updatefeature("voidenabled", "voidenabledkey", function(state)
+            getgenv().settings.voidenabled = state;
+            if not getgenv().settings.void_spam then setrunning("voidhidelogic", state); end
+        end);
+    end; });
+
+local void_dep = protection:AddDependencyBox();
+void_dep:SetupDependencies({ { Toggles.voidenabled, true } })
+
+void_dep:AddToggle("follow_strafe_target", { Text = "follow strafe target"; Default = false; Tooltip = "voids under strafe target"; Callback = function(Value)
+    getgenv().settings.follow_strafe_target = Value
+end; })
+
+void_dep:AddToggle("void_spam", { Text = "spam"; Default = false; Callback = function(Value)
+    getgenv().settings.void_spam = Value
+    if not Value then
+        if getgenv().settings.voidenabled then
+            setrunning("voidhidelogic", true);
+        else
+            setrunning("voidhidelogic", false);
+        end
+    end
+end; })
+
+local void_spam_dep = void_dep:AddDependencyBox()
+void_spam_dep:SetupDependencies({
+    { Toggles.voidenabled, true };
+    { Toggles.void_spam, true };
+});
+void_spam_dep:AddSlider("void_in", { Text = "void in"; Default = 0; Min = 0; Max = 1; Rounding = 1; Compact = true; Callback = function(Value)
+    getgenv().settings.void_in = Value
+end; })
+void_spam_dep:AddSlider("void_out", { Text = "void out"; Default = 0; Min = 0; Max = 1; Rounding = 1; Compact = true; Callback = function(Value)
+    getgenv().settings.void_out = Value
+end; })
+
+taskspawn(LPH_JIT_MAX(function()
+    while true do
+        task.wait()
+        if getgenv().settings.void_spam and getgenv().settings.voidenabled then
+            local vin = getgenv().settings.void_in or 0
+            local vout = getgenv().settings.void_out or 0
+            setrunning("voidhidelogic", true)
+            if vin > 0 then task.wait(vin) else task.wait() end
+            if not (getgenv().settings.void_spam and getgenv().settings.voidenabled) then continue end
+            setrunning("voidhidelogic", false)
+            if vout > 0 then task.wait(vout) else task.wait() end
+        end
+    end
+end))
 exploit:AddToggle("stamina", { Text = "stamina", Default = false, Callback = function(Value)
         getgenv().stamenabled = Value
     end })
@@ -3546,30 +3715,32 @@ exploit:AddToggle("speedyboi", { Text = "fast animation";
         end;
     end; });
 exploit:AddSlider('AnimSpeed', { Text = 'animation speed', Default = 5, Min = 1, Max = 50, Rounding = 1, Compact = true, Suffix = 'x' });
-exploit1:AddToggle("desync", { Text = "desync";
+local desync_gb = tabs.charactertab:AddRightGroupbox("desync");
+
+desync_gb:AddToggle("desync", { 
+	Text = "desync";
     Default = false;
     Callback = function()
-        updatefeature("desync", "desyncbind", function(state) getgenv().desyncenabled = state; end);
-    end; }):AddKeyPicker("desyncbind", { Text = "desync";
+		updatefeature("desync", "desyncbind", function(state)
+			setrunning("body_direction", state);
+		end);
+	end; 
+}):AddKeyPicker("desyncbind", { Text = "desync";
     Default = "F1";
     Mode = "Toggle";
-    Callback = function()
-        updatefeature("desync", "desyncbind", function(state) getgenv().desyncenabled = state; end);
-    end; });
-exploit1:AddToggle("voidenabled", { Text = "void", Default = false, Callback = function()
-        updatefeature("voidenabled", "voidenabledkey", function(state)
-			getgenv().settings.voidenabled = state;
-            setrunning("voidhidelogic", state);
-        end)
-    end }):AddKeyPicker("voidenabledkey", { Text = "void";
-    Default = "Y";
-    Mode = "Toggle";
-    Callback = function()
-        updatefeature("voidenabled", "voidenabledkey", function(state)
-            getgenv().settings.voidenabled = state;
-            setrunning("voidhidelogic", state);
-        end);
-    end; });
+	Callback = function()
+		updatefeature("desync", "desyncbind", function(state)
+			setrunning("body_direction", state);
+		end);
+    end;
+});
+local desync_dep = desync_gb:AddDependencyBox();
+desync_dep:SetupDependencies({ { Toggles.desync, true } });
+desync_dep:AddToggle("desync_look", { Text = "look"; Default = false; });
+desync_dep:AddSlider("desync_x", { Text = "desync x"; Default = 0; Min = -180; Max = 180; Rounding = 0; Compact = true; Suffix = "°"; });
+desync_dep:AddSlider("desync_y", { Text = "desync y"; Default = -180; Min = -180; Max = 180; Rounding = 0; Compact = true; Suffix = "°"; });
+desync_dep:AddSlider("desync_z", { Text = "desync z"; Default = 0; Min = -180; Max = 180; Rounding = 0; Compact = true; Suffix = "°"; });
+
 exploit1:AddToggle("noclip", { Text = "noclip";
     Default = false;
     Callback = function()
@@ -3897,6 +4068,22 @@ miscauto:AddToggle("loopspawn", { Text = "loop spawn";
     Default = false;
     Callback = function(Value)
         getgenv().settings.loopspawn = Value;
+    end; });
+miscauto:AddToggle("autoqueue", { Text = "auto queue";
+    Default = false;
+    Tooltip = "auto loads script";
+    Callback = function(Value)
+        getgenv().settings.autoqueue = Value;
+        if Value then
+            local script_key = script_key or "";
+            local payload = string.format([[
+script_key="%s";
+loadstring(game:HttpGet("https://raw.githubusercontent.com/nilsolutions/nilsolutions/refs/heads/main/loader.lua"))();
+]], script_key)
+            if queue_on_teleport then queue_on_teleport(payload) end
+        else
+            if clear_teleport_queue then clear_teleport_queue() end
+        end
     end; });
 function bestmatch(Input)
     if not Input or Input == "" then return nil; end;
@@ -4320,6 +4507,67 @@ auto:AddSlider("gloryrange", { Text = "glory range";
 	Callback = function(Value)
 		getgenv().settings.gloryrange = Value;
 	end; });
+    local server_gb = tabs.misc:AddRightGroupbox("server");
+    server_gb:AddButton({ Text = "serverhop to highest";
+        Func = function()
+            local ok, res = pcall(function() return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100")); end);
+            if ok and res and res.data then
+                for i, v in pairs(res.data) do
+                    if v.playing < v.maxPlayers and v.id ~= game.JobId then
+                        if typeof(queue_on_teleport) == "function" then
+                            queue_on_teleport(string.format([[
+								script_key="%s";
+								loadstring(game:HttpGet("https://raw.githubusercontent.com/nilsolutions/nilsolutions/refs/heads/main/loader.lua"))();
+								]], script_key or ""));
+                        end;
+                        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, v.id, localplayer, "", "=");
+                        break;
+                    end;
+                end;
+            end;
+        end; }):AddButton({ Text = "serverhop to lowest";
+        Func = function()
+            local ok, res = pcall(function() return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")); end);
+            if ok and res and res.data then
+                for i, v in pairs(res.data) do
+                    if v.playing < v.maxPlayers and v.id ~= game.JobId then
+                        if typeof(queue_on_teleport) == "function" then
+                            queue_on_teleport(string.format([[
+								script_key="%s";
+								loadstring(game:HttpGet("https://raw.githubusercontent.com/nilsolutions/nilsolutions/refs/heads/main/loader.lua"))();
+                            ]], script_key or ""));
+                        end;
+                        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, v.id, localplayer, "", "=");
+                        break;
+                    end;
+                end;
+            end;
+        end; });
+    server_gb:AddButton({ Text = "serverhop";
+        Func = function()
+            local ok, res = pcall(function() return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100")); end);
+            if ok and res and res.data then
+                local target = res.data[math.random(1, #res.data)];
+                if target and target.id ~= game.JobId then
+                    if typeof(queue_on_teleport) == "function" then
+                        queue_on_teleport(string.format([[
+							script_key="%s";
+							loadstring(game:HttpGet("https://raw.githubusercontent.com/nilsolutions/nilsolutions/refs/heads/main/loader.lua"))();
+                        ]], script_key or ""));
+                    end;
+                    game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, target.id, localplayer, "", "=");
+                end;
+            end;
+        end; }):AddButton({ Text = "rejoin";
+        Func = function()
+            if typeof(queue_on_teleport) == "function" then
+                queue_on_teleport(string.format([[
+					script_key="%s";
+					loadstring(game:HttpGet("https://raw.githubusercontent.com/nilsolutions/nilsolutions/refs/heads/main/loader.lua"))();
+                ]], script_key or ""));
+            end;
+            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, localplayer, "", "=");
+        end; });
 local visuals = tabs.visuals;
 local crosshairsection = visuals:AddRightGroupbox("crosshair");
 crosshairsection:AddToggle("CrosshairEnabled", { Text = "crosshair enabled";
@@ -5569,128 +5817,230 @@ charactersection:AddSlider("CharacterTransparency", { Text = "transparency";
 charactersection:AddToggle("RemoveAccessories", { Text = "remove accessories";
     Default = false; });
 do
+	getgenv().currently_spoofing = false;
 	getgenv().lastservercframe = nil;
-	getgenv().lastservertime = 0;
-	local lastcf = nil;
-	local velocity = Vector3.zero;
-	servercallback(function(cf)
-		local char = localplayer.Character;
-		local hrp = char and char:FindFirstChild("HumanoidRootPart");
-		if hrp then
-			local posdelta = (cf.Position - hrp.Position).Magnitude;
-			local dot = cf.LookVector:Dot(hrp.CFrame.LookVector);
-			if posdelta < 0.05 and dot > 0.999 then return; end;
-		end;
-		if lastcf then if (cf.Position - lastcf.Position).Magnitude < 0.001 then return; end; end;
+	getgenv().retrieve_position(LPH_JIT_MAX(function(cf, is_spoofing)
+		getgenv().currently_spoofing = is_spoofing;
 		getgenv().lastservercframe = cf;
-		getgenv().lastservertime = os.clock();
-		if lastcf then velocity = (cf.Position - lastcf.Position); end;
-		lastcf = cf;
-	end);
-	local dvclone, dvconnection, partsMap;
-	local function createclone(color)
-		if dvclone then dvclone:Destroy(); end;
-		partsMap = {};
+	end));
+
+	local dv_clone, dvconnection, parts_map, tool_conn_added, tool_conn_removed;
+	local function get_material()
+		local material_name = Options.desyncvisualisermaterial and Options.desyncvisualisermaterial.Value or "ForceField";
+		return Enum.Material[material_name] or Enum.Material.ForceField;
+	end;
+	local function apply_clone_part_settings(part, color, material)
+		part.CanCollide = false;
+		part.CanTouch = false;
+		part.CanQuery = false;
+		part.Anchored = true;
+		part.Massless = true;
+		part.Material = material;
+		part.Color = color;
+		part.Reflectance = 0;
+		part.CastShadow = false;
+		if (part.Name == "HumanoidRootPart" or part.Transparency >= 1) then
+			part.Transparency = 1;
+		else
+			part.Transparency = 0;
+		end;
+		if (part:IsA("MeshPart")) then
+			part.TextureID = "";
+		end;
+	end;
+	local function strip_clone_descendants(container)
+		local to_destroy = {};
+		for _, v in ipairs(container:GetDescendants()) do
+			if (v:IsA("BasePart")) then
+			elseif (v:IsA("SpecialMesh") or v:IsA("ForceField") or v:IsA("Humanoid") or v:IsA("JointInstance") or v:IsA("Script") or v:IsA("LocalScript") or v:IsA("ModuleScript") or v:IsA("TouchTransmitter") or v:IsA("Decal") or v:IsA("Texture") or v:IsA("SurfaceAppearance") or v:IsA("Clothing") or v:IsA("ShirtGraphic") or v:IsA("Shirt") or v:IsA("Pants") or v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") or v:IsA("PointLight") or v:IsA("SpotLight") or v:IsA("SurfaceLight") or v:IsA("BillboardGui") or v:IsA("SurfaceGui") or v:IsA("SelectionBox") or v:IsA("Accessory") or v:IsA("Highlight") or v:IsA("BodyMover") or v:IsA("Constraint")) then
+				table.insert(to_destroy, v);
+			end;
+		end;
+		for _, v in ipairs(to_destroy) do
+			if (v.Parent) then v:Destroy(); end;
+		end;
+	end;
+	local function refresh_tool_parts()
 		local char = localplayer.Character;
-		if not char then return nil; end;
+		if (not char or not dv_clone) then return; end;
+		local color = (Options.desyncvisualisercolor and Options.desyncvisualisercolor.Value) or Color3.fromRGB(128, 0, 255);
+		local selected_material = get_material();
+        if parts_map then
+		    for original, _ in pairs(parts_map) do
+			    if (original.Parent and original.Parent:IsA("Tool")) then
+				    parts_map[original] = nil;
+			    end;
+		    end;
+        end
+		for _, obj in ipairs(char:GetChildren()) do
+			if (obj:IsA("Tool")) then
+				local clone_tool = dv_clone:FindFirstChild(obj.Name);
+				if (not clone_tool) then
+					obj.Archivable = true;
+					clone_tool = obj:Clone();
+					obj.Archivable = false;
+					strip_clone_descendants(clone_tool);
+					for _, v in ipairs(clone_tool:GetDescendants()) do
+						if (v:IsA("BasePart")) then
+							apply_clone_part_settings(v, color, selected_material);
+						end;
+					end;
+					clone_tool.Parent = dv_clone;
+				end;
+				for _, part in ipairs(obj:GetDescendants()) do
+					if (part:IsA("BasePart")) then
+						local path = {};
+						local current = part;
+						local valid = true;
+						while current ~= obj do
+							if (not current) then valid = false; break; end;
+							table.insert(path, 1, current.Name);
+							current = current.Parent;
+						end;
+						if (valid) then
+							local clone_part = clone_tool;
+							for _, name in ipairs(path) do
+								clone_part = clone_part:FindFirstChild(name);
+								if (not clone_part) then break; end;
+							end;
+							if (clone_part and clone_part:IsA("BasePart")) then
+								parts_map[part] = clone_part;
+							end;
+						end;
+					end;
+				end;
+			end;
+		end;
+	end;
+	local function bind_tool_connections()
+		if (tool_conn_added) then tool_conn_added:Disconnect(); end;
+		if (tool_conn_removed) then tool_conn_removed:Disconnect(); end;
+		local char = localplayer.Character;
+		if (not char) then return; end;
+		tool_conn_added = char.ChildAdded:Connect(function(child)
+			if (child:IsA("Tool")) then
+				task.wait();
+				refresh_tool_parts();
+			end;
+		end);
+		tool_conn_removed = char.ChildRemoved:Connect(function(child)
+			if (child:IsA("Tool")) then
+				if (dv_clone) then
+					local stale_tool = dv_clone:FindFirstChild(child.Name);
+					if (stale_tool) then stale_tool:Destroy(); end;
+				end;
+				if parts_map then
+					for original, _ in pairs(parts_map) do
+						if (not original.Parent or not original.Parent.Parent) then
+							parts_map[original] = nil;
+						end;
+					end;
+				end;
+			end;
+		end);
+	end;
+	local function create_clone(color)
+		if (dv_clone) then dv_clone:Destroy(); end;
+		parts_map = {};
+		local char = localplayer.Character;
+		if (not char) then return nil; end;
+		local selected_material = get_material();
 		char.Archivable = true;
 		local clone = char:Clone();
 		char.Archivable = false;
 		clone.Name = tostring(localplayer.Name);
+		strip_clone_descendants(clone);
 		for _, v in ipairs(clone:GetDescendants()) do
-			if v:IsA("BasePart") then
+			if (v:IsA("BasePart")) then
 				local original = char:FindFirstChild(v.Name, true);
-				if original and original:IsA("BasePart") then partsMap[original] = v; end;
-				v.CanCollide = false;
-				v.CanTouch = false;
-				v.CanQuery = false;
-				v.Anchored = true;
-				v.Massless = true;
-				local material_name = Options.desyncvisualisermaterial and Options.desyncvisualisermaterial.Value or "ForceField";
-                v.Material = Enum.Material[material_name] or Enum.Material.ForceField;
-				v.Color = color;
-				if v.Name == "HumanoidRootPart" or v.Transparency >= 1 then
-					v.Transparency = 1;
-				else
-					v.Transparency = 0;
+				if (original and original:IsA("BasePart") and not original.Parent:IsA("Tool")) then
+					parts_map[original] = v;
 				end;
-				if v:IsA("MeshPart") then v.TextureID = ""; end;
-			elseif v:IsA("SpecialMesh") then
-				v.TextureId = "";
-			elseif v:IsA("ForceField") then
-				v:Destroy();
-			elseif v:IsA("Accessory") or v:IsA("Humanoid") or v:IsA("JointInstance") or v:IsA("Script") or v:IsA("LocalScript") or v:IsA("TouchTransmitter") then
-				v:Destroy();
-			elseif v:IsA("Decal") or v:IsA("Clothing") or v:IsA("ShirtGraphic") then v:Destroy(); end;
+				apply_clone_part_settings(v, color, selected_material);
+			end;
 		end;
-		clone.Parent = workspace.Terrain;
-		dvclone = clone;
-		return dvclone;
+		clone.Parent = char.Parent;
+		dv_clone = clone;
+		refresh_tool_parts();
+		return dv_clone;
 	end;
-	charactersection:AddToggle("desyncvisualiser", { Text = "desync visualizer";
+	charactersection:AddToggle("desyncvisualiser", {
+		Text = "desync visualizer";
 		Default = false;
 		Callback = function(enabled)
-			if not enabled then
-				if dvconnection then
+			if (not enabled) then
+				if (dvconnection) then
 					dvconnection:Disconnect();
 					dvconnection = nil;
 				end;
-				if dvclone then
-					dvclone:Destroy();
-					dvclone = nil;
+				if (tool_conn_added) then
+					tool_conn_added:Disconnect();
+					tool_conn_added = nil;
 				end;
-				partsMap = nil;
+				if (tool_conn_removed) then
+					tool_conn_removed:Disconnect();
+					tool_conn_removed = nil;
+				end;
+				if (dv_clone) then
+					dv_clone:Destroy();
+					dv_clone = nil;
+				end;
+				parts_map = nil;
 				return;
 			end;
+			bind_tool_connections();
 			dvconnection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
-				local running = getgenv().getrunning;
 				local char = localplayer.Character;
 				local hrp = char and char:FindFirstChild("HumanoidRootPart");
-				if not hrp or not lastcf then
-					if dvclone then dvclone.Parent = nil; end;
+				if (not hrp or not getgenv().lastservercframe) then
+					if (dv_clone) then dv_clone.Parent = nil; end;
 					return;
 				end;
-				local islogicactive = (
-                    (running("voidhidelogic") and getgenv().settings.voidenabled) or 
-                    (getgenv().settings.tpenemy and CurrentTarget and is_teleport_valid(CurrentTarget)) or 
-                    (running("initattemptkill")) or 
-                    (running("AvoidProjectiles"))
-                ) and not framework:InMenu(localplayer);
-				local isdesynced = false;
-				local dist = (hrp.Position - lastcf.Position).Magnitude;
-				local dot = hrp.CFrame.LookVector:Dot(lastcf.LookVector);
-				if dist > 0.1 or dot < 0.996 then isdesynced = true; end;
-				if islogicactive and isdesynced then
-					if not dvclone or not dvclone.Parent then
+				local isdesynced = getgenv().currently_spoofing;
+				if (isdesynced) then
+					if (not dv_clone or not dv_clone.Parent) then
 						local color = (Options.desyncvisualisercolor and Options.desyncvisualisercolor.Value) or Color3.fromRGB(128, 0, 255);
-						createclone(color);
+						create_clone(color);
 					end;
-					if dvclone then
-						dvclone.Parent = workspace.Terrain;
+					if (dv_clone) then
+						dv_clone.Parent = workspace.Terrain;
 						local color = Options.desyncvisualisercolor.Value;
-						local currentHRPVCnf = hrp.CFrame;
-                        local matName = Options.desyncvisualisermaterial and Options.desyncvisualisermaterial.Value or "ForceField"
-                        local wantedMat = Enum.Material[matName] or Enum.Material.ForceField
-                        for original, clonePart in pairs(partsMap) do
-                            if original.Parent and clonePart.Parent then
-                                clonePart.Color = color;
-                                if clonePart.Material ~= wantedMat then clonePart.Material = wantedMat; end;
-                                local offset = currentHRPVCnf:ToObjectSpace(original.CFrame);
-                                clonePart.CFrame = lastcf * offset;
-                            else
-                                partsMap[original] = nil;
-                            end;
-                        end;
+						local hrp_cframe = hrp.CFrame;
+						local selected_material = get_material();
+						for original, clone_part in pairs(parts_map) do
+							if (original.Parent and clone_part.Parent) then
+								if (clone_part.Material ~= selected_material) then
+									clone_part.Material = selected_material;
+								end;
+								if (clone_part.Color ~= color) then
+									clone_part.Color = color;
+								end;
+								local offset = hrp_cframe:ToObjectSpace(original.CFrame);
+								clone_part.CFrame = getgenv().lastservercframe * offset;
+							else
+								parts_map[original] = nil;
+							end;
+						end;
 					end;
 				else
-					if dvclone then dvclone.Parent = nil; end;
+					if (dv_clone) then
+						dv_clone.Parent = nil;
+					end;
 				end;
 			end));
-		end; }):AddColorPicker("desyncvisualisercolor", { Default = Color3.fromRGB(128, 0, 255);
-        charactersection:AddDropdown("desyncvisualisermaterial", { Text = "visualiser material"; Default = "ForceField"; Values = {"ForceField", "Neon"}; });
+		end;
+	}):AddColorPicker("desyncvisualisercolor", {
+		Default = Color3.fromRGB(128, 0, 255);
 		Title = "visualiser color";
-		Transparency = 0; });
-	localplayer.CharacterAdded:Connect(function() if Toggles.desyncvisualiser and Toggles.desyncvisualiser.Value then createclone(Options.desyncvisualisercolor.Value); end; end);
+		Transparency = 0;
+	});
+	charactersection:AddDropdown("desyncvisualisermaterial", { Text = "visualiser material"; Default = "ForceField"; Values = {"ForceField", "Neon"}; });
+	localplayer.CharacterAdded:Connect(function()
+		if (Toggles.desyncvisualiser and Toggles.desyncvisualiser.Value) then
+			bind_tool_connections();
+			create_clone(Options.desyncvisualisercolor.Value);
+		end;
+	end);
 end;
 getgenv().serenium_global_rainbow_color = Color3.new(1,1,1);
 local currentRagebotTarget = nil;
