@@ -721,7 +721,7 @@ do
         local oy = Options.desync_off_y and Options.desync_off_y.Value or 0;
         local oz = Options.desync_off_z and Options.desync_off_z.Value or 0;
 
-        local off_speed = Options.desync_off_speed and Options.desync_off_speed.Value or 0;
+        local off_speed = 30;
         if off_speed > 0 then
             local t = os.clock() * (off_speed * 1.5);
             ox = math.sin(t * 0.7) * ox;
@@ -5026,16 +5026,6 @@ desync_dep:AddSlider("desync_off_z", {
     Max = 15;
     Rounding = 1;
     Compact = true;
-});
-
-desync_dep:AddSlider("desync_off_speed", {
-    Text = "offset speed";
-    Default = 0;
-    Min = 0;
-    Max = 30;
-    Rounding = 1;
-    Compact = true;
-    Suffix = "x";
 });
 
 exploit1:AddToggle("noclip", {
