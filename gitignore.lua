@@ -6,7 +6,7 @@ getgenv().nil_solutions = true;
 if (not game:IsLoaded()) then game.Loaded:Wait(); end;
 
 repeat
-    success, error = pcall(function() 
+    success, err = pcall(function() 
         game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId); 
     end);
     task.wait();
@@ -31,16 +31,16 @@ for _, void in pairs(workspace:GetDescendants()) do
         void.CanTouch = false;
 		void:GetPropertyChangedSignal("CanTouch"):Connect(function() 
             if (void.CanTouch ~= false) then 
-                void.CanTouch = false; 
-            end; 
+                void.CanTouch = false;
+            end;
         end);
 	end;
 end;
 
 workspace:GetPropertyChangedSignal("FallenPartsDestroyHeight"):Connect(function() 
     if (workspace.FallenPartsDestroyHeight ~= -math.huge) then 
-        workspace.FallenPartsDestroyHeight = -math.huge; 
-    end; 
+        workspace.FallenPartsDestroyHeight = -math.huge;
+    end;
 end);
 
 if (not LPH_OBFUSCATED) then
@@ -52,8 +52,7 @@ if (not LPH_OBFUSCATED) then
 end;
 
 local Data = Data;
-if not Data then Data = { InviteToDiscord = false, Intro = true, KillSayStuff = { Normal = { "bro, respawn faster, I need more %XP% XP", "can someone hvh me?? im guessing nobody can 🤣", "你的WiFi是土豆吗, %Died%?", "你打游戏好像老奶奶一样", "Atleast u died to SERENIUM, %Died%", "你是NPC吗, %Died%?", "你的技能和样老", "fix ur aim %Died%", "damn is 😂", "听说你用Internet Explorer在玩游戏", "お前の反応はカタツムリより遅いぞ", "你在玩手机上吗, %Died%?", "你刚才是睡着了吗?", "🤖 你是一台机器人吗, %Died%?", "Internet says 'how to dodge in combat warriors'", "turn off 'get beaten by skids' in cw settings", "左, 右, 晚安 :skull:", "お前はもう死んでいる", "ты был удалён с сервера", "איפה הכבוד שלך, %Died%?", "あなたはゲームをやめるべきです", "your kd is negative btw %Died%", "你的存活率比0%还低", "parrying 💔💔", "Internet says 'how to recover from public humiliation'", "get this script at /SERENIUM !", "tired of cheaters? become one yourself and combat them! /SERENIUM", "Outplayed by SERENIUM.", }, Assist = { "你没死于我, 是死于团队合作", "split my %XP% XP and %Credits% credits with a random, ty for the donation %Died%", "お前は味方にやられた", "ты просто статистика", "你被团队协作打败了", "didnt need an assist to kill u %Died%", "谁帮我补刀的? 这次算你赚到", "yo %Died%, we both know I didn't need the assist", }, Finish = { "你的账号已被暂停, %Died%", "bro got sent to the shadow realm by a %Weapon%", "%Died%, should've dodged, oh wait… too late 💀", "yo %Died%, your Roblox career ended faster than a limited item stock", "Ты уничтожен", "ur name should be 'free kill', %Died%", "%Died% died so fast that Roblox lagged 💀", "お前の敗北は確定していた", "お前の人生はチェックメイト", "fatality.", "bro went out like a YouTube tutorial dummy", "bro got cooked, fried, and served", "bro's internet provider officially disowned him", "Mustache Man once said: 'The greatest defeat comes when one refuses to accept their fate.'", "Napoleon once declared: 'The war is won in the mind before the battlefield.'", "Sun Tzu once wrote: 'The battlefield is not just a place, it is a state of mind.'", "Genghis Khan once proclaimed: 'A warrior's life ends when they fail to adapt to the changing tides.'", "Einstein once said: 'In the end, only the smart survive.'", }, Glory = { "你的死亡动画很美, %Died%", "someone clip that dawg, %Died% just got packed", "%Died%, wanna see my recoil script? (it's called skill)", "yo %Died%, ur gameplay lookin like a speedrun to the death screen", "bro's last words: 'I got this' 💀", "удар был смертельным", "ur name should be 'free kill', %Died%", "%Died% died so fast that Roblox lagged 💀", "お前の存在が消えた", "я сохранил этот момент", "bro thought he was the protagonist, I made sure he wasn't", "Google says 'how to recover from a humiliation kill'", "%Died%, that was a fatality, not a kill", "bro got deleted so hard, he's gonna respawn in another server", "I'm screenshotting this kill for my collection %Died%", "你只是我今天的另一个XP点数 ", "お前は何だったの？", "left right goodnight :skull:", "clip that, I need it for my mixtape", "bro got an express ticket to spectate mode", "100% uninstall speedrun, new record %Died%", "bro thought he had a chance, but the script said no", "Mustache Man once said: 'Victory is a sweet taste for those who dare to fight without hesitation.'", "Sun Tzu once wrote: 'The only true defeat is one suffered without a fight.'", "Einstein once said: 'It's not about how fast you run, but how you use your momentum.'", "Genghis Khan once declared: 'A battle is not won by strength alone, but by will and intellect.'", "Napoleon said: 'The best way to predict the future is to make it.'", }, }, }; end;
-
+if not Data then Data = {InviteToDiscord = false, Intro = true, KillSayStuff = {Normal = {"bro, respawn faster, I need more %XP% XP", "can someone hvh me?? im guessing nobody can 🤣", "你的WiFi是土豆吗, %Died%?", "你打游戏好像老奶奶一样", "Atleast u died to SERENIUM, %Died%", "你是NPC吗, %Died%?", "你的技能和样老", "fix ur aim %Died%", "damn is 😂", "听说你用Internet Explorer在玩游戏", "お前の反応はカタツムリより遅いぞ", "你在玩手机上吗, %Died%?", "你刚才是睡着了吗?", "🤖 你是一台机器人吗, %Died%?", "Internet says 'how to dodge in combat warriors'", "turn off 'get beaten by skids' in cw settings", "左, 右, 晚安 :skull:", "お前はもう死んでいる", "ты был удалён с сервера", "איפה הכבוד שלך, %Died%?", "あなたはゲームをやめるべきです", "your kd is negative btw %Died%", "你的存活率比0%还低", "parrying 💔💔", "Internet says 'how to recover from public humiliation'", "get this script at /SERENIUM !", "tired of cheaters? become one yourself and combat them! /SERENIUM", "Outplayed by SERENIUM.", }, Assist = {"你没死于我, 是死于团队合作", "split my %XP% XP and %Credits% credits with a random, ty for the donation %Died%", "お前は味方にやられた", "ты просто статистика", "你被团队协作打败了", "didnt need an assist to kill u %Died%", "谁帮我补刀的? 这次算你赚到", "yo %Died%, we both know I didn't need the assist", }, Finish = {"你的账号已被暂停, %Died%", "bro got sent to the shadow realm by a %Weapon%", "%Died%, should've dodged, oh wait… too late 💀", "yo %Died%, your Roblox career ended faster than a limited item stock", "Ты уничтожен", "ur name should be 'free kill', %Died%", "%Died% died so fast that Roblox lagged 💀", "お前の敗北は確定していた", "お前の人生はチェックメイト", "fatality.", "bro went out like a YouTube tutorial dummy", "bro got cooked, fried, and served", "bro's internet provider officially disowned him", "Mustache Man once said: 'The greatest defeat comes when one refuses to accept their fate.'", "Napoleon once declared: 'The war is won in the mind before the battlefield.'", "Sun Tzu once wrote: 'The battlefield is not just a place, it is a state of mind.'", "Genghis Khan once proclaimed: 'A warrior's life ends when they fail to adapt to the changing tides.'", "Einstein once said: 'In the end, only the smart survive.'", }, Glory = { "你的死亡动画很美, %Died%", "someone clip that dawg, %Died% just got packed", "%Died%, wanna see my recoil script? (it's called skill)", "yo %Died%, ur gameplay lookin like a speedrun to the death screen", "bro's last words: 'I got this' 💀", "удар был смертельным", "ur name should be 'free kill', %Died%", "%Died% died so fast that Roblox lagged 💀", "お前の存在が消えた", "я сохранил этот момент", "bro thought he was the protagonist, I made sure he wasn't", "Google says 'how to recover from a humiliation kill'", "%Died%, that was a fatality, not a kill", "bro got deleted so hard, he's gonna respawn in another server", "I'm screenshotting this kill for my collection %Died%", "你只是我今天的另一个XP点数 ", "お前は何だったの？", "left right goodnight :skull:", "clip that, I need it for my mixtape", "bro got an express ticket to spectate mode", "100% uninstall speedrun, new record %Died%", "bro thought he had a chance, but the script said no", "Mustache Man once said: 'Victory is a sweet taste for those who dare to fight without hesitation.'", "Sun Tzu once wrote: 'The only true defeat is one suffered without a fight.'", "Einstein once said: 'It's not about how fast you run, but how you use your momentum.'", "Genghis Khan once declared: 'A battle is not won by strength alone, but by will and intellect.'", "Napoleon said: 'The best way to predict the future is to make it.'", }, }, }; end;
 local modules, framework;
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/linoria-fork/refs/heads/main/linoria.lua"))();
@@ -78,13 +77,15 @@ charactertab = tabs.charactertab:AddLeftGroupbox("character");
 othertabs = tabs.charactertab:AddLeftGroupbox("others");
 exploit = tabs.charactertab:AddRightGroupbox("exploits");
 exploit1 = tabs.charactertab:AddRightGroupbox("character exploits");
-settings = tabs.settings:AddLeftGroupbox("settings");
+settings_tab = tabs.settings:AddLeftGroupbox("settings");
 gunmods = tabs.ranged:AddLeftGroupbox("gun mods");
 espsection = tabs.visuals:AddLeftGroupbox("esp");
 
 local userinputservice = cloneref(game:GetService("UserInputService"));
 local collectionservice = game:GetService("CollectionService");
+local teleportservice = game:GetService("TeleportService");
 local repstorage = game:GetService("ReplicatedStorage");
+local tweenservice = game:GetService("TweenService");
 local httpservice = game:GetService("HttpService");
 local runservice = game:GetService("RunService");
 local workspace = game:GetService("Workspace");
@@ -99,7 +100,7 @@ local camera = workspace.CurrentCamera;
 local whitelist = {};
 local viewing;
 
-function player_characters() 
+local function player_characters() 
     return workspace:FindFirstChild("PlayerCharacters") or workspace:FindFirstChild("Characters") or workspace; 
 end;
 
@@ -128,13 +129,13 @@ local task_spawn = task.spawn;
 
 local Ignored = {};
 
-local Classes = setmetatable({}, { 
+local Classes = setmetatable({}, {
     __index = function(t, k)
         return Toggles[k] or Options[k];
     end; 
 });
 
-getgenv().settings = {
+local settings = {
     antifling = false;
     infstamina = false;
     canalwaysjump = false;
@@ -210,14 +211,55 @@ getgenv().settings = {
     base = 0;
 };
 
-getgenv().teleport = function(CFrame) 
-    game:GetService("TweenService"):Create(humanoidrootpart,TweenInfo.new(0),{ CFrame = CFrame }):Play(); 
+local teleport = function(CFrame) 
+    game:GetService("TweenService"):Create(humanoidrootpart,TweenInfo.new(0),{CFrame = CFrame }):Play(); 
+end;
+
+local function should_skip_by_whitelist(player, skip_type)
+    if not player then return false; end;
+    if not Toggles.check_whitelist_global or not Toggles.check_whitelist_global.Value then return false; end;
+    
+    local types_raw = Options.global_whitelist_type and Options.global_whitelist_type.Value;
+    if not types_raw then return false; end;
+    
+    local types = {};
+    if type(types_raw) == "table" then types = types_raw; elseif type(types_raw) == "string" then types = {[types_raw] = true}; end;
+    
+    if skip_type and not types[skip_type] then return false; end;
+
+    local raw = Options.global_whitelist_mode and Options.global_whitelist_mode.Value;
+    if not raw then return false; end;
+    
+    local modes = {};
+    if type(raw) == "table" then modes = raw; elseif type(raw) == "string" then modes = {[raw] = true}; end;
+
+    if modes["whitelist"] and table.find(whitelist, player.Name) then
+        return true;
+    end;
+    if modes["friend"] and localplayer:IsFriendsWith(player.UserId) then
+        return true;
+    end;
+    if modes["team"] and localplayer.Team and player.Team == localplayer.Team then
+        return true;
+    end;
+    if modes["clan"] then
+        local ok, clan_data = pcall(function() return framework:get_clan_data(); end);
+        if ok and clan_data and clan_data.members then
+            local my_member = clan_data.members[tostring(localplayer.UserId)];
+            if my_member and clan_data.members[tostring(player.UserId)] then
+                return true;
+            end;
+        end;
+    end;
+    
+    return false;
 end;
 
 local function whitelisted(player)
 	if not player then return false; end;
-	if table.find(whitelist, player.Name) then return true; end;
-	if Toggles and Toggles.WhitelistFriends and Toggles.WhitelistFriends.Value and getgenv().whitelistfriends then return localplayer:IsFriendsWith(player.UserId); end;
+	if table.find(whitelist, player.Name) then
+        return true;
+    end;
 	return false;
 end;
 
@@ -225,22 +267,36 @@ do
     repstorage.Packages:Destroy();
     local hooked_functions = {};
     local detected_field, kill_environment, adonis_event;
+
     local function is_adonis(obj)
         if (obj:IsA("RemoteEvent") and string.match(obj.Name, "^%w%w%w%w%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%w%w%w%w%w%w%w%w$")) then
             local remote_function = obj:FindFirstChild("__FUNCTION");
-            if (remote_function and remote_function:IsA("RemoteFunction")) then return true; end
+            if (remote_function and remote_function:IsA("RemoteFunction")) then
+                return true;
+            end
         end
         return false;
     end;
+
     for _, obj in ipairs(repstorage:GetChildren()) do
-        if (is_adonis(obj)) then adonis_event = obj; break; end;
+        if (is_adonis(obj)) then
+            adonis_event = obj;
+            break;
+        end;
     end;
+
     local blacklisted_names = {"createBodyMover", "getIsAcDisabled"};
+
     local function is_spooky(str)
-        if (type(str) ~= "string" or #str < 4) then return false; end;
-        if (str:sub(-17) == ".AntiCheatHandler") then return false; end;
+        if (type(str) ~= "string" or #str < 4) then
+            return false;
+        end;
+        if (str:sub(-17) == ".AntiCheatHandler") then
+            return false;
+        end;
         return str:lower():find("anti") ~= nil;
     end;
+
     setthreadidentity(2);
     for _, obj in getgc(true) do
         if (typeof(obj) == "table") then
@@ -265,12 +321,14 @@ do
         end;
     end;
     setthreadidentity(7);
+
     for _, obj in pairs(getreg()) do
         if (type(obj) == "thread") then
             local success, source = pcall(debug.info, obj, 1, "s");
             if (success and is_spooky(source)) then task.cancel(obj); end;
         end;
     end;
+
     for _, obj in pairs(getgc(true)) do
         if (type(obj) == "function") then
             local success, source = pcall(debug.info, obj, "s");
@@ -293,10 +351,6 @@ do
 end;
 
 do
-	if getgenv().library_loaded then
-		return;
-	end;
-	getgenv().library_loaded = true;
 	local typeofcache = typeof;
 	local tickcache = tick;
 	local renderstepped = runservice.RenderStepped;
@@ -316,17 +370,14 @@ do
 	localplayer.CharacterAdded:Connect(oncharacter);
 	local mt = getrawmetatable(game);
 	local originalindex = mt.__index;
-	if (not getgenv().hooked) then
-		setreadonly(mt, false);
-		mt.__index = newcclosure(function(self, property)
-			if (not checkcaller() and self == primarypart and property == "CFrame" and isspoofing) then
-				return clientcframe;
-			end;
-			return originalindex(self, property);
-		end);
-		setreadonly(mt, true);
-		getgenv().hooked = true;
-	end;
+	setreadonly(mt, false);
+	mt.__index = newcclosure(function(self, property)
+		if (not checkcaller() and self == primarypart and property == "CFrame" and isspoofing) then
+			return clientcframe;
+		end;
+		return originalindex(self, property);
+	end);
+	setreadonly(mt, true);
 	local looptypes = {
 		heartbeat = runservice.Heartbeat,
 		renderstepped = runservice.RenderStepped,
@@ -405,7 +456,7 @@ do
 			executing = false;
 		end);
 	end;
-	getgenv().serverposition = function(looptype, logicname, targetlogic, priority, direction, ignore_priority)
+	serverposition = function(looptype, logicname, targetlogic, priority, direction, ignore_priority)
 		if typeofcache(logicname) ~= "string" then
 			warn("invalid logic name");
 			return;
@@ -437,7 +488,7 @@ do
 			ignore_priority = (direction == true) and (ignore_priority == true),
 		};
 	end;
-	getgenv().setrunning = function(logicname, booleanref, persistent)
+	setrunning = function(logicname, booleanref, persistent)
 		local spoofdata = registeredspoofs[logicname];
 		if not spoofdata then
 			warn("invalid name: " .. tostring(logicname));
@@ -499,7 +550,7 @@ do
 			end;
 		end;
 	end;
-	getgenv().getrunning = function(logicname)
+	getrunning = function(logicname)
 		if not registeredspoofs[logicname] then
 			return false;
 		end;
@@ -510,7 +561,7 @@ do
 		end;
 		return false;
 	end;
-	getgenv().resetcframe = function()
+	resetcframe = function()
 		stopspoofing = true;
 		isspoofing = false;
 		executing = false;
@@ -536,7 +587,7 @@ do
 		end;
 		stopspoofing = false;
 	end;
-	getgenv().clearspoofs = function()
+	clearspoofs = function()
 		for _, v in pairs(persistentloops) do
 			if v.connection then
 				v.connection:Disconnect();
@@ -552,7 +603,7 @@ do
 			currentlooptype = nil;
 		end;
 	end;
-	getgenv().retrieve_position = function(callback)
+	retrieve_position = function(callback)
 		if (typeof(callback) ~= "function") then
 			warn("invalid callback for retrieve_position");
 			return;
@@ -563,8 +614,11 @@ do
 		end);
 	end;
 end;
+
 do
     local fly_cframe = nil;
+    local space_down = false;
+	local c_down = false;
     local spinrad = math.rad(spinspeed);
 
     serverposition("heartbeat", "exclude", LPH_JIT_MAX(function(cf)
@@ -573,7 +627,7 @@ do
     setrunning("exclude", true);
 
     local function target_cframe(cf)
-        if getgenv().settings.tpenemy and getgenv().settings.follow_strafe_target and current_target and is_teleport_valid(current_target) then
+        if settings.tpenemy and settings.follow_strafe_target and current_target and is_teleport_valid(current_target) then
             local target_character = current_target.Character;
             local target_root = target_character and target_character:FindFirstChild("HumanoidRootPart");
             if target_root then
@@ -590,39 +644,61 @@ do
         local z = basepos.Z;
         return cframe_new(x, y, z);
     end;
+
     serverposition("heartbeat", "voidhidelogic", LPH_JIT_MAX(function(cf)
         return target_cframe(cf);
     end), 3);
 
+	userinputservice.InputBegan:Connect(function(input, gpe)
+		if gpe then return; end;
+		if input.KeyCode == Enum.KeyCode.Space then
+            space_down = true;
+        end;
+		if input.KeyCode == Enum.KeyCode.C then
+            c_down = true;
+        end;
+	end);
+
+	userinputservice.InputEnded:Connect(function(input, gpe)
+		if input.KeyCode == Enum.KeyCode.Space then
+            space_down = false;
+        end;
+		if input.KeyCode == Enum.KeyCode.C then
+            c_down = false;
+        end;
+	end);
+
     runservice.Heartbeat:Connect(LPH_JIT_MAX(function(delta_time)
-        if getgenv().settings.voidenabled then
-            local hum = localplayer.Character and localplayer.Character:FindFirstChild("Humanoid")
-            if hum then hum:ChangeState(Enum.HumanoidStateType.Freefall) end
-        end
+        if settings.voidenabled then
+            local hum = localplayer.Character and localplayer.Character:FindFirstChild("Humanoid");
+            if hum then
+                hum:ChangeState(Enum.HumanoidStateType.Freefall);
+            end;
+        end;
 
         if not humanoidrootpart then return; end;
 
-        if getgenv().settings.flyenabled then
+        if settings.flyenabled then
             fly_cframe = fly_cframe or humanoidrootpart.CFrame;
             humanoidrootpart.Velocity = Vector3.zero;
             humanoidrootpart.RotVelocity = Vector3.zero;
             local camera_cframe = workspace.CurrentCamera.CFrame;
             local move_direction = humanoid.MoveDirection
-            local vertical = (userinputservice:IsKeyDown(Enum.KeyCode.Space) and 1 or 0) - (userinputservice:IsKeyDown(Enum.KeyCode.C) and 1 or 0);
+            local vertical = (space_down and 1 or 0) - (c_down and 1 or 0);
             local move = (move_direction.Magnitude > 0 or vertical ~= 0) and ((camera_cframe.LookVector * move_direction:Dot(vector3_new(camera_cframe.LookVector.X, 0, camera_cframe.LookVector.Z).Unit) + camera_cframe.RightVector * move_direction:Dot(vector3_new(camera_cframe.RightVector.X, 0, camera_cframe.RightVector.Z).Unit) + vector3_new(0, 1, 0) * vertical)).Unit or Vector3.zero;
-            local next_pos = (fly_cframe + move * getgenv().settings.flyspeed * delta_time).Position;
+            local next_pos = (fly_cframe + move * settings.flyspeed * delta_time).Position;
             fly_cframe = cframe_new(next_pos, next_pos + camera_cframe.LookVector)
             humanoidrootpart.CFrame = fly_cframe
         else
             fly_cframe = nil;
         end;
 
-        if not getgenv().settings.flyenabled and getgenv().settings.velocityenabled and getgenv().settings.velocityspeed then
+        if not settings.flyenabled and settings.velocityenabled and settings.velocityspeed then
             local vy = humanoidrootpart.AssemblyLinearVelocity.Y;
             local move_direction = humanoid.MoveDirection;
             if move_direction.Magnitude > 0 then
                 local horizontal = vector3_new(move_direction.X, 0, move_direction.Z).Unit;
-                local spd = getgenv().settings.velocityspeed;
+                local spd = settings.velocityspeed;
                 humanoidrootpart.AssemblyLinearVelocity = vector3_new(horizontal.X * spd, vy, horizontal.Z * spd);
             else
                 humanoidrootpart.AssemblyLinearVelocity = vector3_new(0, vy, 0);
@@ -630,9 +706,9 @@ do
         end;
     end));
 
-    if getgenv().settings.spinenabled and humanoidrootpart then
+    if settings.spinenabled and humanoidrootpart then
         local angle = (spinrad * dt * 60) % TAU;
-        if getgenv().settings.flyenabled then
+        if settings.flyenabled then
             fly_cframe = fly_cframe * cframe_angles(0, angle, 0);
         else
             humanoidrootpart.CFrame = humanoidrootpart.CFrame * cframe_angles(0, angle, 0);
@@ -643,6 +719,16 @@ do
         local x = Options.desync_x and math.rad(Options.desync_x.Value) or 0;
         local y = Options.desync_y and math.rad(Options.desync_y.Value) or 0;
         local z = Options.desync_z and math.rad(Options.desync_z.Value) or 0;
+        
+        if Toggles.desync_random_rotation and Toggles.desync_random_rotation.Value then
+            local speed = Options.desync_random_speed and Options.desync_random_speed.Value or 5;
+            local t = os.clock() * (speed * 0.5);
+            
+            x = (t * 1.3) + math.sin(t * 0.5);
+            y = (-t * 1.7) + math.cos(t * 0.8);
+            z = (t * 2.1) + math.sin(t * 1.1);
+        end;
+
         if (Toggles.desync_look and Toggles.desync_look.Value) then
             local _, real_y, _ = cf:ToEulerAnglesYXZ();
             y = real_y;
@@ -670,22 +756,25 @@ do
     
     local noclip_tick = 0;
     runservice.Stepped:Connect(LPH_JIT_MAX(function()
-        if not getgenv().settings.noclipenabled then return; end;
+        if not settings.noclipenabled then return; end;
         local now = tick();
         if now - noclip_tick < 0.05 then return; end;
         noclip_tick = now;
         local i = #noclip_parts;
         while i > 0 do
             local v = noclip_parts[i];
-            if not v or not v.Parent then table.remove(noclip_parts, i);
-            else v.CanCollide = false; end;
+            if not v or not v.Parent then
+                table.remove(noclip_parts, i);
+            else
+                v.CanCollide = false;
+            end;
             i = i - 1;
         end;
     end));
 end;
 
-local hitdetection_impl = { 
-    Sounds = { 
+local hitdetection_impl = {
+    Sounds = {
         OSU = "rbxassetid://7149255551";
         Neverlose = "rbxassetid://8679627751";
         Bameware = "rbxassetid://3124331820";
@@ -697,58 +786,58 @@ local hitdetection_impl = {
         ["TF2 Critical"] = "rbxassetid://296102734";
     };
     Labels = {}; 
-    YOffset = 0;
+    yo_offset = 0;
     last_clone_time = 0;
 };
 
-hitdetection_impl.CreateLog = function(text)
+hitdetection_impl.create_log = function(text)
     local screen = workspace.CurrentCamera.ViewportSize;
-    local prefixNil = "nil";
-    local prefixDot = ".";
-    local prefixSolutions = "solutions";
-    local fullPrefix = "nil.solutions";
-    local restOfText = text:sub(#fullPrefix + 1);
-    local nilColor = Color3.fromRGB(148, 131, 255);
-    local textSize = 19;
-    local textFont = 2;
+    local prefix_nil = "nil";
+    local prefix_dot = ".";
+    local prefix_solutions = "solutions";
+    local full_prefix = "nil.solutions";
+    local rest_of_text = text:sub(#full_prefix + 1);
+    local nil_color = Color3.fromRGB(148, 131, 255);
+    local text_size = 19;
+    local text_font = 2;
     local nil_label = drawing_new("Text");
-    nil_label.Text = prefixNil;
-    nil_label.Size = textSize;
-    nil_label.Font = textFont;
+    nil_label.Text = prefix_nil;
+    nil_label.Size = text_size;
+    nil_label.Font = text_font;
     nil_label.Outline = true;
-    nil_label.Color = nilColor;
+    nil_label.Color = nil_color;
     nil_label.Visible = true;
     nil_label.Transparency = 0;
     nil_label.ZIndex = 15;
     local label_dot = drawing_new("Text");
-    label_dot.Text = prefixDot;
-    label_dot.Size = textSize;
-    label_dot.Font = textFont;
+    label_dot.Text = prefix_dot;
+    label_dot.Size = text_size;
+    label_dot.Font = text_font;
     label_dot.Outline = true;
     label_dot.Color = Color3.new(1, 1, 1);
     label_dot.Visible = true;
     label_dot.Transparency = 0;
     label_dot.ZIndex = 15;
     local label_solutions = drawing_new("Text");
-    label_solutions.Text = prefixSolutions;
-    label_solutions.Size = textSize;
-    label_solutions.Font = textFont;
+    label_solutions.Text = prefix_solutions;
+    label_solutions.Size = text_size;
+    label_solutions.Font = text_font;
     label_solutions.Outline = true;
     label_solutions.Color = Color3.new(1, 1, 1);
     label_solutions.Visible = true;
     label_solutions.Transparency = 0;
     label_solutions.ZIndex = 15;
     local label_rest = drawing_new("Text");
-    label_rest.Text = restOfText;
-    label_rest.Size = textSize;
-    label_rest.Font = textFont;
+    label_rest.Text = rest_of_text;
+    label_rest.Size = text_size;
+    label_rest.Font = text_font;
     label_rest.Outline = true;
     label_rest.Color = Color3.new(1, 1, 1);
     label_rest.Visible = true;
     label_rest.Transparency = 0;
     label_rest.ZIndex = 15;
     local target_x = screen.X / 2;
-    local target_y = screen.Y - 180 - hitdetection_impl.YOffset;
+    local target_y = screen.Y - 180 - hitdetection_impl.yo_offset;
     local width = nil_label.TextBounds.X + label_dot.TextBounds.X + label_solutions.TextBounds.X + label_rest.TextBounds.X;
     local center_offset = width / 2;
     local function set_position(current_x_axis)
@@ -759,7 +848,7 @@ hitdetection_impl.CreateLog = function(text)
     end;
     set_position(target_x - 30);
     table.insert(hitdetection_impl.Labels, {nil_label, label_dot, label_solutions, label_rest});
-    hitdetection_impl.YOffset = hitdetection_impl.YOffset + 22;
+    hitdetection_impl.yo_offset = hitdetection_impl.yo_offset + 22;
     task_spawn(LPH_JIT_MAX(function()
         local slide_steps = 10;
         for i = 1, slide_steps do
@@ -796,15 +885,15 @@ hitdetection_impl.CreateLog = function(text)
             end;
         end;
         if #hitdetection_impl.Labels == 0 then 
-            hitdetection_impl.YOffset = 0;
+            hitdetection_impl.yo_offset = 0;
         end;
-        if hitdetection_impl.YOffset > 300 then 
-            hitdetection_impl.YOffset = 0;
+        if hitdetection_impl.yo_offset > 300 then 
+            hitdetection_impl.yo_offset = 0;
         end;
     end));
 end;
 
-hitdetection_impl.PlaySound = function(soundName, volume)
+hitdetection_impl.play_sound = function(soundName, volume)
     if soundName == "None" or not hitdetection_impl.Sounds[soundName] then return; end;
     local sound = Instance.new("Sound");
     sound.SoundId = hitdetection_impl.Sounds[soundName];
@@ -878,7 +967,8 @@ hitdetection_impl.CreateEffect = LPH_JIT_MAX(function(effect_type, part, color, 
         for _, v in pairs(target_character:GetDescendants()) do
             if v:IsA("BasePart") then
                 local clone_part = clone:FindFirstChild(v.Name, true);
-                if clone_part and clone_part:IsA("BasePart") then clone_part.CFrame = v.CFrame; 
+                if clone_part and clone_part:IsA("BasePart") then
+                    clone_part.CFrame = v.CFrame; 
                 end;
             end;
         end;
@@ -939,9 +1029,10 @@ hitdetection_impl.CreateEffect = LPH_JIT_MAX(function(effect_type, part, color, 
         pulse_part.Color = main_color;
         pulse_part.Transparency = 0.5;
         pulse_part.Parent = workspace.Terrain;
-        local tween = game:GetService("TweenService"):Create(pulse_part, TweenInfo.new(0.4), {Transparency = 1, Size = vector3_new(6, 6, 6)});
+        local tween = tweenservice:Create(pulse_part, TweenInfo.new(0.4), {Transparency = 1, Size = vector3_new(6, 6, 6)});
         tween:Play()
-        tween.Completed:Connect(function() pulse_part:Destroy(); 
+        tween.Completed:Connect(function()
+            pulse_part:Destroy(); 
         end);
     elseif effect_type == "Fortnite" then
         local damage_hit = damage or 0;
@@ -953,7 +1044,7 @@ hitdetection_impl.CreateEffect = LPH_JIT_MAX(function(effect_type, part, color, 
         end;
         local world_pivot = target_part.Position + vector3_new(math_random(-10, 10) / 10, 2, math_random(-10, 10) / 10);
         local float_offset = vector3_new(math_random(-5, 5) / 10, 3, 0);
-        local function createLabel()
+        local function create_label()
             local l = drawing_new("Text");
             l.Text = damage_text;
             l.Color = color;
@@ -966,8 +1057,8 @@ hitdetection_impl.CreateEffect = LPH_JIT_MAX(function(effect_type, part, color, 
             l.ZIndex = 20;
             return l;
         end;
-        local label1 = createLabel()
-        local label2 = createLabel()
+        local label1 = create_label()
+        local label2 = create_label()
         task_spawn(LPH_JIT_MAX(function()
             local start_time = tick();
             local duration = 0.8;
@@ -1026,7 +1117,7 @@ local OnHit = LPH_JIT_MAX(function(target_player, hit_part, damage, hit_type)
     local function trigger_effects()
         if Options.HitSound and Options.HitSound.Value ~= "None" then
             local volume = Options.HitSoundVolume and Options.HitSoundVolume.Value or 1;
-            hitdetection_impl.PlaySound(Options.HitSound.Value, volume);
+            hitdetection_impl.play_sound(Options.HitSound.Value, volume);
         end;
         if Options.HitEffects and Options.HitEffects.Value and hit_part then
             local color = Options.HitEffectColor and Options.HitEffectColor.Value or Color3.new(1,1,1);
@@ -1045,15 +1136,16 @@ local OnHit = LPH_JIT_MAX(function(target_player, hit_part, damage, hit_type)
             local headshot = part_name == "Head";
             local display_damage = damage or 0;
             local damage_text = string.format("%.0f", display_damage);
-            hitdetection_impl.CreateLog( "nil.solutions | hit " .. target_player.Name .. " for " .. damage_text .. " damage (" .. (headshot and "head" or part_name) .. ")" );
+            hitdetection_impl.create_log( "nil.solutions | hit " .. target_player.Name .. " for " .. damage_text .. " damage (" .. (headshot and "head" or part_name) .. ")" );
         end;
     end;
     trigger_effects();
 end);
 
-modules = { Name = {}, Id = {} };
+modules = {Name = {}, Id = {} };
 local utilityids = {};
 local weaponids = {};
+
 local critical_modules = {
     "Network", "RoduxStore", "Signal", "WeaponMetadata", "WeaponIds", "UtilityIds",
     "UtilityMetadata", "WeaponsInOrder", "MeleeWeaponClient", "RangedWeaponClient",
@@ -1067,9 +1159,11 @@ local critical_modules = {
     "ItemAttachmentHandlerClient", "WaterHandler", "InstancePropsHandler",
     "ClaymoreTrapPartClient", "OpenBearTrapPartClient", "RangedHitVisuals",
     "VFXClient", "ToastNotificationActionsClient", "CaseMetadata",
+    "ClanRanksConfigs",
 };
 
 local criticalset = {};
+
 for i = 1, #critical_modules do 
     criticalset[critical_modules[i]] = true; 
 end;
@@ -1078,7 +1172,9 @@ setthreadidentity(2);
 for _, child in pairs(repstorage:GetDescendants()) do
     if child:IsA("ModuleScript") and criticalset[child.Name] then
         local success, module = pcall(require, child);
-        if success then modules.Name[child.Name] = module; end;
+        if success then
+            modules.Name[child.Name] = module;
+        end;
     end;
 end;
 setthreadidentity(8);
@@ -1093,9 +1189,11 @@ end;
 local network = modules.Name["Network"];
 local eventhandler;
 local remotes;
+
 if eventhandler then 
     remotes = getupvalue(eventhandler, 1);
 end;
+
 framework = {};
 local hooks = {};
 local modify = {};
@@ -1137,7 +1235,7 @@ function framework:addhook(Name, Function)
 end;
 
 function framework:argmodify(Name, ToModify, Check) 
-    modify[Name] = { Args = ToModify, Check = Check };
+    modify[Name] = {Args = ToModify, Check = Check };
 end;
 
 function framework:removehook(Name)
@@ -1156,15 +1254,15 @@ function framework:invokeserver(Name, ...)
     network:InvokeServer(Name, ...);
 end;
 
-function framework:hookclient(Table, Name, NewFunction)
+function framework:hookclient(Table, Name, new_function)
 	if not remotes then return; end;
 	local to_hook;
 	for i, v in pairs(getconnections(remotes[Name].remote.OnClientEvent)) do
 		to_hook = v.Function;
 		break;
 	end;
-	local old_hook; old_hook = hookfunction(to_hook, (function(...)
-        return NewFunction(...)
+	local old_hook; old_hook = hookfunction(to_hook, newcclosure(function(...)
+        return new_function(...)
     end));
 	return old_hook;
 end;
@@ -1188,7 +1286,9 @@ function framework:get_weapon(Player)
 	if not Character then return; end;
 	for i, v in Character:GetChildren() do
 		if not v:IsA("Tool") then continue; end;
-		if v:GetAttribute("ItemType") == "weapon" and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")] and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")].class:lower():match("melee") then return v, modules.Name["MeleeWeaponClient"].getObj(v); end;
+		if v:GetAttribute("ItemType") == "weapon" and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")] and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")].class:lower():match("melee") then return
+            v, modules.Name["MeleeWeaponClient"].getObj(v);
+        end;
 	end;
 	return;
 end;
@@ -1200,7 +1300,9 @@ function framework:get_ranged(Player)
 	if not Character then return; end;
 	for i, v in Character:GetChildren() do
 		if not v:IsA("Tool") then continue; end;
-		if v:GetAttribute("ItemType") == "weapon" and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")] and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")].class:lower():match("ranged") then return v, modules.Name["RangedWeaponClient"].getObj(v); end;
+		if v:GetAttribute("ItemType") == "weapon" and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")] and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")].class:lower():match("ranged") then
+            return v, modules.Name["RangedWeaponClient"].getObj(v);
+        end;
 	end;
 	return;
 end;
@@ -1215,7 +1317,9 @@ end;
 
 function framework:in_menu(Player)
 	local is_menu = true;
-	if not Player.Character then return is_menu; end;
+	if not Player.Character then
+        return is_menu;
+    end;
 	for i, v in Player.Character:GetChildren() do 
         if v:GetAttribute("ParryShieldId") then 
             is_menu = false; 
@@ -1263,12 +1367,7 @@ function framework:get_closest(Distance, Priority, check_function)
         if Ignored and table.find(Ignored, v.Name) then continue; end;
         local check_success, check_result = pcall(check_function, v)
         if not check_success or not check_result then continue; end;
-		if Toggles.WhitelistFriends.Value then
-			local success, isFriend = xpcall(function()
-				return localplayer:IsFriendsWith(v.UserId);
-			end, function() return false; end);
-			if success and isFriend then continue; end;
-		end;
+
         if framework:in_menu(v) then continue; end;
         local HRP = v.Character.HumanoidRootPart;
         local Magnitude = (HRP.Position - humanoidrootpart.Position).Magnitude;
@@ -1279,7 +1378,9 @@ function framework:get_closest(Distance, Priority, check_function)
     end;
     if Priority then
         local Sorted = {};
-        for k, _ in pairs(ClosestPlayers) do table.insert(Sorted, k); end;
+        for k, _ in pairs(ClosestPlayers) do
+            table.insert(Sorted, k);
+        end;
         table.sort(Sorted);
     end;
     return ClosestPlayers;
@@ -1287,7 +1388,7 @@ end;
 
 function framework:get_closest_2(Distance, check_function)
     local n = LPH_JIT_MAX(function(Player)
-		if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("Humanoid") and Player.Character.Humanoid.Health > 0 and not Player.Character:GetAttribute("IsRagdolled") and not Player.Character:GetAttribute("Downed") and not Player.Character:FindFirstChildOfClass("ForceField") and not whitelisted(Player) then
+		if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("Humanoid") and Player.Character.Humanoid.Health > 0 and not Player.Character:GetAttribute("IsRagdolled") and not Player.Character:GetAttribute("Downed") and not Player.Character:FindFirstChildOfClass("ForceField") and not whitelisted(Player) and not should_skip_by_whitelist(Player, "ragebot") then
             return true; 
         end;
 		return false;
@@ -1295,10 +1396,11 @@ function framework:get_closest_2(Distance, check_function)
 	local Distance = Distance or math.huge;
 	local check_function = check_function or n;
 	local closest_player = nil;
-	local mypos = humanoidrootpart and humanoidrootpart.Position;
-	if not mypos then return nil; end;
+	local self_position = humanoidrootpart and humanoidrootpart.Position;
+	if not self_position then return nil; end;
 	for player, _ in pairs(cachedplayers) do
 		if player == localplayer then continue; end;
+		if should_skip_by_whitelist(player, "ragebot") then continue; end;
 		local char = player.Character;
 		if not char then continue; end;
 		local humanoid_root = char:FindFirstChild("HumanoidRootPart");
@@ -1306,28 +1408,23 @@ function framework:get_closest_2(Distance, check_function)
 		local check_success, check_result = pcall(check_function, player)
         if not check_success or not check_result then continue; end;
 		local inmenu = false;
-		local ok = pcall(function() inmenu = framework:in_menu(player); end);
+		local ok = pcall(function()
+            inmenu = framework:in_menu(player);
+        end);
 		if inmenu then continue; end;
-		if Toggles.WhitelistFriends.Value then
-			local ok2, isfriend = pcall(function() 
-                return localplayer:IsFriendsWith(player.UserId);
-            end);
-			if ok2 and isfriend then 
-                continue;
-            end;
-		end;
-		local Magnitude = (humanoid_root.Position - mypos).Magnitude;
+
+		local Magnitude = (humanoid_root.Position - self_position).Magnitude;
 		if Magnitude < Distance then
 			Distance = Magnitude;
 			closest_player = player.Name;
 		end;
 	end;
-	return closest_player and { [closest_player] = true } or nil;
+	return closest_player and {[closest_player] = true } or nil;
 end;
 
-function framework:closest_to_mouse(Distance, Priority, check_function, MaxDist3D)
+function framework:closest_to_mouse(Distance, Priority, check_function, max_distance_3d)
 	local n = LPH_JIT_MAX(function(Player)
-		if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("Humanoid") and Player.Character.Humanoid.Health ~= 0 and not whitelisted(Player) then
+		if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("Humanoid") and Player.Character.Humanoid.Health ~= 0 and not whitelisted(Player) and not should_skip_by_whitelist(Player, "silent aim") then
             return true;
         end;
 		return false;
@@ -1339,15 +1436,15 @@ function framework:closest_to_mouse(Distance, Priority, check_function, MaxDist3
 	for player, _ in pairs(cachedplayers) do
 		if player == localplayer then continue; end;
 		if Ignored and table.find(Ignored, player.Name) then continue; end;
-		if Toggles.WhitelistFriends.Value and localplayer:IsFriendsWith(player.UserId) then continue; end;
+		if should_skip_by_whitelist(player, "silent aim") then continue; end;
 		local check_success, check_result = pcall(check_function, player)
 		if not check_success or not check_result then continue; end;
 		if framework:in_menu(player) then continue; end;
 		local humanoid_root = player.Character and player.Character:FindFirstChild("HumanoidRootPart");
-		if not humanoid_root then continue end
+		if not humanoid_root then continue; end;
 		local vector, on_screen = camera:WorldToScreenPoint(humanoid_root.Position);
 		if on_screen then 
-            if MaxDist3D and (humanoid_root.Position - camera.CFrame.Position).Magnitude > MaxDist3D then
+            if max_distance_3d and (humanoid_root.Position - camera.CFrame.Position).Magnitude > max_distance_3d then
                 on_screen = false;
             end;
         end;
@@ -1367,22 +1464,38 @@ function framework:is_parrying(Player)
 	return State.parry.isParrying;
 end;
 
-function framework:GetCurrentGameMode()
+function framework:get_current_gamemode()
 	local CurrentMap = Map:FindFirstChildOfClass("Model");
 	if CurrentMap then
 		local Gamemodes = CurrentMap.MapConfiguration.Gamemodes;
-		for i, v in pairs(Gamemodes:GetDescendants()) do if v:IsA("ObjectValue") then return v:FindFirstAncestorOfClass("Folder"); end; end;
+		for i, v in pairs(Gamemodes:GetDescendants()) do
+            if v:IsA("ObjectValue") then
+                return v:FindFirstAncestorOfClass("Folder");
+            end;
+        end;
 	end;
 	return nil;
 end;
 
-function framework:GetPointEnemyPoint(Gamemode)
-	for i, v in pairs(Gamemode:GetDescendants()) do if v:IsA("ObjectValue") and v.Value and v.Value:FindFirstChild("Inner") then if v.Value.Inner.BrickColor ~= localplayer.Team.TeamColor then return v.Parent; end; end; end;
+function framework:get_enemy_point(Gamemode)
+	for i, v in pairs(Gamemode:GetDescendants()) do
+        if v:IsA("ObjectValue") and v.Value and v.Value:FindFirstChild("Inner") then
+            if v.Value.Inner.BrickColor ~= localplayer.Team.TeamColor then
+                return v.Parent;
+            end;
+        end;
+    end;
 	return nil;
 end;
 
-function framework:GetPointTeamPoint(Gamemode)
-	for i, v in pairs(Gamemode:GetDescendants()) do if v:IsA("ObjectValue") and v.Value and v.Value:FindFirstChild("Inner") then if v.Value.Inner.BrickColor == localplayer.Team.TeamColor then return v.Parent; end; end; end;
+function framework:get_team_point(Gamemode)
+	for i, v in pairs(Gamemode:GetDescendants()) do
+        if v:IsA("ObjectValue") and v.Value and v.Value:FindFirstChild("Inner") then
+            if v.Value.Inner.BrickColor == localplayer.Team.TeamColor then
+                return v.Parent;
+            end;
+        end;
+    end;
 	return nil;
 end;
 
@@ -1393,7 +1506,7 @@ function framework:closest_characters_origin(Origin, Dist)
 		if not Player then continue; end;
 		if whitelisted(Player) then continue; end;
 		if table.find(Ignored, v.Name) then continue; end;
-		if Toggles.WhitelistFriends.Value and localplayer:IsFriendsWith(Player.UserId) then continue; end;
+		if should_skip_by_whitelist(Player, "ragebot") then continue; end;
 		if v == character then continue; end;
 		local hrp = v:FindFirstChild("HumanoidRootPart");
 		local head = v:FindFirstChild("Head");
@@ -1416,14 +1529,16 @@ function framework:closest_characters_to_origin(Origin, Dist)
 		if not Player then continue; end;
 		if whitelisted(Player) then continue; end;
 		if table.find(Ignored, v.Name) then continue; end;
-		if Toggles.WhitelistFriends.Value and localplayer:IsFriendsWith(Player.UserId) then continue; end;
+		if should_skip_by_whitelist(Player, "ragebot") then continue; end;
 		if v == character then continue; end;
 		local hrp = v:FindFirstChild("HumanoidRootPart");
 		local head = v:FindFirstChild("Head");
 		local humanoid = v:FindFirstChildOfClass("Humanoid");
 		if not hrp or not head or not humanoid or humanoid.Health <= 0 then continue; end;
 		local magnitude = (hrp.Position - Origin).Magnitude;
-		if magnitude < Dist then table.insert(closests, v); end;
+		if magnitude < Dist then
+            table.insert(closests, v);
+        end;
 	end;
 	return closests;
 end;
@@ -1433,12 +1548,17 @@ function framework:Chance(number)
 end;
 
 function framework:IsPartClose(Part, Distance)
-	if not humanoidrootpart then return false; end;
-	if not Distance then return false; end;
-	if Part and Part:IsA("BasePart") and Part.Parent
-	then
+	if not humanoidrootpart then
+        return false;
+    end;
+	if not Distance then
+        return false;
+    end;
+	if Part and Part:IsA("BasePart") and Part.Parent then
 		local Mag = (Part.Position - humanoidrootpart.Position).Magnitude;
-		if Mag <= Distance then return true; end;
+		if Mag <= Distance then
+            return true;
+        end;
 	end;
 	return false;
 end;
@@ -1446,29 +1566,34 @@ end;
 function framework:GetMeleeFuncs(Table)
 	local tool = Table:get_weapon();
 	if not tool then
-		return { parry = function() end };
+		return {
+            parry = function()
+            end
+        };
 	end;
 	for i, v in pairs(getconnections(tool.Equipped)) do
 		if v.Function then
 			local uv = getupvalues(v.Function);
-			if #uv == 1 and uv[1].singleWeaponMetadata then return uv[1]; end;
+			if #uv == 1 and uv[1].singleWeaponMetadata then
+                return uv[1];
+            end;
 		end;
 	end;
 	return nil;
 end;
 
-TweenService = game:GetService("TweenService");
 local function slow_tween(CF)
 	local part = humanoidrootpart or fly_cframe;
 	local dist = (part.Position - CF.Position).Magnitude;
 	local speed = 60;
 	local time = dist / speed;
-	local tween = TweenService:Create(part, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = CF});
+	local tween = tweenservice:Create(part, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = CF});
 	tween:Play();
 	tween.Completed:Wait();
 end;
+
 function framework:teleport(CF)
-	if getgenv().safe_mode then
+	if safe_mode then
 		slow_tween(CF);
 		return;
 	end;
@@ -1542,7 +1667,7 @@ function framework:check(self, Character)
 	local success, result = pcall(function()
 		if not Character then return true; end;
 		if table.find(ParryingCharacters, Character) then return false; end;
-		if not Character.Parent then return false end
+		if not Character.Parent then return false; end;
 		local Humanoid = Character:FindFirstChildOfClass("Humanoid");
 		local Player = players:GetPlayerFromCharacter(Character);
 		if Player then
@@ -1577,6 +1702,33 @@ function framework:check(self, Character)
         return true;
     end;
 	return result;
+end;
+
+local clan_store = nil;
+local clan_ranks = modules.Name["ClanRanksConfigs"];
+
+local function get_clan_store()
+    if not clan_store then
+        local ok, store = pcall(function()
+            return modules.Name["DataHandler"].getSessionDataRoduxStoreForPlayer(localplayer);
+        end);
+        if ok and store then
+            clan_store = store;
+        end;
+    end;
+    return clan_store;
+end;
+
+function framework:get_clan_data()
+    local store = get_clan_store();
+    if not store then return nil; end;
+    local ok, state = pcall(function()
+        return store:getState();
+    end);
+    if not ok or not state then
+        return nil;
+    end;
+    return state.clanClient and state.clanClient.data or nil;
 end;
 
 function framework:wait_for_descendant(Root, Name, Condition, Timeout)
@@ -1680,7 +1832,7 @@ do
     local function start_keepalive()
         stop_keepalive();
         keepalive_connection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
-            if stamina and getgenv().settings.infstamina and getgenv().stamenabled then
+            if stamina and settings.infstamina and stamenabled then
                 stamina:setStamina(stamina:getMaxStamina());
             else
                 stop_keepalive();
@@ -1705,24 +1857,32 @@ do
     end;
     local function apply_regen()
         if not stamina then return; end;
-        local wantedregen = getgenv().stamregentoggle and (getgenv().stamregenrate or originalregen) or originalregen;
-        local wanteddelay = getgenv().stamdelaystate and (getgenv().stamindelayamount or originaldelay) or originaldelay;
-        if stamina.gainPerSecond ~= wantedregen then stamina.gainPerSecond = wantedregen; end;
-        if stamina.gainDelay ~= wanteddelay then stamina.gainDelay = wanteddelay; end;
+        local wantedregen = stamregentoggle and (stamregenrate or originalregen) or originalregen;
+        local wanteddelay = stamdelaystate and (stamindelayamount or originaldelay) or originaldelay;
+        if stamina.gainPerSecond ~= wantedregen then
+            stamina.gainPerSecond = wantedregen;
+        end;
+        if stamina.gainDelay ~= wanteddelay then
+            stamina.gainDelay = wanteddelay;
+        end;
     end;
     local function restore_regen()
         if not stamina then return; end;
-        if stamina.gainPerSecond ~= originalregen then stamina.gainPerSecond = originalregen; end;
-        if stamina.gainDelay ~= originaldelay then stamina.gainDelay = originaldelay; end;
+        if stamina.gainPerSecond ~= originalregen then
+            stamina.gainPerSecond = originalregen;
+        end;
+        if stamina.gainDelay ~= originaldelay then
+            stamina.gainDelay = originaldelay;
+        end;
     end;
-    getgenv().stamina_sett_changed = function()
+    stamina_sett_changed = function()
         if not stamina then return; end;
-        if not getgenv().stamenabled then
+        if not stamenabled then
             remove_multiplier();
             restore_regen();
             return;
         end;
-        if getgenv().settings.infstamina then
+        if settings.infstamina then
             apply_multiplier();
         else
             remove_multiplier();
@@ -1731,9 +1891,20 @@ do
     end;
 end;
 
-local Map = workspace:FindFirstChild("Map")
-local hitboxes = {}
-getgenv().Config = getgenv().Config or { HitboxSize   = 20, ShowHitbox   = false, HitboxExpand = false, HBEPart      = "Torso", HitboxColor  = Color3.fromRGB(100, 83, 255), Wallbang     = false, always_head   = false, }
+local Map = workspace:FindFirstChild("Map");
+
+local hitboxes = {};
+
+Config = Config or {
+    HitboxSize = 20;
+    ShowHitbox = false;
+    HitboxExpand = false;
+    HBEPart = "Torso";
+    HitboxColor = Color3.fromRGB(100, 83, 255);
+    Wallbang = false;
+    always_head = false;
+};
+
 local R6BodyParts = {
     "Head",
     "Torso",
@@ -1766,7 +1937,11 @@ end;
 
 task_spawn(LPH_JIT_MAX(function()
     task.wait(0.3);
-    for _, v in PlayerCharacters:GetChildren() do if v ~= localplayer.Character then apply_hitbox(v); end; end;
+    for _, v in PlayerCharacters:GetChildren() do
+        if v ~= localplayer.Character then
+            apply_hitbox(v);
+        end;
+    end;
     for player in pairs(cachedplayers) do
         if player ~= localplayer then
             if player.Character then
@@ -1870,24 +2045,31 @@ end;
 local spin = Instance.new("Animation");
 spin.AnimationId = "rbxassetid://188632011";
 local Loaded = {};
-function framework:SpinLoop()
+function framework:spinning()
 	if spineabled and not Loaded[humanoid] then
 		Loaded[humanoid] = humanoid:LoadAnimation(spin);
 	elseif spineabled and Loaded[humanoid] then
 		Loaded[humanoid].Priority = Enum.AnimationPriority.Action4;
-		Loaded[humanoid].Looped = true
+		Loaded[humanoid].Looped = true;
 		Loaded[humanoid]:AdjustSpeed(spinspeed)
-		if not Loaded[humanoid].IsPlaying then Loaded[humanoid]:Play() end;
+		if not Loaded[humanoid].IsPlaying then
+            Loaded[humanoid]:Play();
+        end;
 	end;
-	if not spineabled and Loaded[humanoid] then Loaded[humanoid]:Stop(); end;
+	if not spineabled and Loaded[humanoid] then
+        Loaded[humanoid]:Stop();
+    end;
 end;
-mmisc:AddToggle("Killsay", { Text = "killsay";
+
+mmisc:AddToggle("Killsay", {
+    Text = "killsay";
     Default = false;
 	Callback = function(v)
-		getgenv().settings.killsay = v;
-	end; });
-do
+		settings.killsay = v;
+	end;
+});
 
+do
     local old = {};
     local old1 = modules.Name["RoduxStore"].store.dispatch;
     local function hook(modulename, funcname, newfunc)
@@ -1900,41 +2082,42 @@ do
     end;
 
 	hook("JumpHandlerClient", "getCanJump", function(oldfunc, ...)
-		if getgenv().settings.canalwaysjump then 
+		if settings.canalwaysjump then 
             return true;
         end;
 		return oldfunc(...);
 	end);
 
 	hook("ParryHandlerClient", "createStateToggler", function(oldfunc, ...)
-		if getgenv().settings.nps then
+		if settings.nps then
             return;
         end;
 		return oldfunc(...);
 	end);
 
 	hook("PlatformHandlerClient", "getPlatformType", function(oldfunc, ...)
-		if (getgenv().settings.devicespoofer and getgenv().settings.selecteddevice) then
-            return tostring(getgenv().settings.selecteddevice);
+		if (settings.devicespoofer and settings.selecteddevice) then
+            return tostring(settings.selecteddevice);
         end;
 		return oldfunc(...);
 	end);
 
     framework:argmodify("MeleeDamage", {}, LPH_NO_UPVALUES(function(n,...)
         local args = {...};
-        if getgenv().AntiParry and args[2] and args[2].Parent and not framework:check(args[2].Parent) then
-            local modes = Classes.AntiParryModes and Classes.AntiParryModes.Value or {
-                silent = true;
-            };
+        if AntiParry and args[2] and args[2].Parent and not framework:check(args[2].Parent) then
+            local modes = Classes.AntiParryModes and Classes.AntiParryModes.Value or {silent = true;};
             if modes.silent then
-                return {
-                    [1] = nil
-                };
+                return {[1] = nil};
             end;
         end;
         if Config.HitboxExpand and args[2] and args[2].Name == "hitbox" then
             local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
-            if part then return {[2] = part, [5] = cframe_new( (math_random() * math_random(-1, 1)) * (part.Size.X / 2), (math_random() * math_random(-1, 1)) * (part.Size.Y / 2), (math_random() * math_random(-1, 1)) * (part.Size.Z / 2) )} end
+            if part then 
+                return {
+                    [2] = part,
+                    [5] = cframe_new((math_random() * math_random(-1, 1)) * (part.Size.X / 2), (math_random() * math_random(-1, 1)) * (part.Size.Y / 2), (math_random() * math_random(-1, 1)) * (part.Size.Z / 2) )
+                };
+            end;
         end;
         return;
     end));
@@ -1958,14 +2141,12 @@ do
                 return {
                     [2] = part;
                     [4] = part.Position;
-                    [5] = cframe_angles(args[5]:ToEulerAnglesYXZ()) * cframe_new( (math_random() * math_random(-1, 1)) * (part.Size.X / 2), (math_random() * math_random(-1, 1)) * (part.Size.Y / 2), (math_random() * math_random(-1, 1)) * (part.Size.Z / 2) )
+                    [5] = cframe_angles(args[5]:ToEulerAnglesYXZ()) * cframe_new( (math_random() * math_random(-1, 1)) * (part.Size.X / 2), (math_random() * math_random(-1, 1)) * (part.Size.Y / 2), (math_random() * math_random(-1, 1)) * (part.Size.Z / 2))
                 };
             end;
         end;
-        if getgenv().settings.always_head then 
-            return {
-                [2] = args[2].Parent:FindFirstChild("Head");
-            };
+        if settings.always_head then 
+            return {[2] = args[2].Parent:FindFirstChild("Head")};
         end;
         return;
     end));
@@ -1974,12 +2155,16 @@ do
         local args = {...}
         if Config.HitboxExpand and args[2].Name == "hitbox" then
             local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
-            if part then return { [2] = part, [4] = part.Position, [5] = cframe_angles(args[5]:ToEulerAnglesYXZ()) * cframe_new( (math_random() * math_random(-1, 1)) * (part.Size.X / 2), (math_random() * math_random(-1, 1)) * (part.Size.Y / 2), (math_random() * math_random(-1, 1)) * (part.Size.Z / 2) ) } end
-        end
-        if getgenv().settings.always_head then
-            return {
-                [2] = args[2].Parent:FindFirstChild("Head")
-            };
+            if part then
+                return {
+                    [2] = part,
+                    [4] = part.Position,
+                    [5] = cframe_angles(args[5]:ToEulerAnglesYXZ()) * cframe_new( (math_random() * math_random(-1, 1)) * (part.Size.X / 2), (math_random() * math_random(-1, 1)) * (part.Size.Y / 2), (math_random() * math_random(-1, 1)) * (part.Size.Z / 2))
+                };
+            end;
+        end;
+        if settings.always_head then
+            return {[2] = args[2].Parent:FindFirstChild("Head")};
         end;
         return;
     end));
@@ -2015,56 +2200,70 @@ do
 	end);
 
 	framework:argmodify("GotHitRE", {}, function(n, ...)
-		if (not checkcaller() and getgenv().settings.nut) then
+		if (not checkcaller() and settings.nut) then
             return;
         end;
 		return;
 	end);
 
 	hook("ClaymoreTrapPartClient", "new", function(oldfunc, ...)
-		if getgenv().settings.nut then
+		if settings.nut then
             return;
         end;
 		return oldfunc(...);
 	end);
 
 	hook("OpenBearTrapPartClient", "new", function(oldfunc, ...)
-		if getgenv().settings.nut then return; end;
+		if settings.nut then
+            return;
+        end;
 		return oldfunc(...);
 	end);
 
 	hook("HealthHandler", "getRealHealth", function(oldfunc, ...)
-		if getgenv().settings.nhe then return math.huge; end;
+		if settings.nhe then
+            return math.huge;
+        end;
 		return oldfunc(...);
 	end);
 
 	hook("RangedWeaponClient", "cancelReload", function(oldfunc,...)
-		if getgenv().settings.nocancel then return; end;
+		if settings.nocancel then
+            return;
+        end;
 		return oldfunc(...);
 	end);
     
 	hook("InstancePropsHandler", "add", function(oldfunc, a, b, c, ...)
-		if getgenv().settings.ngpe and a ~= character and c == "GHOST_POTION" then return; end;
+		if settings.ngpe and a ~= character and c == "GHOST_POTION" then
+            return;
+        end;
 		return oldfunc(a, b, c, ...);
 	end);
 
 	hook("ItemAttachmentHandlerClient", "addItemAttachment", function(oldfunc, ...)
-        if getgenv().settings.hideweapon then return; end;
+        if settings.hideweapon then
+            return;
+        end;
         return oldfunc(...);
     end);
 
     hook("WaterHandler", "getBoundsIsInWater", function(oldfunc, ...)
-        if getgenv().settings.antiswim then return; end;
+        if settings.antiswim then
+            return;
+        end;
         return oldfunc(...);
     end);
 
 	local function nkb(funckey)
 		return function(oldfunc, self, ...)
 			local char = character or (localplayer and localplayer.Character);
-			if getgenv().settings.nkb and char then
+			if settings.nkb and char then
 				for i = 1, select("#", ...) do
 					local v = select(i, ...);
-					if typeof(v) == "Instance" and (v == char or v:IsDescendantOf(char)) then return; end;
+					if typeof(v) == "Instance" and (v == char or v:IsDescendantOf(char)) then
+                        return;
+                    end;
 				end;
 			end;
 			return oldfunc(self, ...)
@@ -2081,35 +2280,36 @@ do
 		local flashbomb = remotes.ApplyFlashbombEffect;
 		if flashbang and flashbang.Callbacks then
 			local old2 = flashbang.Callbacks[1];
-			flashbang.Callbacks = {
-                function(...)
-                    if getgenv().settings.noflash then
-                        return;
-                    end;
-                    return old2(...);
-				end;
-            };
+			flashbang.Callbacks = {function(...)
+                if settings.noflash then
+                    return;
+                end;
+                return old2(...);
+			end; };
 		end;
+
 		if flashbomb and flashbomb.Callbacks then
 			local old = flashbomb.Callbacks[1];
-			flashbomb.Callbacks = { 
-                function(...)
-                    if getgenv().settings.noflash then
-                        return;
-                    end;
-                    return old(...);
+			flashbomb.Callbacks = {function(...)
+                if settings.noflash then
+                    return;
                 end;
-            };
+                return old(...);
+            end; };
 		end;
 	end;
 
-    framework:argmodify("UpdateIsCrouching", { [1] = false }, function(Name, ...)
-        if getgenv().settings.nnt then return true; end;
+    framework:argmodify("UpdateIsCrouching", {[1] = false }, function(Name, ...)
+        if settings.nnt then
+            return true;
+        end;
         return nil;
     end);
 
-	framework:argmodify("UpdateHasVc", { [1] = true }, function(n, ...)
-		if getgenv().settings.vcenabled then return true; end;
+	framework:argmodify("UpdateHasVc", {[1] = true }, function(n, ...)
+		if settings.vcenabled then
+            return true;
+        end;
 		return;
 	end);
 
@@ -2119,9 +2319,9 @@ do
 	store.dispatch = LPH_JIT_MAX(function(table, sigma, ...)
 		if typeof(sigma) == "table" then
 			if sigma.type == "PARRY_IS_PARRIED_CHANGE" or sigma.type == "PARRY_IS_KNEELED_CHANGE" then
-				getgenv().parrystununtil = tick() + 0.35;
-				if getgenv().settings.voidonparry and (tick() - (getgenv().last_void_parry or 0) > 3) then
-					getgenv().last_void_parry = tick();
+				parrystununtil = tick() + 0.35;
+				if settings.voidonparry and (tick() - (last_void_parry or 0) > 3) then
+					last_void_parry = tick();
 					task_spawn(LPH_JIT_MAX(function()
 						pcall(function()
 							if Toggles.voidenabled.Value and Options.voidenabledkey:GetState() then
@@ -2137,13 +2337,13 @@ do
 								end));
 								task.delay(2, function()
 									void_lock = false;
-                                    setrunning("voidhidelogic", getgenv().voidenabled);
+                                    setrunning("voidhidelogic", voidenabled);
 								end);
 							end;
 						end);
 					end));
 				end;
-				if getgenv().settings.nps then
+				if settings.nps then
 					local JumpPower = modules.Name["JumpHandlerClient"];
 					local Walkspeed = modules.Name["WalkSpeedHandlerClient"];
 					local AutoRotate = modules.Name["AutoRotateHandlerClient"];
@@ -2155,9 +2355,11 @@ do
 							task.wait(0.1);
 							modules.Name["CoreGuiHandlerClient"].toggleBackpack(true);
 							modules.Name["CoreGuiHandlerClient"].toggleResetButton(true);
-							olddispatch(table, { type = "STUN_CLIENT_IS_STUNNED_COUNT_DECREMENT" });
+							olddispatch(table, {
+                                type = "STUN_CLIENT_IS_STUNNED_COUNT_DECREMENT"
+                            });
 							modules.Name["ToolHandlerClient"].reEquipToolSet();
-							modules.Name["EnvironmentCommunication"]:Fire( "ToggleAnimationKind", "idle", "parried", false, { playTransitionTime = 0.1, stopTransitionTime = 0.1 } );
+							modules.Name["EnvironmentCommunication"]:Fire( "ToggleAnimationKind", "idle", "parried", false, {playTransitionTime = 0.1, stopTransitionTime = 0.1 } );
 							WSContainer:removeFromZeroValueCount();
 							JPContainer:removeFromZeroValueCount();
 							ARContainer:add(1000);
@@ -2165,8 +2367,8 @@ do
 					end;
 				end;
 			elseif sigma.type == "PARRY_CLIENT_IS_AFTER_PARRY_STUNNED_CHANGE" then
-				getgenv().parrystununtil = tick() + 0.35;
-				if getgenv().settings.nps2 then
+				parrystununtil = tick() + 0.35;
+				if settings.nps2 then
 					local JumpPower = modules.Name["JumpHandlerClient"];
 					local Walkspeed = modules.Name["WalkSpeedHandlerClient"];
 					local AutoRotate = modules.Name["AutoRotateHandlerClient"];
@@ -2200,7 +2402,7 @@ end;
 
 network:BindEvents({
     CreateAntiCheatNotification = function(data)
-        if data.punishType == "rectified" and getgenv().settings.fno and humanoidrootpart then
+        if data.punishType == "rectified" and settings.fno and humanoidrootpart then
             repeat
                 local tool = localplayer.Backpack:GetChildren()[1];
                 if tool then
@@ -2233,19 +2435,21 @@ do
     local character = localplayer.Character or localplayer.CharacterAdded:Wait();
     local keybind_state = false;
     setthreadidentity(8);
-    local main_ranged = tabs.ranged:AddRightTabbox()
+    local main_ranged = tabs.ranged:AddRightTabbox();
     local silent_tab = main_ranged:AddTab("silent aim");
     local aimbot_tab = main_ranged:AddTab("aimbot");
     local ragebotsection = tabs.ranged:AddRightGroupbox("ragebot");
     setthreadidentity(7);
+
     players.PlayerRemoving:Connect(function(player)
         cachedplayers[player] = nil
         if locked_target == player then
             locked_target = nil;
         end;
     end);
-    aimbot_tab:AddToggle("aimbot_toggle", { 
-        Text = "aimbot",
+
+    aimbot_tab:AddToggle("aimbot_toggle", {
+        Text = "aimbot";
         Callback = function(value)
             if value then
                 aimbot_enabled = true;
@@ -2258,22 +2462,22 @@ do
                             local mouse = localplayer:GetMouse();
                             local fov_radius = Options.FOVCircleSize.Value or 500;
                             local hitpart_name = Options.AimbotHitPart.Value or "Head";
-                            local needsNewTarget = not locked_target or not locked_target.Character or not locked_target.Character:FindFirstChild("Humanoid") or locked_target.Character.Humanoid.Health <= 0;
-                            local keybindJustPressed = key_pressed and not keybind_state;
-                            if Toggles.AutoSelect.Value or needsNewTarget or (not Toggles.AutoSelect.Value and keybindJustPressed) then
+                            local needs_new_target = not locked_target or not locked_target.Character or not locked_target.Character:FindFirstChild("Humanoid") or locked_target.Character.Humanoid.Health <= 0;
+                            local keybind_just_pressed = key_pressed and not keybind_state;
+                            if Toggles.AutoSelect.Value or needs_new_target or (not Toggles.AutoSelect.Value and keybind_just_pressed) then
                                 local closest_target = nil;
                                 local closest_distance = math.huge;
                                 for player,_ in pairs(cachedplayers) do
                                     if player and player.Parent and player ~= localplayer and player.Character then
-                                        local humanoid = player.Character:FindFirstChild("Humanoid")
-                                        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+                                        local humanoid = player.Character:FindFirstChild("Humanoid");
+                                        local hrp = player.Character:FindFirstChild("HumanoidRootPart");
                                         local target_part = player.Character:FindFirstChild(hitpart_name)
                                         if humanoid and humanoid.Health > 0 and hrp and target_part then
-                                            local screen_position,on_screen = camera:WorldToViewportPoint(target_part.Position)
+                                            local screen_position, on_screen = camera:WorldToViewportPoint(target_part.Position);
                                             if on_screen then
-                                                local mousePos = vector2_new(mouse.X,mouse.Y)
-                                                local target_position = vector2_new(screen_position.X,screen_position.Y)
-                                                local distance = (mousePos - target_position).Magnitude;
+                                                local mouse_position = vector2_new(mouse.X,mouse.Y);
+                                                local target_position = vector2_new(screen_position.X,screen_position.Y);
+                                                local distance = (mouse_position - target_position).Magnitude;
                                                 if distance < fov_radius and distance < closest_distance then
                                                     closest_distance = distance;
                                                     closest_target = player;
@@ -2324,16 +2528,18 @@ do
         Text = "aimbot";
         NoUI = false;
     });
+
     silent_tab:AddToggle("SilentAim", {
         Default = false,
         Text = "silent aim";
     });
+
     silent_tab:AddToggle("stickyaim", {
         Text = "sticky aim";
         Default = false;
         Callback = function()
             local state = Toggles.stickyaim.Value and Options.stickbind:GetState();
-            getgenv().settings.stick = state;
+            settings.stick = state;
             if not state then
                 stick_target = nil;
             end;
@@ -2344,13 +2550,15 @@ do
         NoUi = true;
         Callback = function()
             local state = Toggles.stickyaim.Value and Options.stickbind:GetState();
-            getgenv().settings.stick = state;
+            settings.stick = state;
             if not state then
                 stick_target = nil;
             end;
         end;
     });
-    local silent_children = silent_tab:AddDependencyBox()
+
+    local silent_children = silent_tab:AddDependencyBox();
+
     silent_children:AddToggle("ShowFOV", {
         Text = "show fov";
         Default = false;
@@ -2358,6 +2566,7 @@ do
         Default = Color3.new(1, 1, 1);
         Title = "fov color";
     });
+
     silent_children:AddToggle("FOVCircleFill", {
         Text = "fill fov";
         Default = false;
@@ -2366,6 +2575,7 @@ do
         Title = "fill color";
         Transparency = 0.5;
     });
+
     silent_children:AddToggle("FOVCircleOutline", {
         Text = "outline";
         Default = false;
@@ -2373,6 +2583,7 @@ do
         Default = Color3.new(0, 0, 0);
         Title = "outline color";
     });
+
     silent_children:AddSlider("FOVCircleSmoothing", {
         Text = "smoothing";
         Default = 1;
@@ -2381,216 +2592,519 @@ do
         Rounding = 0;
         Compact = true;
     });
-    silent_children:AddSlider("FOVSize", { Text = "size";
+
+    silent_children:AddSlider("FOVSize", {
+        Text = "size";
         Default = 100;
         Min = 10;
         Max = 1000;
         Rounding = 0;
         Compact = true;
     });
-    silent_children:AddToggle("Resolver", { Text = "resolver", Default = false })
-    silent_children:AddToggle("avoidprojectiles", { Text = "avoid projectiles", Default = false })
-    silent_children:AddDropdown("ClosestType", { Text = "check type", Default = "Closest To Mouse", Values = {"Closest To Mouse", "Closest To Arrow", "Only Redirect To Target"} })
-    silent_children:AddDropdown("SilentHitPart", { Text = "hit part", Default = "Head", Values = {"Head", "Torso", "Random"} })
-    silent_children:AddSlider("SilentAimRange", { Text = "velocity", Default = 1, Min = 1, Max = 40, Rounding = 0, Compact = true, Suffix = " studs", Tooltip = "lower for more accuracy, higher for faster projectiles" })
-    silent_children:AddSlider("HitChance", { Text = "hit chance", Default = 100, Min = 1, Max = 100, Rounding = 0, Compact = true, Suffix = "%" })
-    silent_children:SetupDependencies({ { Toggles.SilentAim, true } })
-    ragebotsection:AddToggle("Ragebot", { Text = "ragebot";
+
+    silent_children:AddToggle("Resolver", {
+        Text = "resolver";
+        Default = false;
+    });
+
+    silent_children:AddToggle("avoidprojectiles", {
+        Text = "avoid projectiles";
+        Default = false;
+    });
+
+    silent_children:AddDropdown("ClosestType", {
+        Text = "check type";
+        Default = "Closest To Mouse";
+        Values = {"Closest To Mouse", "Closest To Arrow", "Only Redirect To Target"};
+    });
+
+    silent_children:AddDropdown("SilentHitPart", {
+        Text = "hit part";
+        Default = "Head";
+        Values = {"Head", "Torso", "Random"};
+    });
+
+    silent_children:AddSlider("SilentAimRange", {
+        Text = "velocity";
+        Default = 1;
+        Min = 1;
+        Max = 40;
+        Rounding = 0;
+        Compact = true;
+        Suffix = " studs";
+        Tooltip = "lower for more accuracy, higher for faster projectiles";
+    });
+
+    silent_children:AddSlider("HitChance", {
+        Text = "hit chance";
+        Default = 100;
+        Min = 1;
+        Max = 100;
+        Rounding = 0;
+        Compact = true;
+        Suffix = "%";
+    });
+
+    silent_children:SetupDependencies({
+        {Toggles.SilentAim, true; };
+    });
+
+    ragebotsection:AddToggle("Ragebot", {
+        Text = "ragebot";
         Default = false;
         Callback = function()
-            updatefeature("Ragebot", "ragebotkey", function(state) getgenv().settings.ragebot = state; end);
-        end; }):AddKeyPicker("ragebotkey", { Text = "ragebot";
+            updatefeature("Ragebot", "ragebotkey", function(state)
+                settings.ragebot = state;
+            end);
+        end;
+    }):AddKeyPicker("ragebotkey", {
+        Text = "ragebot";
         Default = "H";
         Callback = function()
-            updatefeature("Ragebot", "ragebotkey", function(state) getgenv().settings.ragebot = state; end);
-        end; });
+            updatefeature("Ragebot", "ragebotkey", function(state)
+                settings.ragebot = state;
+            end);
+        end;
+    });
+
+    ragebotsection:AddButton("reset ragebot", function()
+        local ranged, metadata = framework:get_ranged();
+        if ranged and metadata then
+            metadata.canShootBulletssss = true;
+            library:Notify("ragebot reset", 2);
+        else
+            library:Notify("no ranged weapon equipped to reset", 2);
+        end;
+    end);
+
     local ragebot_children = ragebotsection:AddDependencyBox();
-    ragebot_children:AddToggle("ShowRageBotTarget", { Text = "show ragebot target";
-        Default = false;
+
+    ragebot_children:AddToggle("ShowRageBotTarget", {
+    Text = "show ragebot target";
+    Default = false;
         Callback = function(value)
-            if not value then if RagebotHighlight then RagebotHighlight.Adornee = nil; end; end;
-        end; });
-    ragebot_children:AddToggle("safe_mode_ragebot", { Text = "<font color=\"#ff0000\">safe mode</font>", Default = false, Tooltip = "0.4 min to avoid meow/40"; })
+            if not value then
+                if ragebot_highlight then
+                    ragebot_highlight.Adornee = nil;
+                end;
+            end;
+        end;
+    });
+
+    ragebot_children:AddToggle("safe_mode_ragebot", {
+        Text = "<font color=\"#ff0000\">safe mode</font>",
+        Default = false, Tooltip = "0.4 min to avoid meow/40";
+    });
+
     local safe_mode_slider = ragebot_children:AddDependencyBox();
-    safe_mode_slider:AddSlider("safe_mode_slider1", { Text = "cooldown", Default = 1, Min = 0.1, Max = 3, Rounding = 1, Compact = true, Tooltip = "adds on to the cooldown"; })
-    ragebot_children:AddSlider("RagebotDist", { Text = "ragebot distance";
+
+    safe_mode_slider:AddSlider("safe_mode_slider1", {
+        Text = "cooldown";
+        Default = 1;
+        Min = 0.1;
+        Max = 3;
+        Rounding = 1;
+        Compact = true;
+        ooltip = "adds on to the cooldown";
+    })
+    ragebot_children:AddSlider("RagebotDist", {
+        Text = "ragebot distance";
         Default = 19;
         Min = 1;
         Max = 1000;
         Rounding = 0;
         Compact = true;
-        Suffix = " studs"; });
-    ragebot_children:SetupDependencies({ { Toggles.Ragebot, true }; });
-    safe_mode_slider:SetupDependencies({ { Toggles.safe_mode_ragebot, true }; });
-    aimbot_tab:AddToggle("AutoSelect", { Text = "auto select", Default = false })
-    aimbot_tab:AddToggle("Smooth", { Text = "smooth out", Default = false })
-    aimbot_tab:AddSlider("SmoothAmount", { Text = "smooth amount", Default = 0.15, Min = 0.01, Max = 1, Rounding = 2, Compact = true })
-    aimbot_tab:AddToggle("Prediction", { Text = "prediction", Default = false })
-    aimbot_tab:AddSlider("PredictionAmount", { Text = "prediction amount", Default = 0.13, Min = 0.01, Max = 0.5, Rounding = 2, Compact = true })
-    aimbot_tab:AddDropdown("AimbotHitPart", { Text = "hit part", Default = "Head", Values = {"Head", "Torso", "Random"} })
-    main:AddToggle("KillAura", { Text = "kill aura";
+        Suffix = " studs";
+    });
+
+    ragebot_children:SetupDependencies({
+        {Toggles.Ragebot, true };
+    });
+
+    safe_mode_slider:SetupDependencies({
+        {Toggles.safe_mode_ragebot, true };
+    });
+
+    aimbot_tab:AddToggle("AutoSelect", {
+        Text = "auto select";
+        Default = false;
+    });
+
+    aimbot_tab:AddToggle("Smooth", {
+        Text = "smooth out";
+        Default = false;
+    });
+
+    aimbot_tab:AddSlider("SmoothAmount", {
+        Text = "smooth amount";
+        Default = 0.15;
+        Min = 0.01;
+        Max = 1;
+        Rounding = 2;
+        Compact = true;
+    });
+
+    aimbot_tab:AddToggle("Prediction", {
+        Text = "prediction";
+        Default = false;
+    });
+
+    aimbot_tab:AddSlider("PredictionAmount", {
+        Text = "prediction amount";
+        Default = 0.13;
+        Min = 0.01;
+        Max = 0.5;
+        Rounding = 2;
+        Compact = true;
+    });
+
+    aimbot_tab:AddDropdown("AimbotHitPart", {
+        Text = "hit part";
+        Default = "Head";
+        Values = {"Head", "Torso", "Random"};
+    });
+
+    main:AddToggle("KillAura", {
+        Text = "kill aura";
         Default = false;
         Callback = function()
-            updatefeature("KillAura", "killaurabind", function(state) getgenv().settings.killaura = state; end);
-        end; }):AddKeyPicker("killaurabind", { Text = "kill aura";
+            updatefeature("KillAura", "killaurabind", function(state)
+                settings.killaura = state;
+            end);
+        end;
+    }):AddKeyPicker("killaurabind", {
+        Text = "kill aura";
         Default = "B";
         NoUi = true;
         Callback = function()
-            updatefeature("KillAura", "killaurabind", function(state) getgenv().settings.killaura = state; end);
-        end; });
-    main:AddSlider("KillAuraRange", { Text = "kill aura range";
+            updatefeature("KillAura", "killaurabind", function(state)
+                settings.killaura = state;
+            end);
+        end;
+    });
+
+    main:AddSlider("KillAuraRange", {
+        Text = "kill aura range";
         Default = 15;
         Min = 1;
         Max = 15;
         Rounding = 0;
-        Compact = true; });
-    main:AddDropdown("KillAuraType", { Values = {"single person", "multiple people"};
+        Compact = true;
+    });
+
+    main:AddDropdown("KillAuraType", {
+        Values = {"single person", "multiple people"};
         Default = "single person";
         Multi = false;
-        Text = "kill aura type"; });
-    main:AddToggle("PlayAnimation", { Text = "play animation";
-        Default = false; });
-    strafe_tab:AddToggle("tpenemy", { Text = "strafe enemy";
+        Text = "kill aura type";
+    });
+
+    main:AddToggle("PlayAnimation", {
+        Text = "play animation";
+        Default = false;
+    });
+
+
+
+    strafe_tab:AddToggle("tpenemy", {
+        Text = "strafe enemy";
         Default = false;
         Callback = function()
-            updatefeature("tpenemy", "tpenemybind", function(state) getgenv().settings.tpenemy = state; end);
-        end; }):AddKeyPicker("tpenemybind", { Text = "strafe enemy";
+            updatefeature("tpenemy", "tpenemybind", function(state)
+                settings.tpenemy = state;
+            end);
+        end;
+    }):AddKeyPicker("tpenemybind", {
+        Text = "strafe enemy";
         Default = "T";
         NoUi = true;
         Callback = function()
-            updatefeature("tpenemy", "tpenemybind", function(state) getgenv().settings.tpenemy = state; end);
-        end; });
-    local strafe_dep = strafe_tab:AddDependencyBox()
-    strafe_dep:SetupDependencies({ { Toggles.tpenemy, true } })
+            updatefeature("tpenemy", "tpenemybind", function(state)
+                settings.tpenemy = state;
+            end);
+        end;
+    });
 
-    strafe_dep:AddToggle("strafe_look", { Text = "look"; Default = false; });
-    strafe_dep:AddToggle("strafe_random_toggle", { Text = "random"; Default = false; });
 
-    local orbit_dep = strafe_dep:AddDependencyBox()
+
+    local strafe_dep = strafe_tab:AddDependencyBox();
+
+    strafe_dep:SetupDependencies({
+        {Toggles.tpenemy, true; };
+    });
+
+    strafe_dep:AddToggle("strafe_look", {
+        Text = "look";
+        Default = false;
+    });
+
+    strafe_dep:AddToggle("strafe_random_toggle", {
+        Text = "random";
+        Default = false;
+    });
+
+    local orbit_dep = strafe_dep:AddDependencyBox();
+
     orbit_dep:SetupDependencies({
-        { Toggles.tpenemy, true },
-        { Toggles.strafe_random_toggle, false }
-    })
-    orbit_dep:AddSlider("orbit_radius_x", { Text = "range"; Default = 5; Min = 1; Max = 20; Rounding = 0; Compact = true; });
-    orbit_dep:AddSlider("orbit_height_y", { Text = "height"; Default = 0; Min = -10; Max = 10; Rounding = 0; Compact = true; });
+        {Toggles.tpenemy, true; };
+        {Toggles.strafe_random_toggle, false; };
+    });
+
+    orbit_dep:AddSlider("orbit_radius_x", {
+        Text = "range";
+        Default = 5;
+        Min = 1;
+        Max = 20;
+        Rounding = 0;
+        Compact = true;
+    });
+
+    orbit_dep:AddSlider("orbit_height_y", {
+        Text = "height";
+        Default = 0;
+        Min = -10;
+        Max = 10;
+        Rounding = 0;
+        Compact = true;
+    });
 
     local random_dep = strafe_dep:AddDependencyBox();
+
     random_dep:SetupDependencies({
-        { Toggles.tpenemy, true },
-        { Toggles.strafe_random_toggle, true }
-    })
-    random_dep:AddSlider("random_range", { Text = "range"; Default = 5; Min = 1; Max = 20; Rounding = 0; Compact = true; });
-
-    strafe_dep:AddSlider("strafe_speed", { Text = "speed"; Default = 10; Min = 1; Max = 100; Rounding = 0; Compact = true; Callback = function(Value)
-        getgenv().tpspeed = Value;
-    end; });
-
-    strafe_dep:AddToggle("strafe_prediction", { Text = "prediction"; Default = false; Tooltip = "uses weld exploit if disabled"; });
-
-    local pred_dep = strafe_dep:AddDependencyBox()
-    pred_dep:SetupDependencies({
-        { Toggles.tpenemy, true; };
-        { Toggles.strafe_prediction, true };
+        {Toggles.tpenemy, true; };
+        {Toggles.strafe_random_toggle, true; };
     });
-    pred_dep:AddSlider("strafe_pred_base", { Text = "base"; Default = 0; Min = 0; Max = 2; Rounding = 2; Compact = true; Tooltip = "predicts Y axis"; });
-    pred_dep:AddSlider("strafe_pred_mult", { Text = "multiplier"; Default = 1; Min = 0; Max = 8; Rounding = 1; Compact = true; });
+
+    random_dep:AddSlider("random_range", {
+        Text = "range";
+        Default = 5;
+        Min = 1;
+        Max = 20;
+        Rounding = 0;
+        Compact = true;
+    });
+
+    strafe_dep:AddSlider("strafe_speed", {
+        Text = "speed";
+        Default = 10;
+        Min = 1;
+        Max = 100;
+        Rounding = 0;
+        Compact = true;
+        Callback = function(Value)
+            tpspeed = Value;
+        end;
+    });
+
+    strafe_dep:AddToggle("strafe_prediction", {
+        Text = "prediction";
+        Default = false;
+        Tooltip = "uses weld exploit if disabled";
+    });
+
+    local pred_dep = strafe_dep:AddDependencyBox();
+
+    pred_dep:SetupDependencies({
+        {Toggles.tpenemy, true; };
+        {Toggles.strafe_prediction, true };
+    });
+
+    pred_dep:AddSlider("strafe_pred_base", {
+        Text = "base";
+        Default = 0;
+        Min = 0;
+        Max = 2;
+        Rounding = 2;
+        Compact = true;
+        Tooltip = "predicts Y axis";
+    });
+
+    pred_dep:AddSlider("strafe_pred_mult", {
+        Text = "multiplier";
+        Default = 1;
+        Min = 0;
+        Max = 8;
+        Rounding = 1;
+        Compact = true;
+    });
 end;
 
-main:AddToggle("spectateneemy", { Text = "spectate enemy";
+main:AddToggle("spectateneemy", {
+    Text = "spectate enemy";
 	Default = false;
 	Callback = function()
-		updatefeature("spectateneemy", "spectateneemybind", function(state) getgenv().spectateneemy = state; end);
-	end; }):AddKeyPicker("spectateneemybind", { Text = "spectate enemy";
+		updatefeature("spectateneemy", "spectateneemybind", function(state)
+            spectateneemy = state;
+        end);
+	end;
+}):AddKeyPicker("spectateneemybind", {
+    Text = "spectate enemy";
 	Default = "N";
 	NoUi = true;
 	Callback = function()
-		updatefeature("spectateneemy", "spectateneemybind", function(state) getgenv().spectateneemy = state; end);
-	end; });
-main:AddToggle("RageAutoParry", { Text = "rage auto parry";
+		updatefeature("spectateneemy", "spectateneemybind", function(state)
+            spectateneemy = state;
+        end);
+	end;
+});
+
+main:AddToggle("RageAutoParry", {
+    Text = "rage auto parry";
     Default = false;
     Tooltip = "Bypasses all restrictions (range, angle, chance)";
     Callback = function(value)
         Classes.RageAutoParry.Value = value;
-    end });
-local function waitUntilTimeout(signal, timeout)
-	if not signal then return "Signal creation failed"; end;
-	local result = nil
-    local timedOut = false
-    local connection
+    end;
+});
+
+local function yield_timeout(signal, timeout)
+	if not signal then return
+        "Signal creation failed";
+    end;
+	local result = nil;
+    local timed_out = false;
+    local connection;
     connection = signal:Connect(function(...)
-        result = {...}
-        connection:Disconnect()
-    end)
+        result = {...};
+        connection:Disconnect();
+    end);
     task.delay(timeout, function()
         if connection.Connected then
-            timedOut = true
-            connection:Disconnect()
-        end
-    end)
-    repeat task.wait() until result or timedOut
-    if timedOut then return "Timed out" end
+            timed_out = true;
+            connection:Disconnect();
+        end;
+    end);
+    repeat task.wait(); until result or timed_out;
+    if timed_out then
+        return "Timed out";
+    end;
 	return unpack(result);
 end;
-gethitpart = function(character)
-	local head = character:FindFirstChild("Head");
-	if head then return head; end;
-	local hrp = character:FindFirstChild("Torso");
-	if hrp then return hrp; end;
-end;
-meleehitboxes = function(metadata)
-    if not metadata then return nil; end;
-    local success, result;
-    local retries = 0;
-    repeat
-        success, result = pcall(function() return metadata.meleeHitboxes; end)
-        if not success or result == nil then
-            task.wait(0.05);
-            retries = retries + 1;
-        end;
-    until (success and result) or retries > 10;
-    return result;
-end;
-effectsjunk = workspace:WaitForChild("EffectsJunk")
-map = workspace:FindFirstChild("Map")
-processed = {}
-targets = {}
-function safeAdd(obj) if obj then targets[obj] = true end end
-safeAdd(effectsjunk:FindFirstChild("OpenBearTrap"))
-safeAdd(effectsjunk:FindFirstChild("utility5Proxy"))
-safeAdd(effectsjunk:FindFirstChild("utility7Proxy"))
-safeAdd(effectsjunk:FindFirstChild("utility10Proxy"))
-partCache = effectsjunk:FindFirstChild("PartCache")
-if partCache then
-    safeAdd(partCache:FindFirstChild("Kunai"))
-    safeAdd(partCache:FindFirstChild("Arrow"))
-    safeAdd(partCache:FindFirstChild("Shuriken"))
-end
-if map then safeAdd(map:FindFirstChild("PlacedClaymore")) end
-function shouldDisable(part)
-    if part:GetAttribute("DamagePerSecond") then return true end
-    for root in pairs(targets) do if root and part:IsDescendantOf(root) then return true end end
-    return false
-end
-processPart = LPH_JIT_MAX(function(part)
-    if not getgenv().settings.nut then return end;
-    if processed[part] then return end;
-    if not part:IsA("BasePart") then processed[part] = true; return end;
-    processed[part] = true;
-    if not shouldDisable(part) then return end;
-    part.CanCollide = false;
-    part.CanTouch = false;
-    part.CanQuery = false;
-    if part:GetAttribute("DamagePerSecond") then part:SetAttribute("DamagePerSecond", nil) end;
-end);
-for _, obj in ipairs(effectsjunk:GetDescendants()) do processPart(obj); end;
-if map then for _, obj in ipairs(map:GetDescendants()) do processPart(obj); end; end;
-effectsjunk.DescendantAdded:Connect(processPart)
-if map then map.DescendantAdded:Connect(processPart); end;
+
 do
+    local effectsjunk = workspace:WaitForChild("EffectsJunk");
+    local map = workspace:FindFirstChild("Map");
+    local processed = {};
+    local targets = {};
+
+    function safe_add(obj)
+        if obj then 
+            targets[obj] = true;
+        end;
+    end;
+
+    safe_add(effectsjunk:FindFirstChild("OpenBearTrap"));
+    safe_add(effectsjunk:FindFirstChild("utility5Proxy"));
+    safe_add(effectsjunk:FindFirstChild("utility7Proxy"));
+    safe_add(effectsjunk:FindFirstChild("utility10Proxy"));
+    local pars_cache = effectsjunk:FindFirstChild("PartCache");
+
+    if pars_cache then
+        safe_add(pars_cache:FindFirstChild("Kunai"));
+        safe_add(pars_cache:FindFirstChild("Arrow"));
+        safe_add(pars_cache:FindFirstChild("Shuriken"));
+    end;
+
+    if map then
+        safe_add(map:FindFirstChild("PlacedClaymore"));
+    end;
+
+    function should_disable(part)
+        if part:GetAttribute("DamagePerSecond") then
+            return true;
+        end;
+        for root in pairs(targets) do 
+            if root and part:IsDescendantOf(root) then
+                return true;
+            end;
+        end;
+        return false;
+    end;
+
+    local process_part = LPH_JIT_MAX(function(part)
+        if not settings.nut then return; end;
+        if processed[part] then return; end;
+        if not part:IsA("BasePart") then processed[part] = true; return end;
+        processed[part] = true;
+        if not should_disable(part) then return; end;
+        part.CanCollide = false;
+        part.CanTouch = false;
+        part.CanQuery = false;
+        if part:GetAttribute("DamagePerSecond") then
+            part:SetAttribute("DamagePerSecond", nil);
+        end;
+    end);
+
+    for _, obj in ipairs(effectsjunk:GetDescendants()) do
+        process_part(obj);
+    end;
+
+    if map then
+        for _, obj in ipairs(map:GetDescendants()) do
+            process_part(obj);
+        end;
+    end;
+
+    effectsjunk.DescendantAdded:Connect(process_part)
+
+    if map then
+        map.DescendantAdded:Connect(process_part);
+    end;
+end;
+
+do
+	local ping_unstable_notified = false;
+	local ping_frozen = false;
+	local last_ping_value = nil;
+	local last_ping_change_time = tick();
+	local pingfreeze_threshold = 3;
+	local pinghigh_threshold = 700;
+
+	local function get_ping()
+		return game:GetService("Stats"):WaitForChild("Network"):WaitForChild("ServerStatsItem")["Data Ping"]:GetValue();
+	end;
+
+	local function check_ping_status()
+		local current_ping = get_ping();
+		local now = tick();
+		if current_ping ~= last_ping_value then
+			last_ping_value = current_ping;
+			last_ping_change_time = now;
+			if ping_frozen then
+				ping_frozen = false;
+				library:Notify("ping has unfrozen, kill aura resumed", 3);
+			end;
+		else
+			if not ping_frozen and (now - last_ping_change_time) >= pingfreeze_threshold then
+				ping_frozen = true;
+				ping_unstable_notified = false;
+				library:Notify("ping is frozen, kill aura paused", 3);
+			end;
+		end;
+		if not ping_frozen then
+			if current_ping >= pinghigh_threshold then
+				if not ping_unstable_notified then
+					ping_unstable_notified = true;
+					library:Notify("ping is unstable, kill aura may not work properly", 3);
+				end;
+				return false;
+			else
+				if ping_unstable_notified then
+					ping_unstable_notified = false;
+					library:Notify("ping stabilized, kill aura resumed", 3);
+				end;
+			end;
+		end;
+		if ping_frozen then
+            return false;
+        end;
+		return true;
+	end;
+
 	function framework:get_closest_ka(max_distance, Priority, check_function)
 		local default_check = function(Player)
 			local Character = Player.Character;
-			if Character and Character:FindFirstChild("HumanoidRootPart") and Character:FindFirstChild("Humanoid") and Character.Humanoid.Health > 0 and not Character:GetAttribute("IsRagdolled") and not Character:GetAttribute("Downed") and not whitelisted(Player) then
+			if Character and Character:FindFirstChild("HumanoidRootPart") and Character:FindFirstChild("Humanoid") and Character.Humanoid.Health > 0 and not Character:GetAttribute("IsRagdolled") and not Character:GetAttribute("Downed") then
                 return true;
             end;
 			return false;
@@ -2604,17 +3118,19 @@ do
 			local success, result = pcall(check_function, player)
 			if not success or not result then continue; end;
 			if framework:in_menu(player) then continue; end;
+            if should_skip_by_whitelist(player, "kill aura") then continue; end;
 			local Character = player.Character;
 			local HRP = Character and Character:FindFirstChild("HumanoidRootPart");
 			local Humanoid = Character and Character:FindFirstChild("Humanoid");
 			if not HRP or not Humanoid then continue; end;
 			local magnitude = (HRP.Position - humanoidrootpart.Position).Magnitude;
 			if magnitude <= max_distance then 
-                ClosestPlayers[player] = { Distance = magnitude, Health = Humanoid.Health };
+                ClosestPlayers[player] = {Distance = magnitude, Health = Humanoid.Health };
             end;
 		end;
 		return ClosestPlayers;
 	end;
+
 	framework.Check = function(self, Character)
 		local success, result = pcall(function()
 			if not Character or table.find(ParryingCharacters, Character) then return false; end;
@@ -2644,12 +3160,14 @@ do
         end;
 		return result
 	end;
+
 	gethitpart = function(character)
 		local head = character:FindFirstChild("Head");
 		if head then return head; end;
 		local hrp = character:FindFirstChild("Torso");
 		if hrp then return hrp; end;
 	end;
+
 	meleehitboxes = function(metadata)
 		if not metadata then return nil; end;
 		local success, result;
@@ -2663,20 +3181,23 @@ do
 		until (success and result) or retries > 10;
 		return result;
 	end;
-	local KA_INTERVAL = 0.08;
-	local lastKATick = 0;
+
+	local killaura_interval = 0.08;
+	local kill_aura_tick = 0;
 	local cachedkaweapon = nil;
 	local cachedkametadata = nil;
 	local kaweapontick = 0;
+
 	framework:BindToRenderStep(LPH_JIT_MAX(function()
-		if not getgenv().settings.killaura or KADebounce then return; end;
+		if not settings.killaura or KADebounce then return; end;
+		if not check_ping_status() then return; end;
 		local mychar = localplayer.Character;
 		if not mychar then return; end;
 		local myhrp = mychar:FindFirstChild("HumanoidRootPart");
 		if not myhrp then return; end;
 		local now = tick();
-		if now - lastKATick < KA_INTERVAL then return; end;
-		lastKATick = now;
+		if now - kill_aura_tick < killaura_interval then return; end;
+		kill_aura_tick = now;
 		if now - kaweapontick > 0.5 then
 			local w, m = framework:get_weapon();
 			if w ~= cachedkaweapon then
@@ -2693,8 +3214,8 @@ do
 		local cooldown = itemConfig.cooldown;
 		local threshold = 0.765;
 		local buffer = (1 - threshold) * cooldown;
-		local lastSlash = metadata._lastSlashTick or 0;
-		if (now - lastSlash) < (cooldown - buffer) then return; end;
+		local last_slash = metadata._lastSlashTick or 0;
+		if (now - last_slash) < (cooldown - buffer) then return; end;
 		local karange = Classes.KillAuraRange.Value;
 		local closest = framework:get_closest_ka(karange, true);
 		if not closest or not next(closest) then return; end;
@@ -2702,11 +3223,11 @@ do
 		if not Classes.PlayAnimation.Value then
 			local hitboxes = meleehitboxes(metadata);
 			if not hitboxes then KADebounce = false; return; end;
-			local myChar = localplayer.Character;
-			local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart");
-			if not myHRP then KADebounce = false; return; end;
-			local slashIndex = math_random(1, #itemConfig.slashMetadata);
-			network:FireServer("MeleeSwing", weapon, slashIndex);
+			local my_character = localplayer.Character;
+			local my_hrp = my_character and my_character:FindFirstChild("HumanoidRootPart");
+			if not my_hrp then KADebounce = false; return; end;
+			local slash_index = math_random(1, #itemConfig.slashMetadata);
+			network:FireServer("MeleeSwing", weapon, slash_index);
 			metadata._lastSlashTick = now;
 			local issingle = Classes.KillAuraType.Value == "single person";
 			task.defer(LPH_JIT_MAX(function()
@@ -2720,7 +3241,17 @@ do
 							if not session or session:getState().parry.isParrying then continue; end;
 							local hitpart = gethitpart(character);
 							if not hitpart then continue; end;
-							network:FireServer("MeleeDamage", weapon, hitpart, i, hitpart.Position, hitpart.CFrame:ToObjectSpace(CFrame.new(hitpart.Position)), myHRP.CFrame.LookVector, Vector3.zero, Vector3.yAxis, now - metadata._lastSlashTick);
+							network:FireServer("MeleeDamage",
+                                weapon,
+                                hitpart,
+                                i,
+                                hitpart.Position,
+                                hitpart.CFrame:ToObjectSpace(CFrame.new(hitpart.Position)),
+                                my_hrp.CFrame.LookVector,
+                                Vector3.zero,
+                                Vector3.yAxis,
+                                now - metadata._lastSlashTick
+                            );
 							if issingle then break; end;
 						end;
 						break;
@@ -2733,7 +3264,7 @@ do
 				metadata._activateSignal:Fire();
 				local anim = metadata.animations.slashes[metadata._currSlashCount];
 				local success, response = pcall(function()
-                    return waitUntilTimeout(anim:GetMarkerReachedSignal("startHitDetection"), 2);
+                    return yield_timeout(anim:GetMarkerReachedSignal("startHitDetection"), 2);
                 end);
 				if success and response ~= "Timed out" and response ~= "Wait failed" and response ~= "Signal creation failed" then
 					for i, v in metadata.meleeHitboxes do
@@ -2742,19 +3273,19 @@ do
 							if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("Head") or data.Health == 0 or not framework:Check(targetPlayer.Character) then continue; end;
 							if table.find(whitelist, targetPlayer.Name) then continue; end;
 							local character = targetPlayer.Character;
-							local sessionData = framework:GetSessionData(targetPlayer);
-							if sessionData and not sessionData:getState().parry.isParrying then
+							local session_data = framework:GetSessionData(targetPlayer);
+							if session_data and not session_data:getState().parry.isParrying then
 								local head = character:FindFirstChild("Head");
 								local targetHum = character:FindFirstChildOfClass("Humanoid");
 								if head and targetHum then
-									v.OnHit:Fire( head, targetHum, { Distance = 1, Instance = head, Material = Enum.Material.SmoothPlastic, Position = head.Position, Normal = Vector3.yAxis, }, head.Position, head.Position );
-									local baseDamage = itemConfig.damage or itemConfig.baseDamage or 0
-									local finalDamage = baseDamage
+									v.OnHit:Fire( head, targetHum, {Distance = 1, Instance = head, Material = Enum.Material.SmoothPlastic, Position = head.Position, Normal = Vector3.yAxis, }, head.Position, head.Position );
+									local base_damage = itemConfig.damage or itemConfig.base_damage or 0
+									local final_damage = base_damage
 									if head.Name == "Head" then
 										local mult = itemConfig.headshotMultiplier or 1.75
-										finalDamage = finalDamage * mult
+										final_damage = final_damage * mult
 									end
-									OnHit(targetPlayer, head, finalDamage, "Melee")
+									OnHit(targetPlayer, head, final_damage, "Melee")
 								end;
 								if Classes.KillAuraType.Value == "single person" then break; end;
 							end;
@@ -2766,9 +3297,10 @@ do
 		end;
 	end));
 end;
+
 framework:BindToRenderStep(LPH_JIT_MAX(function()
-	if not getgenv().settings.autoequip and not getgenv().settings.BeartrapEnemy and not getgenv().settings.AutoAttachC4 and not getgenv().settings.AutoDetonateC4 then return; end;
-	if not weapon and getgenv().settings.autoequip then
+	if not settings.autoequip and not settings.BeartrapEnemy and not settings.AutoAttachC4 and not settings.AutoDetonateC4 then return; end;
+	if not weapon and settings.autoequip then
 		local Character = localplayer.Character;
 		for _, v in pairs(localplayer.Backpack:GetChildren()) do
 			if v:IsA("Tool") and (v:FindFirstChild("Hitboxes") or v:GetAttribute("IsRangedWeapon")) then
@@ -2786,56 +3318,60 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
 		if next(Closest) then
 			local TargetPlayer = players:FindFirstChild(next(Closest));
 			if TargetPlayer and TargetPlayer.Character and TargetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-				if getgenv().settings.BeartrapEnemy and CurrentTool and CurrentTool.Name == "Bear Trap" then
-						local target_root = TargetPlayer.Character:FindFirstChild("HumanoidRootPart")
-						if target_root then network:InvokeServer( "PlaceBearTrap", CurrentTool, target_root.CFrame * cframe_new(0, -1, 0) ); end;
+				if settings.BeartrapEnemy and CurrentTool and CurrentTool.Name == "Bear Trap" then
+                    local target_root = TargetPlayer.Character:FindFirstChild("HumanoidRootPart")
+					if target_root then
+                        network:InvokeServer("PlaceBearTrap", CurrentTool, target_root.CFrame * cframe_new(0, -1, 0) );
+                    end;
 				end;
-				if getgenv().settings.AutoAttachC4 and CurrentTool and CurrentTool.Name == "C4" then
+				if settings.AutoAttachC4 and CurrentTool and CurrentTool.Name == "C4" then
 					local Head = TargetPlayer.Character:FindFirstChild("Head");
 					if Head then
 						local Distance = (HumanoidRootPart.Position - Head.Position).Magnitude;
 						if Distance <= 15 then
-							local finalPos = Head.Position + (Head.Velocity * (Distance / 100));
-							pcall(function() network:InvokeServer("ReplicateThrowable", CurrentTool, finalPos, finalPos); end);
+							local final_posiiton = Head.Position + (Head.Velocity * (Distance / 100));
+							pcall(function() network:InvokeServer("ReplicateThrowable", CurrentTool, final_posiiton, final_posiiton); end);
 						end;
 					end;
 				end;
 			end;
 		end;
-		if getgenv().settings.AutoDetonateC4 and CurrentTool and CurrentTool.Name == "C4" then
+		if settings.AutoDetonateC4 and CurrentTool and CurrentTool.Name == "C4" then
 			pcall(function() network:FireServer("DetonateC4", CurrentTool); end);
 		end;
 	end;
 end));
+
 do
-    lastFastRespawn = 0
-    lastLoopSpawn = 0
-    lastAR = 0
-    FASTRESPAWN_DELAY = 0.5
-    LOOPSPAWN_DELAY = 1
-    AR_DELAY = 0.5
+    local fast_res = 0
+    local last_loopspawn = 0
+    local last_autorevive = 0
+    local fastrespawn_delay = 0.5
+    local loopspawn_delay = 1
+    local autorev_delay = 0.5
     local datahandler = modules.Name["DataHandler"];
+
     runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
         local now = tick();
-        local s = getgenv().settings;
+        local s = settings;
         if s.fastrespawn and humanoid.Health == 0 then
-            if now - lastFastRespawn >= FASTRESPAWN_DELAY then
-                lastFastRespawn = now;
+            if now - fast_res >= fastrespawn_delay then
+                fast_res = now;
                 network:FireServer("StartFastRespawn");
                 network:InvokeServer("CompleteFastRespawn");
             end;
         end;
         if s.loopspawn and framework:in_menu(localplayer) then
-            if now - lastLoopSpawn >= LOOPSPAWN_DELAY then
-                lastLoopSpawn = now;
+            if now - last_loopspawn >= loopspawn_delay then
+                last_loopspawn = now;
                 network:InvokeServer("SpawnCharacter");
             end;
         end;
         if s.ar then
             local store =  datahandler.getSessionDataRoduxStoreForPlayer(localplayer);
             if store and store:getState().down.isDowned then
-                if now - lastAR >= AR_DELAY then
-                    lastAR = now;
+                if now - last_autorevive >= autorev_delay then
+                    last_autorevive = now;
                     network:FireServer("SelfReviveStart");
                     network:FireServer("SelfRevive");
                 end;
@@ -2850,6 +3386,7 @@ do
             end;
         end;
     end));
+
     local stompthrottle = 0;
     local glorythrottle = 0;
     local cachedstomptool = nil;
@@ -2857,8 +3394,9 @@ do
     local stomptoolttick = 0;
     local cachedglorytool = nil;
     local glorytoolttick = 0;
+
     framework:BindToRenderStep(LPH_JIT_MAX(function()
-        local s = getgenv().settings;
+        local s = settings;
         if not s.autostompshove and not s.autoglory and s.loopkillall then return; end;
         local now = tick();
         if s.autostompshove and now - stompthrottle >= 0.05 then
@@ -2893,7 +3431,7 @@ do
                                         setthreadidentity(2);
                                         metadata:slash();
                                         setthreadidentity(8);
-                                        v.OnHit:Fire(thead, thum, { Distance = 1, Instance = thead, Material = Enum.Material.SmoothPlastic, Position = thead.Position, Normal = Vector3.yAxis, }, thead.Position, thead.Position);
+                                        v.OnHit:Fire(thead, thum, {Distance = 1, Instance = thead, Material = Enum.Material.SmoothPlastic, Position = thead.Position, Normal = Vector3.yAxis, }, thead.Position, thead.Position);
                                     end;
                                 end;
                                 break;
@@ -2903,6 +3441,7 @@ do
                 end;
             end;
         end;
+
         if s.autoglory and now - glorythrottle >= math.max(0.05, s.glorydelay or 0) then
             glorythrottle = now;
             local closest = framework:get_closest(s.gloryrange, true);
@@ -2919,125 +3458,21 @@ do
         end;
     end), nil, Enum.RenderPriority.Character);
 end;
-local StartSnowveilEffect = LPH_JIT_MAX(function()
-    if SnowveilActive then return end
-    local char = localplayer.Character
-    local root = char and char:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-    SnowveilActive = true
-    library:Notify("S N O W V E I L initiated.", 3)
-    local emotionalEffects = {}
-    local function CreateEffect(className, name, props)
-        local effect = Instance.new(className)
-        effect.Name = "Snowveil_" .. name
-        for k, v in pairs(props) do effect[k] = v end
-        effect.Parent = game:GetService("Lighting")
-        table.insert(emotionalEffects, effect)
-        return effect
-    end
-    local success, err = pcall(function()
-        CreateEffect("ColorCorrectionEffect", "BW", {Saturation = -1, Contrast = 0.3})
-        CreateEffect("BlurEffect", "Blur", {Size = 8})
-        local oldTime = game:GetService("Lighting").ClockTime
-        game:GetService("Lighting").ClockTime = 0
-        local staticSound = Instance.new("Sound")
-        staticSound.Name = "SnowveilStatic"
-        staticSound.SoundId = "rbxassetid://135167757310626"
-        staticSound.Looped = false
-        staticSound.Volume = 0.8
-        staticSound.Parent = game:GetService("SoundService")
-        staticSound:Play()
-        table.insert(emotionalEffects, staticSound)
-        root.Anchored = true
-        local userId = 5251233245
-        local npc = game.Players:CreateHumanoidModelFromUserId(userId)
-        npc.Name = "snowveil"
-        npc.Parent = workspace
-        local noclipConn; noclipConn = runservice.Stepped:Connect(LPH_JIT_MAX(function()
-            if not SnowveilActive then noclipConn:Disconnect() return end
-            if npc then for _, v in pairs(npc:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end
-            if dog then for _, v in pairs(dog:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end
-        end));
-        table.insert(emotionalEffects, noclipConn)
-        npc:PivotTo(root.CFrame * cframe_new(0, 0, 30))
-        local dog = nil
-        local objects = game:GetObjects("rbxassetid://17105403700")
-        if objects and #objects > 0 then
-            dog = objects[1]
-            dog.Name = "Snowveil_Dog"
-            dog.Parent = workspace
-            if dog:IsA("Model") and dog.ScaleTo then
-                dog:ScaleTo(3.15)
-            else
-                for _, v in pairs(dog:GetDescendants()) do if v:IsA("BasePart") then v.Size = v.Size * 3.15 end end
-            end
-            for _, v in pairs(dog:GetDescendants()) do
-                if v:IsA("BasePart") then
-                    v.Anchored = true
-                    v.CanCollide = false
-                end
-            end
-            dog:PivotTo(root.CFrame * cframe_new(3.5, -1.1, 0))
-        end
-        if npc and dog then
-            local npcHum = npc:FindFirstChildOfClass("Humanoid")
-            local npcRoot = npc:FindFirstChild("HumanoidRootPart")
-            if npcHum then npcHum.WalkSpeed = 30 end
-            task.wait(0.6)
-            if npcHum then
-                npcHum:MoveTo(dog:GetPivot().Position)
-                local start_time = tick()
-                while (npcRoot.Position - dog:GetPivot().Position).Magnitude > 5 and tick() - start_time < 3 do task.wait() end
-            end
-            pcall(function()
-                local grabPart = npc:FindFirstChild("Right Arm") or npc:FindFirstChild("RightHand") or npcRoot
-                dog:PivotTo(grabPart.CFrame * cframe_new(0, -1, 0))
-                for _, v in pairs(dog:GetDescendants()) do if v:IsA("BasePart") then v.Anchored = false end end
-                dog.Parent = npc
-                local weld = Instance.new("WeldConstraint")
-                weld.Part0 = grabPart
-                weld.Part1 = dog.PrimaryPart or dog:FindFirstChildOfClass("BasePart")
-                weld.Parent = dog
-            end)
-            task.wait(0.3)
-            if npcHum then
-                npcHum:MoveTo(root.Position + root.CFrame.LookVector * -150)
-                task.wait(1.5)
-            end
-        end
-        if npc then npc:Destroy() end
-        if dog then dog:Destroy() end
-        for _, obj in pairs(emotionalEffects) do
-            if typeof(obj) == "RBXScriptConnection" then
-                pcall(function() obj:Disconnect() end)
-            elseif typeof(obj) == "Instance" then
-                pcall(function() obj:Destroy() end) end end
-        if oldTime then game:GetService("Lighting").ClockTime = oldTime end
-    end)
-    if not success then
-        warn("Snowveil Error: " .. tostring(err))
-        for _, obj in pairs(emotionalEffects) do
-            if typeof(obj) == "RBXScriptConnection" then
-                pcall(function() obj:Disconnect() end)
-            elseif typeof(obj) == "Instance" then
-                pcall(function() obj:Destroy() end) end end
-    end
-    root.Anchored = false
-    SnowveilActive = false
-    library:Notify("S N O W V E I L completed.", 2)
-end);
+
 do
     local angle = 0;
     local random_t = 0;
     local Connection;
     local StickTarget;
     current_target = nil;
+
     Connection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
         if not Active then return; end;
-        local speed_value = (Options.strafe_speed and Options.strafe_speed.Value) or getgenv().tpspeed or 10;
+        local speed_value = (Options.strafe_speed and Options.strafe_speed.Value) or tpspeed or 10;
         angle = (angle + dt * speed_value) % (2 * math.pi);
         random_t = random_t + dt * (speed_value * 0.75);
     end));
+
     serverposition("heartbeat", "combat_teleport", LPH_JIT_MAX(function(real_cframe)
         local Character = localplayer.Character;
         if not Character then return; end;
@@ -3049,7 +3484,7 @@ do
         if not target_character then return; end;
         local target_root = target_character:FindFirstChild("HumanoidRootPart");
         if not target_root then return; end;
-        if not getgenv().settings.tpenemy then return; end;
+        if not settings.tpenemy then return; end;
 		local predicted_cframe = target_root.CFrame;
 		if (Toggles.strafe_prediction and Toggles.strafe_prediction.Value) then
 			local vel = target_root.AssemblyLinearVelocity;
@@ -3079,6 +3514,7 @@ do
 			return apply_look(pos);
 		end;
     end), 1);
+
     function is_teleport_valid(player)
         if not player then return false; end;
         if player.Parent ~= players then return false; end;
@@ -3091,6 +3527,7 @@ do
         if framework:in_menu(player) then return false; end;
         return true;
     end;
+
     runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
         local Character = localplayer.Character;
         if not Character then
@@ -3100,25 +3537,29 @@ do
         end;
         local camerasubject;
         local camattr = Character:GetAttribute("CameraSubject");
-        if camattr then camerasubject = Character:FindFirstChild(camattr);
-        else camerasubject = Character:FindFirstChildOfClass("Humanoid"); end;
-        local s = getgenv().settings;
-        if not s.stick and not getgenv().targeting_player then
+        if camattr then
+            camerasubject = Character:FindFirstChild(camattr);
+        else
+            camerasubject = Character:FindFirstChildOfClass("Humanoid");
+        end;
+        local s = settings;
+        if not s.stick and not targeting_player then
             StickTarget = nil;
             stick_target = nil;
         end;
         local closestplayer = nil;
-        local needstarget = s.tpenemy or s.stick or getgenv().targeting_player or getgenv().spectateneemy;
+        local needstarget = s.tpenemy or s.stick or targeting_player or spectateneemy;
         if needstarget then
-            if (s.stick or getgenv().targeting_player) and StickTarget then
+            if (s.stick or targeting_player) and StickTarget then
                 closestplayer = StickTarget;
-            elseif getgenv().targeting_player then
+            elseif targeting_player then
                 closestplayer = SelectedPlayer;
             else
                 local closestdist = math.huge;
                 local mousepos = userinputservice:GetMouseLocation();
                 for player in pairs(cachedplayers) do
-                    if player == localplayer or whitelisted(player) then continue; end;
+                    if player == localplayer then continue; end;
+                    if should_skip_by_whitelist(player, "strafe") then continue; end;
                     local char = player.Character;
                     if not char then continue; end;
                     local hrp = char:FindFirstChild("HumanoidRootPart");
@@ -3127,19 +3568,22 @@ do
                     local screenpos, onscreen = camera:WorldToViewportPoint(hrp.Position);
                     if onscreen then
                         local dist = (vector2_new(screenpos.X, screenpos.Y) - mousepos).Magnitude;
-                        if dist < closestdist then closestdist = dist; closestplayer = player; end;
+                        if dist < closestdist then
+                            closestdist = dist;
+                            closestplayer = player;
+                        end;
                     end;
                 end;
                 if s.stick and closestplayer then StickTarget = closestplayer; stick_target = closestplayer; end;
             end;
         end;
         current_target = closestplayer;
-        if current_target and is_teleport_valid(current_target) and not whitelisted(current_target) then
+        if current_target and is_teleport_valid(current_target) and not should_skip_by_whitelist(current_target, "strafe") then
             setrunning("combat_teleport", true);
         else
             setrunning("combat_teleport", false);
         end;
-        if getgenv().spectateneemy and current_target and not whitelisted(current_target) then
+        if spectateneemy and current_target and not whitelisted(current_target) then
             local targethum = current_target.Character and current_target.Character:FindFirstChildOfClass("Humanoid");
             if targethum and targethum.Health > 0 and not framework:in_menu(current_target) then
                 camera.CameraSubject = targethum;
@@ -3151,17 +3595,20 @@ do
         end;
     end))
 end;
-local killphase = 0
+
+local kill_phase = 0;
 serverposition("heartbeat", "initattemptkill", LPH_JIT_MAX(function(cf)
-    if killphase == 1 then
+    if kill_phase == 1 then
         return cf + vector3_new(0, 1000, 0);
-    elseif killphase == 2 then
+    elseif kill_phase == 2 then
         network:FireServer("StartFallDamage");
         return cf + vector3_new(0, -1000, 0);
     end;
     return cf;
 end), 4);
+
 do
+
     local function Parry(metadata)
         local apdelay = math.round(Classes.APDelay.Value or 0);
         if apdelay > 0 then task.wait(apdelay); end;
@@ -3176,29 +3623,46 @@ do
             keyrelease(0x46);
         end;
     end;
+
     local scraped = {};
-    local function getevent(animID)
-        if scraped[animID] then return scraped[animID]; end;
+    local function getevent(animation_id)
+        if scraped[animation_id] then 
+            return scraped[animation_id];
+        end;
         local markers = {};
         local ks;
-        local s, _ = pcall(function() ks = KeyframeSequenceProvider:GetKeyframeSequenceAsync(animID); end);
+        local s, _ = pcall(function()
+            ks = game:GetService("KeyframeSequenceProvider"):GetKeyframeSequenceAsync(animation_id);
+        end);
         if s and ks then
             local function recurse(parent)
                 for _, child in pairs(parent:GetChildren()) do
                     if child:IsA("KeyframeMarker") then
                         local kf = child:FindFirstAncestor("Keyframe");
-                        if kf then markers[child.Name] = kf.Time; end;
+                        if kf then
+                            markers[child.Name] = kf.Time;
+                        end;
                     end;
-                    if #child:GetChildren() > 0 then recurse(child); end;
+                    if #child:GetChildren() > 0 then
+                        recurse(child);
+                    end;
                 end;
             end;
             recurse(ks);
-            scraped[animID] = markers;
+            scraped[animation_id] = markers;
             return markers;
         end;
         return nil;
     end;
-    local blacklisted_IDS = { ["106649093705106"] = true, ["9745796833"] = true, ["9745345487"] = true, ["0"] = true, ["9745344365"] = true };
+
+    local blacklisted_IDS = {
+        ["106649093705106"] = true;
+        ["9745796833"] = true;
+        ["9745345487"] = true;
+        ["0"] = true;
+        ["9745344365"] = true;
+    };
+
     local slashes = {};
     local parries = {};
     task_spawn(LPH_JIT_MAX(function()
@@ -3209,7 +3673,9 @@ do
                     for _, meta in ipairs(obj.slashMetadata) do
                         if meta.animation and meta.animation.AnimationId then
                             local id = string.gsub(meta.animation.AnimationId, "rbxassetid://", "");
-                            if not blacklisted_IDS[id] then slashes[id] = "Slash"; end;
+                            if not blacklisted_IDS[id] then
+                                slashes[id] = "Slash";
+                            end;
                         end;
                     end;
                 end;
@@ -3217,14 +3683,17 @@ do
                     for _, meta in ipairs(obj.parryMetadata) do
                         if meta.animation and meta.animation.AnimationId then
                             local id = string.gsub(meta.animation.AnimationId, "rbxassetid://", "");
-                            if not blacklisted_IDS[id] then parries[id] = "Parry"; end;
+                            if not blacklisted_IDS[id] then
+                                parries[id] = "Parry";
+                            end;
                         end;
                     end;
                 end;
             end;
         end;
     end));
-    local blacklist = { "rbxassetid://106649093705106", "rbxassetid://6423003415", "rbxassetid://101463478179793", };
+
+    local blacklist = {"rbxassetid://106649093705106", "rbxassetid://6423003415", "rbxassetid://101463478179793", };
     local HumanoidToParry = {};
 
     if PlayerCharacters then
@@ -3236,6 +3705,7 @@ do
                 table.insert(HumanoidToParry, humanoid);
             end;
         end;
+
         PlayerCharacters.ChildAdded:Connect(function(char)
             if char ~= localplayer.Character and char:FindFirstChildOfClass("Humanoid") then
                 local Player = players:GetPlayerFromCharacter(char);
@@ -3245,44 +3715,64 @@ do
             end;
         end);
     end;
-    local playSoundOld;
-    local getIsHittableCharacterPartOld;
-    if not Toggles.WhitelistFriends then Toggles.WhitelistFriends = { Value = false }; end;
+
+    local play_sound_old;
+    local hittable_character_old;
+    
     do
-        parrysection2:AddToggle("AutoParry", { Text = "auto parry";
+        parrysection2:AddToggle("AutoParry", {
+            Text = "auto parry";
             Default = false;
             Callback = function(value)
                 Classes.AutoParry.Value = value;
-            end; });
-        parrysection2:AddToggle("RandomChance", { Text = "random chance";
+            end;
+        });
+
+        parrysection2:AddToggle("RandomChance", {
+            Text = "random chance";
             Default = false;
             Callback = function(value)
                 Classes.RandomChance.Value = value;
-            end; });
-        parrysection2:AddToggle("SmartCheck", { Text = "smartcheck";
+            end;
+        });
+
+        parrysection2:AddToggle("SmartCheck", {
+            Text = "smartcheck";
             Default = false;
             Tooltip = "predicts hitbox time creation";
             Callback = function(value)
                 Classes.SmartCheck.Value = value;
-            end; });
-        parrysection2:AddToggle("LookCheck", { Text = "check if looking";
+            end;
+        });
+
+        parrysection2:AddToggle("LookCheck", {
+            Text = "check if looking";
             Default = false;
             Callback = function(value)
                 Classes.LookCheck.Value = value;
-            end; });
-        parrysection2:AddDropdown("APCheck", { Text = "check method";
+            end;
+        });
+
+        parrysection2:AddDropdown("APCheck", {
+            Text = "check method";
             Default = "sounds";
             Values = {"sounds"};
             Callback = function(value)
                 Classes.APCheck.Value = value;
-            end; });
-        parrysection2:AddDropdown("APType", { Text = "ap type";
+            end;
+        });
+
+        parrysection2:AddDropdown("APType", {
+            Text = "ap type";
             Default = "remote";
             Values = {"remote", "keypress", "both"};
             Callback = function(value)
                 Classes.APType.Value = value;
-            end; });
-        parrysection2:AddSlider("APDelay", { Text = "delay";
+            end;
+        });
+
+        parrysection2:AddSlider("APDelay", {
+            Text = "delay";
             Default = 0;
             Min = 0;
             Max = 1;
@@ -3291,8 +3781,11 @@ do
             Suffix = " seconds";
             Callback = function(value)
                 Classes.APDelay.Value = value;
-            end; });
-        parrysection2:AddSlider("APRange", { Text = "range";
+            end;
+        });
+
+        parrysection2:AddSlider("APRange", {
+            Text = "range";
             Default = 15;
             Min = 1;
             Max = 20;
@@ -3301,8 +3794,11 @@ do
             Suffix = " studs";
             Callback = function(value)
                 Classes.APRange.Value = value;
-            end; });
-        parrysection2:AddSlider("APChance", { Text = "auto parry chance";
+            end;
+        });
+        
+        parrysection2:AddSlider("APChance", {
+            Text = "auto parry chance";
             Default = 100;
             Min = 1;
             Max = 100;
@@ -3311,8 +3807,11 @@ do
             Suffix = "%";
             Callback = function(value)
                 Classes.APChance.Value = value;
-            end; });
-        parrysection2:AddSlider("APAngle", { Text = "look angle";
+            end;
+        });
+
+        parrysection2:AddSlider("APAngle", {
+            Text = "look angle";
             Default = 45;
             Min = 1;
             Max = 180;
@@ -3321,8 +3820,11 @@ do
             Suffix = " degrees";
             Callback = function(value)
                 Classes.APAngle.Value = value;
-            end; });
-        parrysection2:AddSlider("Threshold", { Text = "marker threshold";
+            end;
+        });
+
+        parrysection2:AddSlider("Threshold", {
+            Text = "marker threshold";
             Default = 0.3;
             Min = 0;
             Max = 1;
@@ -3331,53 +3833,83 @@ do
             Suffix = " seconds";
             Callback = function(value)
                 Classes.Threshold.Value = value;
-            end; });
-        parrysection:AddToggle("AntiParry", { Text = "anti parry";
+            end;
+        });
+
+        parrysection:AddToggle("AntiParry", {
+            Text = "anti parry";
             Default = false;
             Callback = function(value)
-                getgenv().AntiParry = value;
+                AntiParry = value;
                 Classes.AntiParry.Value = value;
-            end; });
-        local AntiParryDep = parrysection:AddDependencyBox()
-        AntiParryDep:SetupDependencies({ { Toggles.AntiParry, true } })
-        AntiParryDep:AddDropdown("AntiParryModes", { Text = "modes", Default = "silent", Values = {"unequip", "void", "silent"}, Multi = true });
+            end;
+        });
+
+        local antiparry_box = parrysection:AddDependencyBox();
+
+        antiparry_box:SetupDependencies({
+            {Toggles.AntiParry, true; };
+        });
+
+        antiparry_box:AddDropdown("AntiParryModes", {
+        Text = "modes";
+        Default = "silent";
+            Values = {"unequip", "void", "silent"};
+            Multi = true;
+        });
     end;
-    parrysection:AddToggle("fakeswing", { Text = "fake swing";
-        Default = false;
+
+    parrysection:AddToggle("fakeswing", {
+    Text = "fake swing";
+    Default = false;
         Callback = function(v)
-            getgenv().settings.fakeswing = v;
-        end; });
-    parrysection:AddToggle("swingsound", { Text = "play swing sound";
+            settings.fakeswing = v;
+        end;
+    });
+
+    parrysection:AddToggle("swingsound", {
+        Text = "play swing sound";
         Default = false;
         Tooltip = "use keybind";
         Callback = function(v)
-            getgenv().settings.swingsound = v;
-        end; }):AddKeyPicker("swingsoundkey", { Text = "swing sound";
+            settings.swingsound = v;
+        end;
+    }):AddKeyPicker("swingsoundkey", {
+        Text = "swing sound";
         Default = "MB2";
-        NoUI = true; });
+        NoUI = true;
+    });
+
     userinputservice.InputBegan:Connect(function(i, gp)
         if gp then return; end;
-        if getgenv().settings.swingsound and (i.KeyCode == Options.swingsoundkey.Value or i.UserInputType == Options.swingsoundkey.Value) then
+        if settings.swingsound and (i.KeyCode == Options.swingsoundkey.Value or i.UserInputType == Options.swingsoundkey.Value) then
             local weapon = framework:get_weapon();
             if weapon then network:FireServer("MeleeSwing", weapon, math_random(1, 3)); end;
         end;
     end);
-    parrysection:AddToggle("AutoEquip", { Text = "auto equip";
-        Default = false;
+
+    parrysection:AddToggle("AutoEquip", {
+    Text = "auto equip";
+    Default = false;
         Callback = function(v)
-            getgenv().settings.autoequip = v;
-        end; });
-    parrysection:AddToggle("VoidOnParry", { Text = "void on parry stun";
-        Default = false;
+            settings.autoequip = v;
+        end;
+    });
+
+    parrysection:AddToggle("VoidOnParry", {
+    Text = "void on parry stun";
+    Default = false;
         Callback = function(v)
-            getgenv().settings.voidonparry = v;
-        end; });
+            settings.voidonparry = v;
+        end;
+    });
+
     local hitbox_container = workspace:WaitForChild("EffectsJunk"):WaitForChild("Hitboxes");
 
     local function auto_parry_sd()
-        local isdesynced = getgenv().currently_spoofing;
-        if isdesynced and getgenv().lastservercframe then
-            return getgenv().lastservercframe.Position;
+        local isdesynced = currently_spoofing;
+        if isdesynced and lastservercframe then
+            return lastservercframe.Position;
         end;
         local char = localplayer.Character;
         local hrp = char and char:FindFirstChild("HumanoidRootPart");
@@ -3388,11 +3920,9 @@ do
         if not hitbox:IsA("BasePart") or hitbox.Name ~= "Hitbox" then return; end;
         if not Classes.AutoParry.Value then return; end;
         if Classes.APCheck.Value ~= "hitbox" then return; end;
-
         local is_rage = Classes.RageAutoParry and Classes.RageAutoParry.Value;
         local range = is_rage and 25 or Classes.APRange.Value;
         local chance = is_rage and true or framework:Chance(Classes.RandomChance.Value and math_random(1, 100) or Classes.APChance.Value);
-
         local caster = caster_character;
         if not caster then
             local ancestor = hitbox:FindFirstAncestorOfClass("Model");
@@ -3400,15 +3930,12 @@ do
                 caster = ancestor;
             end;
         end;
-
         if not caster or caster == localplayer.Character then return; end;
         if not caster:FindFirstChild("HumanoidRootPart") then return; end;
         if not caster:FindFirstChild("Humanoid") then return; end;
-
         local caster_root = caster.HumanoidRootPart;
         if (caster_root.Position - auto_parry_sd()).Magnitude > range then return; end;
         if not chance then return; end;
-
         if not is_rage and Classes.LookCheck.Value then
             local head = localplayer.Character and localplayer.Character:FindFirstChild("Head");
             if head then
@@ -3461,11 +3988,11 @@ do
     end);
 
     if modules.Name["SoundHandler"] and modules.Name["SoundHandler"].playSound then
-        playSoundOld = modules.Name["SoundHandler"].playSound;
+        play_sound_old = modules.Name["SoundHandler"].playSound;
         modules.Name["SoundHandler"].playSound = function(...)
             local args = {...};
             local sound = args[1];
-            if not sound or not playSoundOld then return playSoundOld and playSoundOld(...) or nil; end;
+            if not sound or not play_sound_old then return play_sound_old and play_sound_old(...) or nil; end;
             if typeof(sound) == "table" then
                 pcall(function()
                     local is_rage = Classes.RageAutoParry and Classes.RageAutoParry.Value;
@@ -3536,7 +4063,7 @@ do
                     end;
                 end);
             end;
-            return playSoundOld(...);
+            return play_sound_old(...);
         end;
     end;
     framework:BindToRenderStep(LPH_JIT_MAX(function()
@@ -3621,7 +4148,7 @@ do
                     return false;
                 end;
                 if not framework:check(character) then
-                    local modes = Classes.AntiParryModes and Classes.AntiParryModes.Value or { silent = true; };
+                    local modes = Classes.AntiParryModes and Classes.AntiParryModes.Value or {silent = true; };
                     if modes.unequip and not ap_unequipped then
                         local weapon = framework:get_weapon();
                         local hum = localplayer.Character and localplayer.Character:FindFirstChildOfClass("Humanoid");
@@ -3653,33 +4180,55 @@ do
         end);
     end;
 end;
-charactertab:AddToggle("fly", { Text = "fly";
+charactertab:AddToggle("fly", {
+    Text = "fly";
     Default = false;
     Callback = function()
-        updatefeature("fly", "flybind", function(state) getgenv().settings.flyenabled = state; end);
-    end; }):AddKeyPicker("flybind", { Text = "fly";
+        updatefeature("fly", "flybind", function(state)
+            settings.flyenabled = state;
+        end);
+    end;
+}):AddKeyPicker("flybind", {
+    Text = "fly";
     Default = "X";
     Mode = "Toggle";
     Callback = function()
-        updatefeature("fly", "flybind", function(state) getgenv().settings.flyenabled = state; end);
-    end; });
-charactertab:AddToggle("velocity", { Text = "velocity", Default = false, Callback = function()
-        updatefeature("velocity", "velocitybind", function(state) getgenv().settings.velocityenabled = state end)
-    end }):AddKeyPicker("velocitybind", { Text = "velocity";
+        updatefeature("fly", "flybind", function(state)
+            settings.flyenabled = state;
+        end);
+    end;
+});
+
+charactertab:AddToggle("velocity", {
+    Text = "velocity";
+    Default = false;
+    Callback = function()
+        updatefeature("velocity", "velocitybind", function(state)
+            settings.velocityenabled = state;
+        end);
+    end;
+}):AddKeyPicker("velocitybind", {
+    Text = "velocity";
     Default = "C";
     Mode = "Toggle";
     Callback = function()
-        updatefeature("velocity", "velocitybind", function(state) getgenv().settings.velocityenabled = state; end);
-    end; });
+        updatefeature("velocity", "velocitybind", function(state)
+            settings.velocityenabled = state;
+        end);
+    end;
+});
+
 do
 	local applied = false;
-	charactertab:AddToggle("walkspeed", { Text = "walkspeed";
+
+	charactertab:AddToggle("walkspeed", {
+    Text = "walkspeed";
 	    Default = false;
 	    Callback = function(enabled)
-	        getgenv().settings.walkspeedenabled = enabled;
+	        settings.walkspeedenabled = enabled;
 	        local wshandler = modules.Name["WalkSpeedHandlerClient"].getValueContainer();
 	        if not wshandler then return; end;
-	        local delta = (getgenv().settings.walkspeed or 16) - 16;
+	        local delta = (settings.walkspeed or 16) - 16;
 	        if enabled and not applied then
 	            applied = true;
 	            wshandler:addBaseValueAdditive(delta);
@@ -3687,71 +4236,83 @@ do
 	            applied = false;
 	            wshandler:removeBaseValueAdditive(delta);
 	        end;
-	    end; });
-        local jpconn = nil;
-        local function apply_jump_power()
-            if humanoid and getgenv().settings.jumppower then
-                humanoid.JumpPower = getgenv().settings.jumppower;
+	    end;
+    });
+
+	local jpconn;
+	charactertab:AddToggle("jumppower", {
+    Text = "jump power";
+    Default = false;
+	    Callback = function(enabled)
+	        jumppowerenabled = enabled;
+	        if jpconn then
+	            jpconn:Disconnect();
+	            jpconn = nil;
+	        end;
+	        if enabled then
+	            jpconn = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
+                    if humanoid and settings.jumppower then humanoid.JumpPower = settings.jumppower;
+                    end;
+                end));
+	        else
+	            if humanoid then
+                    humanoid.JumpPower = 50;
+                end;
+	        end;
+	    end; 
+    });
+
+    local noanim_connection = nil;
+    local charanim_connection = nil;
+    local function apply_no_anims(char)
+        if noanim_connection then noanim_connection:Disconnect(); end;
+        local hum = char:WaitForChild("Humanoid");
+        local animator = hum:FindFirstChildOfClass("Animator");
+        if not animator then return; end;
+        for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
+            if track.Animation ~= spin_animation then
+                track:Stop();
             end;
         end;
-        charactertab:AddToggle("jumppower", {
-            Text = "jump power";
-            Default = false;
-            Callback = function(Value)
-                getgenv().jumppowerenabled = Value;
-                if jpconn then jpconn:Disconnect(); jpconn = nil; end;
-                if Value then
-                    apply_jump_power();
-                    jpconn = humanoid:GetPropertyChangedSignal("JumpPower"):Connect(function()
-                        task.defer(function()
-                            if getgenv().jumppowerenabled and humanoid and humanoid.JumpPower ~= getgenv().settings.jumppower then
-                                apply_jump_power();
-                            end;
-                        end);
-                    end);
-                else
-                    if humanoid then humanoid.JumpPower = 50; end;
+        noanim_connection = animator.AnimationPlayed:Connect(function(track)
+            if track.Animation ~= spin_animation then
+                track:Stop();
+            end;
+        end);
+    end;
+
+    charactertab:AddToggle("NoAnimations", {
+    Text = "no animations";
+    Default = false;
+        Tooltip = "stops all character animations";
+        Callback = function(Value)
+            if Value then
+                if character then
+                    apply_no_anims(character);
+                end;
+                charanim_connection = localplayer.CharacterAdded:Connect(apply_no_anims);
+            else
+                if noanim_connection then noanim_connection:Disconnect();
+                    noanim_connection = nil;
+                end;
+                if charanim_connection then
+                    charanim_connection:Disconnect();
+                    charanim_connection = nil;
                 end;
             end;
-        });
-        local noanim_connection = nil;
-        local charanim_connection = nil;
-        local function apply_no_anims(char)
-            if noanim_connection then noanim_connection:Disconnect(); end;
-            local hum = char:WaitForChild("Humanoid");
-            local animator = hum:FindFirstChildOfClass("Animator");
-            if not animator then return; end;
-            for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
-                if track.Animation ~= spin_animation then
-                    track:Stop();
-                end;
-            end;
-            noanim_connection = animator.AnimationPlayed:Connect(function(track)
-                if track.Animation ~= spin_animation then
-                    track:Stop();
-                end;
-            end);
         end;
-        charactertab:AddToggle("NoAnimations", {
-            Text = "no animations";
-            Default = false;
-            Tooltip = "stops all character animations";
-            Callback = function(Value)
-                if Value then
-                    if character then apply_no_anims(character); end;
-                    charanim_connection = localplayer.CharacterAdded:Connect(apply_no_anims);
-                else
-                    if noanim_connection then noanim_connection:Disconnect(); noanim_connection = nil; end
-                    if charanim_connection then charanim_connection:Disconnect(); charanim_connection = nil; end
-                end;
-            end;
-        });
-	charactertab:AddToggle("spin", { Text = "spin";
-	    Default = false;
-	    Callback = function(Value)
-	    	spineabled = Value;
-	    end; });
-	charactertab:AddToggle("infjump", { Text = "infinite jump";
+    });
+
+    charactertab:AddToggle("spin", {
+    Text = "spin";
+    Default = false;
+        Callback = function(Value)
+            spineabled = Value;
+        end;
+    });
+
+	charactertab:AddToggle("infjump", {
+    Text = "infinite jump";
 	    Default = false;
 	    Callback = function(Value)
 	        if Value then
@@ -3765,195 +4326,280 @@ do
 	                Con = nil;
 	            end;
 	        end;
-	    end; });
-    max_speed = getgenv().safe_mode and 50 or 5000;
-    max_speed1 = getgenv().safe_mode and 30 or 100;
-    max_speed2 = getgenv().safe_mode and 65 or 1000;
-	charactertab:AddSlider("flyspeed", { Text = "fly speed", Default = 16, Min = 16, Max = max_speed, Rounding = 0, Compact = true, Callback = function(Value)
-			getgenv().getgenv().settings.flyspeed = Value;
-		end; });
-	charactertab:AddSlider("walkspeed2", { Text = "walk speed";
+	    end;
+    });
+
+    max_speed = safe_mode and 50 or 5000;
+    max_speed1 = safe_mode and 30 or 100;
+    max_speed2 = safe_mode and 65 or 1000;
+
+	charactertab:AddSlider("flyspeed", {
+    Text = "fly speed",
+    Default = 16,
+        Min = 16,
+        Max = max_speed,
+        Rounding = 0,
+        Compact = true;
+        Callback = function(Value)
+			settings.flyspeed = Value;
+		end;
+    });
+
+	charactertab:AddSlider("walkspeed2", {
+    Text = "walk speed";
     	Default = 16;
     	Min = 16;
     	Max = max_speed1;
     	Rounding = 0;
     	Compact = true;
     	Callback = function(value)
-    	    local old = getgenv().settings.walkspeed;
-    	    getgenv().settings.walkspeed = value;
-    	    if getgenv().settings.walkspeedenabled then
+    	    local old = settings.walkspeed;
+    	    settings.walkspeed = value;
+    	    if settings.walkspeedenabled then
     	        local wshandler = modules.Name["WalkSpeedHandlerClient"].getValueContainer();
     	        if wshandler then
     	            wshandler:removeBaseValueAdditive(old - 16);
     	            wshandler:addBaseValueAdditive(value - 16);
     	        end;
     	    end;
-    	end; });
-	charactertab:AddSlider("jumppower2", { Text = "jump power", Default = 50, Min = 50, Max = 200, Rounding = 0, Compact = true, Callback = function(value)
-	        getgenv().settings.jumppower = value;
-            if getgenv().jumppowerenabled then 
-                apply_jump_power();
-            end;
-	    end; });
-	charactertab:AddSlider("speed", { Text = "velocity speed", Default = 16, Min = 16, Max = max_speed2, Rounding = 0, Compact = true, Callback = function(Value)
-			getgenv().settings.velocityspeed = Value;
-		end; });
-	charactertab:AddSlider("spinspeed", { Text = "spin speed", Default = 10, Min = 10, Max = 100, Rounding = 0, Compact = true, Callback = function(Value)
+    	end;
+    });
+
+	charactertab:AddSlider("jumppower2", {
+    Text = "jump power",
+    Default = 50,
+        Min = 50,
+        Max = 200,
+        Rounding = 0,
+        Compact = true;
+        Callback = function(value)
+	        settings.jumppower = value;
+	        if jumppowerenabled and humanoid then
+				humanoid.JumpPower = value;
+			end;
+		end;
+    });
+
+	charactertab:AddSlider("speed", {
+    Text = "velocity speed",
+    Default = 16,
+        Min = 16,
+        Max = max_speed2,
+        Rounding = 0,
+        Compact = true;
+        Callback = function(Value)
+			settings.velocityspeed = Value;
+		end;
+    });
+
+	charactertab:AddSlider("spinspeed", {
+    Text = "spin speed";
+    Default = 10;
+        Min = 10;
+        Max = 100;
+        Rounding = 0;
+        Compact = true;
+        Callback = function(Value)
 	        spinspeed = Value;
 	        spinrad = math.rad(Value);
-	    end; });
+	    end;
+    });
 end;
+
 do  
-    local protection = tabs.charactertab:AddLeftGroupbox("protection")
-    local void_spam_thread = nil;
-    local function stop_void_spam()
-        if void_spam_thread then
-            task.cancel(void_spam_thread);
-            void_spam_thread = nil;
-        end;
-    end;
-    local function start_void_spam()
-        stop_void_spam()
-        void_spam_thread = task_spawn(LPH_JIT_MAX(function()
-            while getgenv().settings.void_spam and getgenv().settings.voidenabled do
-                local vin = getgenv().settings.void_in or 0;
-                local vout = getgenv().settings.void_out or 0;
-                setrunning("voidhidelogic", true);
-                task.wait(vin > 0 and vin or 0);
-                if not (getgenv().settings.void_spam and getgenv().settings.voidenabled) then break; end;
-                setrunning("voidhidelogic", false);
-                task.wait(vout > 0 and vout or 0);
-            end;
-            void_spam_thread = nil;
-        end));
-    end;
-
-    local function update_void_spam()
-        if getgenv().settings.void_spam and getgenv().settings.voidenabled then
-            start_void_spam();
-        else
-            stop_void_spam();
-            setrunning("voidhidelogic", getgenv().settings.voidenabled and not getgenv().settings.void_spam);
-        end;
-    end;
-
-    local function on_void_state_changed(state)
-        getgenv().settings.voidenabled = state;
-        if not getgenv().settings.void_spam then
-            setrunning("voidhidelogic", state);
-        end;
-        update_void_spam();
-    end;
+    local protection = tabs.charactertab:AddLeftGroupbox("protection");
 
     protection:AddToggle("voidenabled", {
-        Text = "void",
-        Default = false,
+    Text = "void";
+    Default = false;
         Callback = function()
-            updatefeature("voidenabled", "voidenabledkey", on_void_state_changed);
+            updatefeature("voidenabled", "voidenabledkey", function(state)
+                settings.voidenabled = state;
+                if not settings.void_spam then
+                    setrunning("voidhidelogic", state);
+                end;
+            end);
         end;
     }):AddKeyPicker("voidenabledkey", {
-        Text = "void",
-        Default = "Y",
-        Mode = "Toggle",
+    Text = "void";
+    Default = "Y";
+        Mode = "Toggle";
         Callback = function()
-            updatefeature("voidenabled", "voidenabledkey", on_void_state_changed);
+            updatefeature("voidenabled", "voidenabledkey", function(state)
+                settings.voidenabled = state;
+                if not settings.void_spam then
+                    setrunning("voidhidelogic", state);
+                end;
+            end);
         end;
     });
 
-    local void_dep = protection:AddDependencyBox()
-    void_dep:SetupDependencies({ { Toggles.voidenabled, true; }; });
+    local void_dep = protection:AddDependencyBox();
+
+    void_dep:SetupDependencies({
+        { Toggles.voidenabled, true; };
+    });
 
     void_dep:AddToggle("follow_strafe_target", {
-        Text = "follow strafe target";
-        Default = false;
+    Text = "follow strafe target";
+    Default = false;
         Tooltip = "voids under strafe target";
         Callback = function(Value)
-            getgenv().settings.follow_strafe_target = Value;
+            settings.follow_strafe_target = Value
         end;
     });
 
     void_dep:AddToggle("void_spam", {
-        Text = "spam";
-        Default = false;
+    Text = "spam";
+    Default = false;
         Callback = function(Value)
-            getgenv().settings.void_spam = Value;
-            update_void_spam();
+            settings.void_spam = Value;
+            if not Value then
+                if settings.voidenabled then
+                    setrunning("voidhidelogic", true);
+                else
+                    setrunning("voidhidelogic", false);
+                end;
+            end;
         end;
     });
 
     local void_spam_dep = void_dep:AddDependencyBox();
+
     void_spam_dep:SetupDependencies({
-        { Toggles.voidenabled, true; };
-        { Toggles.void_spam, true; };
+        { Toggles.voidenabled, true };
+        { Toggles.void_spam, true };
     });
 
     void_spam_dep:AddSlider("void_in", {
-        Text = "void in",
-        Default = 0;
+    Text = "void in";
+    Default = 0;
         Min = 0;
         Max = 1;
         Rounding = 1;
         Compact = true;
         Callback = function(Value)
-            getgenv().settings.void_in = Value;
-            if getgenv().settings.void_spam and getgenv().settings.voidenabled then
-                start_void_spam();
-            end;
+            settings.void_in = Value;
         end;
     });
 
     void_spam_dep:AddSlider("void_out", {
-        Text = "void out";
-        Default = 0;
+    Text = "void out";
+    Default = 0;
         Min = 0;
         Max = 1;
         Rounding = 1;
-        Compact = true,
+        Compact = true;
         Callback = function(Value)
-            getgenv().settings.void_out = Value
-            if getgenv().settings.void_spam and getgenv().settings.voidenabled then
-                start_void_spam();
-            end;
+            settings.void_out = Value
         end;
     });
+
+    task_spawn(LPH_JIT_MAX(function()
+        while true do
+            task.wait()
+            if settings.void_spam and settings.voidenabled then
+                local vin = settings.void_in or 0;
+                local vout = settings.void_out or 0;
+                setrunning("voidhidelogic", true);
+                if vin > 0 then
+                    task.wait(vin);
+                else 
+                    task.wait();
+                end;
+                if not (settings.void_spam and settings.voidenabled) then
+                    continue;
+                end;
+                setrunning("voidhidelogic", false);
+                if vout > 0 then
+                    task.wait(vout);
+                else
+                    task.wait();
+                end;
+            end;
+        end;
+    end));
 end;
-exploit:AddToggle("stamina", { Text = "stamina", Default = false, Callback = function(Value)
-        getgenv().stamenabled = Value;
+
+exploit:AddToggle("stamina", {
+    Text = "stamina",
+    Default = false;
+    Callback = function(Value)
+        stamenabled = Value;
         stamina_sett_changed();
-    end })
-local StaminaDepbox = exploit:AddDependencyBox()
-StaminaDepbox:AddToggle("infstamina", {
+    end;
+});
+
+local stamina_depbox = exploit:AddDependencyBox();
+
+stamina_depbox:AddToggle("infstamina", {
     Text = "infinite stamina",
     Default = false,
     Callback = function(Value)
-        getgenv().settings.infstamina = Value
+        settings.infstamina = Value
         stamina_sett_changed();
-    end
+    end;
+});
+
+stamina_depbox:AddToggle("staminaregenstate", {
+    Text = "stamina regen rate",
+    Default = false;
+    Callback = function(Value)
+        stamregentoggle = Value
+        stamina_sett_changed();
+    end;
+});
+
+stamina_depbox:AddToggle("staminadelaystate", {
+    Text = "stamina gain delay",
+    Default = false;
+    Callback = function(Value)
+        stamdelaystate = Value
+        stamina_sett_changed();
+    end;
+});
+
+local stamina_regen = stamina_depbox:AddDependencyBox();
+local stamina_delay = stamina_depbox:AddDependencyBox();
+
+stamina_delay:AddSlider("staminadelayslider", {
+    Text = "stamina delay";
+    Default = 0.25;
+    Min = 0;
+    Max = 1;
+    Rounding = 2;
+    Compact = true;
+    Callback = function(Value)
+        stamindelayamount = Value
+        stamina_sett_changed();
+    end;
+});
+
+stamina_regen:AddSlider("staminaregenslider", {
+    Text = "stamina rate";
+    Default = 35;
+    Min = 0;
+    Max = 500;
+    Rounding = 1;
+    Compact = true;
+    Callback = function(Value)
+        stamregenrate = Value
+        stamina_sett_changed();
+    end;
+});
+
+stamina_depbox:SetupDependencies({
+    {Toggles.stamina, true }
 })
-StaminaDepbox:AddToggle("staminaregenstate", { Text = "stamina regen rate", Default = false, Callback = function(Value)
-        getgenv().stamregentoggle = Value
-        stamina_sett_changed();
-    end })
-StaminaDepbox:AddToggle("staminadelaystate", { Text = "stamina gain delay", Default = false, Callback = function(Value)
-        getgenv().stamdelaystate = Value
-        stamina_sett_changed();
-    end })
-local RegenBox = StaminaDepbox:AddDependencyBox();
-local DelayBox = StaminaDepbox:AddDependencyBox();
-DelayBox:AddSlider("staminadelayslider", { Text = "stamina delay", Default = 0.25, Min = 0, Max = 1, Rounding = 2, Compact = true;
-    Callback = function(Value)
-        getgenv().stamindelayamount = Value
-        stamina_sett_changed();
-    end })
-RegenBox:AddSlider("staminaregenslider", { Text = "stamina rate", Default = 35, Min = 0, Max = 500, Rounding = 1, Compact = true;
-    Callback = function(Value)
-        getgenv().stamregenrate = Value
-        stamina_sett_changed();
-    end })
-StaminaDepbox:SetupDependencies({ { Toggles.stamina, true } })
-RegenBox:SetupDependencies({ { Toggles.staminaregenstate, true } })
-DelayBox:SetupDependencies({ { Toggles.staminadelaystate, true } })
-exploit:AddToggle("infair", { Text = "infinite air";
+stamina_regen:SetupDependencies({
+    {Toggles.staminaregenstate, true }
+})
+stamina_delay:SetupDependencies({
+    {Toggles.staminadelaystate, true }
+})
+
+exploit:AddToggle("infair", {
+    Text = "infinite air";
     Default = false;
     Callback = function(Value)
         if Toggles.infair.Value then
@@ -3961,13 +4607,19 @@ exploit:AddToggle("infair", { Text = "infinite air";
         else
             modules.Name["AirConstants"].AIR_TO_ADD_PER_SECOND_WHILE_SWIMMING = -15;
         end;
-    end; });
-exploit:AddToggle("canalwaysjump", { Text = "can always jump";
+    end;
+});
+
+exploit:AddToggle("canalwaysjump", {
+    Text = "can always jump";
     Default = false;
     Callback = function(Value)
-        getgenv().settings.canalwaysjump = Value;
-    end; });
-exploit:AddToggle("nojumpcd", { Text = "no jump cooldown";
+        settings.canalwaysjump = Value;
+    end;
+});
+
+exploit:AddToggle("nojumpcd", {
+    Text = "no jump cooldown";
     Default = false;
     Callback = function(Value)
         if Value then
@@ -3975,44 +4627,71 @@ exploit:AddToggle("nojumpcd", { Text = "no jump cooldown";
         else
             modules.Name["JumpConstants"].JUMP_DELAY_ADD = 1;
         end;
-    end; });
-originalDashCooldown = nil;
-exploit:AddToggle("nodashcd", { Text = "no dash cooldown";
+    end;
+});
+
+dash_cooldown = nil;
+exploit:AddToggle("nodashcd", {
+    Text = "no dash cooldown";
     Default = false;
     Callback = function(Value)
-		getgenv().settings.ndcd = Value;
+		settings.ndcd = Value;
         local dashConstants = modules.Name["DashConstants"];
         if dashConstants then
             if Value then
-                if not originalDashCooldown then originalDashCooldown = dashConstants.DASH_COOLDOWN or 3; end
+                if not dash_cooldown then
+                    dash_cooldown = dashConstants.DASH_COOLDOWN or 3;
+                end;
                 dashConstants.DASH_COOLDOWN = 0;
-            elseif originalDashCooldown then dashConstants.DASH_COOLDOWN = originalDashCooldown; end
-        end
-    end; });
+            elseif dash_cooldown then
+                dashConstants.DASH_COOLDOWN = dash_cooldown;
+            end
+        end;
+    end;
+});
+
 framework:BindToRenderStep(LPH_JIT_MAX(function()
-	framework:SpinLoop();
-    if not getgenv().settings.ndcd then return; end;
+	framework:spinning();
+    if not settings.ndcd then return; end;
     local sessionsdata = framework:GetSessionData();
     local state = sessionsdata and sessionsdata:getState();
     local dashstate = state and (state.dashClient or state.dodgeClient);
     if not dashstate then return; end;
-    if dashstate.isDashing then dashstate.isDashing = false; end;
-    if dashstate.canDash == false then dashstate.canDash = true; end;
-    if dashstate.dashCooldown and dashstate.dashCooldown ~= 0 then dashstate.dashCooldown = 0; end;
-    if dashstate.lastDashTick and dashstate.lastDashTick ~= 0 then dashstate.lastDashTick = 0; end;
-    if dashstate.lastDashTime and dashstate.lastDashTime ~= 0 then dashstate.lastDashTime = 0; end;
+    if dashstate.isDashing then
+        dashstate.isDashing = false;
+    end;
+    if dashstate.canDash == false then
+        dashstate.canDash = true;
+    end;
+    if dashstate.dashCooldown and dashstate.dashCooldown ~= 0 then
+        dashstate.dashCooldown = 0;
+    end;
+    if dashstate.lastDashTick and dashstate.lastDashTick ~= 0 then
+        dashstate.lastDashTick = 0;
+    end;
+    if dashstate.lastDashTime and dashstate.lastDashTime ~= 0 then
+        dashstate.lastDashTime = 0;
+    end;
 end));
-exploit:AddToggle("nnt", { Text = "no name tag";
+
+exploit:AddToggle("nnt", {
+    Text = "no name tag";
     Default = false;
     Callback = function(Value)
-        getgenv().settings.nnt = Value;
-    end; });
-exploit:AddToggle("nut", { Text = "no utility trigger";
+        settings.nnt = Value;
+    end;
+});
+
+exploit:AddToggle("nut", {
+    Text = "no utility trigger";
     Default = false;
     Callback = function(Value)
-        getgenv().settings.nut = Value;
-    end; });
-exploit:AddToggle("itu", { Text = "instant utility use";
+        settings.nut = Value;
+    end;
+});
+
+exploit:AddToggle("itu", {
+    Text = "instant utility use";
     Default = false;
     Callback = function(Value)
         if Value then
@@ -4032,111 +4711,149 @@ exploit:AddToggle("itu", { Text = "instant utility use";
                 end;
             end;
         end;
-    end; });
-exploit:AddToggle("nkb", { Text = "no knockback";
-    Default = false;
-    Callback = function(Value)
-        getgenv().settings.nkb = Toggles.nkb.Value;
-    end; });
-    do
-        local antifling_connections = {};
-        local collision_cache = {};
-        local function watch_hrp(player, hrp)
-            if antifling_connections[hrp] then return; end;
-            collision_cache[hrp] = hrp.CanCollide;
-            hrp.CanCollide = false;
-            antifling_connections[hrp] = hrp:GetPropertyChangedSignal("CanCollide"):Connect(function()
-                if getgenv().settings.antifling and not hrp:FindFirstChildWhichIsA("WeldConstraint", true) then
-                    hrp.CanCollide = false;
-                end;
-            end);
-        end;
-        local function watch_player(player)
-            if player == localplayer then return; end;
-            local function on_char(char)
-                local hrp = char:WaitForChild("HumanoidRootPart");
-                if not hrp:FindFirstChildWhichIsA("WeldConstraint", true) then
-                    watch_hrp(player, hrp);
-                end;
-            end;
-            if player.Character then on_char(player.Character) end
-            antifling_connections[player] = player.CharacterAdded:Connect(on_char);
-        end;
-        local function stop_antifling()
-            for key, conn in antifling_connections do
-                conn:Disconnect();
-            end;
-            table.clear(antifling_connections);
-            for hrp, original in collision_cache do
-                if hrp and hrp.Parent then
-                    hrp.CanCollide = original;
-                end;
-            end;
-            table.clear(collision_cache);
-        end;
-        exploit:AddToggle("antifling", {
-            Text = "anti fling",
-            Default = false,
-            Callback = function(Value)
-                getgenv().settings.antifling = Value;
-                stop_antifling();
-                if Value then
-                    for player in pairs(cachedplayers) do
-                        watch_player(player);
-                    end;
-                end;
-            end;
-        });
     end;
-exploit:AddToggle("antiswim", { Text = "anti swim";
-    Default = false;
-    Callback = function(v)
-        getgenv().settings.antiswim = v;
-    end; });
-exploit:AddToggle("nfd", { Text = "no fall damage";
-    Default = false;
-    Callback = function(v)
-		getgenv().settings.nfd = v;
-    end; });
-exploit:AddToggle("nps", { Text = "no parry stun";
+});
+
+exploit:AddToggle("nkb", {
+    Text = "no knockback";
     Default = false;
     Callback = function(Value)
-        getgenv().settings.nps = Value;
-    end; });
-exploit:AddToggle("nps2", { Text = "no parry slowdown";
+        settings.nkb = Toggles.nkb.Value;
+    end;
+});
+
+do
+    local antifling_connections = {};
+    local collision_cache = {};
+    local function watch_hrp(player, hrp)
+        if antifling_connections[hrp] then return; end;
+        collision_cache[hrp] = hrp.CanCollide;
+        hrp.CanCollide = false;
+        antifling_connections[hrp] = hrp:GetPropertyChangedSignal("CanCollide"):Connect(function()
+            if settings.antifling and not hrp:FindFirstChildWhichIsA("WeldConstraint", true) then
+                hrp.CanCollide = false;
+            end;
+        end);
+    end;
+    local function watch_player(player)
+        if player == localplayer then return; end;
+        local function on_char(char)
+            local hrp = char:WaitForChild("HumanoidRootPart");
+            if not hrp:FindFirstChildWhichIsA("WeldConstraint", true) then
+                watch_hrp(player, hrp);
+            end;
+        end;
+        if player.Character then on_char(player.Character) end
+        antifling_connections[player] = player.CharacterAdded:Connect(on_char);
+    end;
+    local function stop_antifling()
+        for key, conn in antifling_connections do
+            conn:Disconnect();
+        end;
+        table.clear(antifling_connections);
+        for hrp, original in collision_cache do
+            if hrp and hrp.Parent then
+                hrp.CanCollide = original;
+            end;
+        end;
+        table.clear(collision_cache);
+    end;
+    exploit:AddToggle("antifling", {
+    Text = "anti fling",
+    Default = false,
+        Callback = function(Value)
+            settings.antifling = Value;
+            stop_antifling();
+            if Value then
+                for player in pairs(cachedplayers) do
+                    watch_player(player);
+                end;
+            end;
+        end;
+    });
+end;
+
+exploit:AddToggle("antiswim", {
+    Text = "anti swim";
+    Default = false;
+    Callback = function(v)
+        settings.antiswim = v;
+    end;
+});
+
+exploit:AddToggle("nfd", {
+    Text = "no fall damage";
+    Default = false;
+    Callback = function(v)
+		settings.nfd = v;
+    end;
+});
+
+exploit:AddToggle("nps", {
+    Text = "no parry stun";
     Default = false;
     Callback = function(Value)
-        getgenv().settings.nps2 = Value;
-    end; });
-exploit:AddToggle("nr", { Text = "no ragdoll";
+        settings.nps = Value;
+    end;
+});
+
+exploit:AddToggle("nps2", {
+    Text = "no parry slowdown";
+    Default = false;
+    Callback = function(Value)
+        settings.nps2 = Value;
+    end;
+});
+
+exploit:AddToggle("nr", {
+    Text = "no ragdoll";
     Default = false;
     Callback = function(Value)
         if Value then
             local ragdoll = modules.Name["RagdollableClient"].attemptToggleActualRagdollClient; modules.Name["RagdollableClient"].attemptToggleActualRagdollClient = LPH_JIT_MAX(function(...)
-                if Toggles.nr.Value then return; end;
+                if Toggles.nr.Value then
+                    return;
+                end;
                 return ragdoll(...);
             end);
         end;
-    end; });
-exploit:AddToggle("noflash", { Text = "no flash effects";
+    end;
+});
+
+exploit:AddToggle("noflash", {
+    Text = "no flash effects";
     Default = false;
     Callback = function(Value)
-        getgenv().settings.noflash = Value;
-    end; });
-exploit:AddToggle("nhe", { Text = "no health effects";
+        settings.noflash = Value;
+    end;
+});
+
+exploit:AddToggle("nhe", {
+    Text = "no health effects";
     Default = false;
     Callback = function(Value)
-        getgenv().settings.nhe = Value;
-    end; });
-exploit:AddToggle("ngpe", { Text = "no ghost potion effects";
+        settings.nhe = Value;
+    end;
+});
+
+exploit:AddToggle("ngpe", {
+    Text = "no ghost potion effects";
     Default = false;
     Callback = function(Value)
-        getgenv().settings.ngpe = Value;
-    end; });
-exploit:AddToggle("walkonwater", { Text = "walk on water";
-    Default = false; });
-exploit:AddToggle("ragdoll",{ Text = "ragdoll";
-    Default = false; });
+        settings.ngpe = Value;
+    end;
+});
+
+exploit:AddToggle("walkonwater", {
+    Text = "walk on water";
+    Default = false;
+});
+
+exploit:AddToggle("ragdoll",{
+    Text = "ragdoll";
+    Default = false;
+});
+
 do
     local anim_connections = {};
     local charcon = nil;
@@ -4167,8 +4884,8 @@ do
         table.insert(anim_connections, animator.AnimationPlayed:Connect(on_track_played));
     end;
     exploit:AddToggle("speedyboi", {
-        Text = "fast animation";
-        Default = false;
+    Text = "fast animation";
+    Default = false;
         Tooltip = "use for instant finish";
         Callback = function(Value)
             cleanup_anim();
@@ -4182,10 +4899,20 @@ do
         end;
     });
 end;
-exploit:AddSlider('AnimSpeed', { Text = 'animation speed', Default = 5, Min = 1, Max = 50, Rounding = 1, Compact = true, Suffix = 'x' });
+
+exploit:AddSlider('AnimSpeed', {
+    Text = 'animation speed';
+    Default = 5;
+    Min = 1;
+    Max = 50;
+    Rounding = 1;
+    Compact = true;
+    Suffix = 'x';
+});
+
 local desync_gb = tabs.charactertab:AddRightGroupbox("desync");
 
-desync_gb:AddToggle("desync", { 
+desync_gb:AddToggle("desync", {
 	Text = "desync";
     Default = false;
     Callback = function()
@@ -4193,7 +4920,8 @@ desync_gb:AddToggle("desync", {
 			setrunning("body_direction", state);
 		end);
 	end; 
-}):AddKeyPicker("desyncbind", { Text = "desync";
+}):AddKeyPicker("desyncbind", {
+    Text = "desync";
     Default = "F1";
     Mode = "Toggle";
 	Callback = function()
@@ -4202,66 +4930,175 @@ desync_gb:AddToggle("desync", {
 		end);
     end;
 });
-local desync_dep = desync_gb:AddDependencyBox();
-desync_dep:SetupDependencies({ { Toggles.desync, true } });
-desync_dep:AddToggle("desync_look", { Text = "look"; Default = false; });
-desync_dep:AddSlider("desync_x", { Text = "desync x"; Default = 0; Min = -180; Max = 180; Rounding = 0; Compact = true; Suffix = "°"; });
-desync_dep:AddSlider("desync_y", { Text = "desync y"; Default = -180; Min = -180; Max = 180; Rounding = 0; Compact = true; Suffix = "°"; });
-desync_dep:AddSlider("desync_z", { Text = "desync z"; Default = 0; Min = -180; Max = 180; Rounding = 0; Compact = true; Suffix = "°"; });
 
-exploit1:AddToggle("noclip", { Text = "noclip";
+local desync_dep = desync_gb:AddDependencyBox();
+
+desync_dep:SetupDependencies({
+    {Toggles.desync, true }
+});
+
+desync_dep:AddToggle("desync_look", {
+    Text = "look";
+    Default = false;
+});
+
+desync_dep:AddSlider("desync_x", {
+    Text = "desync x";
+    Default = 0;
+    Min = -180;
+    Max = 180;
+    Rounding = 0;
+    Compact = true; Suffix = "°";
+});
+
+desync_dep:AddSlider("desync_y", {
+    Text = "desync y";
+    Default = -180;
+    Min = -180;
+    Max = 180;
+    Rounding = 0;
+    Compact = true; Suffix = "°";
+});
+
+desync_dep:AddSlider("desync_z", {
+    Text = "desync z";
+    Default = 0;
+    Min = -180;
+    Max = 180;
+    Rounding = 0;
+    Compact = true; Suffix = "°";
+});
+
+desync_dep:AddToggle("desync_random_rotation", {
+    Text = "random rotation";
+    Default = false;
+});
+
+local desync_random_dep = desync_dep:AddDependencyBox();
+
+desync_random_dep:SetupDependencies({
+    {Toggles.desync; true};
+    {Toggles.desync_random_rotation; true};
+});
+
+desync_random_dep:AddSlider("desync_random_speed", {
+    Text = "speed";
+    Default = 5;
+    Min = 1;
+    Max = 30;
+    Rounding = 1;
+    Compact = true;
+    Suffix = "x";
+});
+
+exploit1:AddToggle("noclip", {
+    Text = "noclip";
     Default = false;
     Callback = function()
-        updatefeature("noclip", "noclipbind", function(state) getgenv().settings.noclipenabled = state; end);
-    end; }):AddKeyPicker("noclipbind", { Text = "noclip";
+        updatefeature("noclip", "noclipbind", function(state)
+            settings.noclipenabled = state;
+        end);
+    end;
+}):AddKeyPicker("noclipbind", {
+    Text = "noclip";
     Default = "Z";
     Mode = "Toggle";
     Callback = function()
-        updatefeature("noclip", "noclipbind", function(state) getgenv().settings.noclipenabled = state; end);
-    end; });
-exploit1:AddToggle("fakeposition", { Text = "fake position";
+        updatefeature("noclip", "noclipbind", function(state)
+            settings.noclipenabled = state;
+        end);
+    end;
+});
+
+exploit1:AddToggle("fakeposition", {
+    Text = "fake position";
     Default = false;
     Callback = function()
-        updatefeature("fakeposition", "fakeposkey", function(state) setfflag("NextGenReplicatorEnabledWrite4", tostring(state)); end);
-    end; }):AddKeyPicker("fakeposkey", { Text = "fake position";
+        updatefeature("fakeposition", "fakeposkey", function(state)
+            setfflag("NextGenReplicatorEnabledWrite4", tostring(state));
+        end);
+    end;
+}):AddKeyPicker("fakeposkey", {
+    Text = "fake position";
     Default = "M";
     Mode = "Toggle";
     Callback = function()
-        updatefeature("fakeposition", "fakeposkey", function(state) setfflag("NextGenReplicatorEnabledWrite4", tostring(state)); end);
-    end; });
-exploit1:AddToggle("hideweapononback", { Text = "hide weapon on back";
+        updatefeature("fakeposition", "fakeposkey", function(state)
+            setfflag("NextGenReplicatorEnabledWrite4", tostring(state));
+        end);
+    end;
+});
+
+exploit1:AddToggle("hideweapononback", {
+    Text = "hide weapon on back";
     Default = false;
     Callback = function(Value)
         if Toggles.hideweapononback.Value then
             humanoid:EquipTool(localplayer.Backpack:GetChildren()[1]);
             task.wait();
             humanoid:UnequipTools();
-            getgenv().settings.hideweapon = Value;
+            settings.hideweapon = Value;
         end;
-    end; });
-othertabs:AddToggle("HitboxExpand", { Text = "hitbox expander", Default = Config.HitboxExpand, Callback = function(value)
-        Config.HitboxExpand = value
-    end, })
-othertabs:AddToggle("ShowHitbox", { Text = "show expanded hitbox", Default = Config.ShowHitbox, Callback = function(value)
-        Config.ShowHitbox = value
-    end; });
-othertabs:AddDropdown("HBEPart", { Text = "hit part", Default = Config.HBEPart, Values = R6BodyParts, Callback = function(value)
-        Config.HBEPart = value
-    end, })
-othertabs:AddSlider("HitboxSize", { Text = "hitbox size", Default = Config.HitboxSize, Min = 1, Max = 20, Rounding = 0, Compact = true, Suffix = " studs", Callback = function(value)
-        Config.HitboxSize = value
-    end, })
-mmisc:AddToggle("svs", { Text = "spoof vc status";
+    end;
+});
+
+othertabs:AddToggle("HitboxExpand", {
+    Text = "hitbox expander";
+    Default = Config.HitboxExpand;
+    Callback = function(value)
+        Config.HitboxExpand = value;
+    end;
+});
+
+othertabs:AddToggle("ShowHitbox", {
+    Text = "show expanded hitbox",
+    Default = Config.ShowHitbox;
+    Callback = function(value)
+        Config.ShowHitbox = value;
+    end;
+});
+
+othertabs:AddDropdown("HBEPart", {
+    Text = "hit part";
+    Default = Config.HBEPart;
+    Values = R6BodyParts;
+    Callback = function(value)
+        Config.HBEPart = value;
+    end;
+});
+
+othertabs:AddSlider("HitboxSize", {
+    Text = "hitbox size";
+    Default = Config.HitboxSize;
+    Min = 1;
+    Max = 20;
+    Rounding = 0;
+    Compact = true;
+    Suffix = " studs";
+    Callback = function(value)
+        Config.HitboxSize = value;
+    end;
+});
+
+mmisc:AddToggle("svs", {
+    Text = "spoof vc status";
     Default = false;
     Tooltip = "join vc servers without vc";
     Callback = function(Value)
-        getgenv().settings.vcenabled = Value;
+        settings.vcenabled = Value;
         network:FireServer("UpdateHasVc", true);
-    end; });
-mmisc:AddToggle("ShowLine", { Text = "show line";
-	Default = false; }):AddColorPicker("linecolor", { Default = Color3.new(1, 1, 1);
+    end;
+});
+
+mmisc:AddToggle("ShowLine", {
+    Text = "show line";
+	Default = false;
+}):AddColorPicker("linecolor", {
+    Default = Color3.new(1, 1, 1);
 	Title = "line color";
-	Transparency = 0; });
+	Transparency = 0;
+});
+
 do
     local group_id = 5192826;
     local non_mods = {
@@ -4297,15 +5134,15 @@ do
         if (player == localplayer) then return; end;
         local modhandler = modules.Name["ModHandler"];
         local adminhandler = modules.Name["AdminHandler"];
-        if (modhandler.getIsMod(player) and getgenv().settings.anti_mod) then
+        if (modhandler.getIsMod(player) and settings.anti_mod) then
             localplayer:Kick("anti mod message:\n kicked " .. player.DisplayName .. " (@" .. player.Name .. ")");
             return;
-        elseif (adminhandler.getIsAdmin(player) and getgenv().settings.anti_mod) then
+        elseif (adminhandler.getIsAdmin(player) and settings.anti_mod) then
             localplayer:Kick("anti mod message:\n kicked " .. player.DisplayName .. " (@" .. player.Name .. ")");
             return;
         end;
         is_group_mod(player, function(is_mod, role)
-            if (is_mod and getgenv().settings.anti_mod) then
+            if (is_mod and settings.anti_mod) then
                 localplayer:Kick("anti mod message:\n kicked " .. player.DisplayName .. " (@" .. player.Name .. ")\nrole: " .. tostring(role));
             end;
         end);
@@ -4317,10 +5154,10 @@ do
         is_player_mod(player);
     end);
     mmisc:AddToggle("anti_mod", {
-        Text = "anti mod";
-        Default = false;
+    Text = "anti mod";
+    Default = false;
         Callback = function(v)
-            getgenv().settings.anti_mod = v;
+            settings.anti_mod = v;
             if v then
                 for _, player in ipairs(players:GetPlayers()) do
                     is_player_mod(player);
@@ -4343,11 +5180,12 @@ misc:AddButton("unlock emotes", function()
     end;
 end);
 
-misc:AddToggle("fno", { Text = "force network ownership";
+misc:AddToggle("fno", {
+    Text = "force network ownership";
     Default = false;
     Tooltip = "prevents rectify from affecting you";
     Callback = function(Value)
-        getgenv().settings.fno = Value;
+        settings.fno = Value;
     end;
 });
 
@@ -4363,12 +5201,18 @@ misc:AddToggle("ip", {
 			hasteleported = false;
 			toolonloss = nil;
 			if humanoid then
-				if deathconn then deathconn:Disconnect(); end
-				deathconn = humanoid.Died:Connect(function() ignorerespawn = true; end);
+				if deathconn then
+                    deathconn:Disconnect();
+                end;
+				deathconn = humanoid.Died:Connect(function()
+                    ignorerespawn = true; 
+                end);
 			end;
-			task.delay(0.25, function() ignorerespawn = false; end);
+			task.delay(0.25, function()
+                ignorerespawn = false;
+            end);
 		end;
-		if v and getgenv().settings.fno then
+		if v and settings.fno then
 			if deathconnection then return; end;
 			deathconnection = localplayer.CharacterAdded:Connect(connect);
 			if character then connect(character); end;
@@ -4377,13 +5221,17 @@ misc:AddToggle("ip", {
 				if ignorerespawn then return; end;
 				if not character then return; end;
 				if not humanoidrootpart or not humanoidrootpart:IsDescendantOf(workspace) then return; end;
-				local success, isowner = pcall(function() return isnetworkowner(humanoidrootpart); end);
+				local success, isowner = pcall(function()
+                    return isnetworkowner(humanoidrootpart);
+                end);
 				if not success then return; end;
 				if isowner then
 					local currentposition = humanoidrootpart.Position;
 					if #poshistory == 0 or (currentposition - poshistory[#poshistory]).Magnitude > 0.001 then
 						table.insert(poshistory, currentposition);
-						if #poshistory > maxhistory then table.remove(poshistory, 1); end;
+						if #poshistory > maxhistory then
+                            table.remove(poshistory, 1);
+                        end;
 					end;
 					if not notowner and not hasteleported then
 						local teleportposition;
@@ -4396,7 +5244,11 @@ misc:AddToggle("ip", {
 						end;
 						teleport(cframe_new(teleportposition));
 						hasteleported = true;
-						task.delay(0.1, function() if toolonloss and toolonloss:IsDescendantOf(character) and humanoid then humanoid:EquipTool(toolonloss); end; end);
+						task.delay(0.1, function()
+                            if toolonloss and toolonloss:IsDescendantOf(character) and humanoid then
+                                humanoid:EquipTool(toolonloss);
+                            end;
+                        end);
 					end;
 					notowner = true;
 				else
@@ -4441,14 +5293,19 @@ table.sort(cratenames);
 
 local SelectedCrateName = cratenames[1] or "";
 local selectedamount = 1;
-crates:AddDropdown("crates", { Text = "crates";
+
+crates:AddDropdown("crates", {
+    Text = "crates";
     Values = cratenames;
     Default = SelectedCrateName;
     Multi = false;
     Callback = function(v)
         SelectedCrateName = v
-    end; });
-crates:AddSlider("amount", { Text = "amount";
+    end;
+});
+
+crates:AddSlider("amount", {
+    Text = "amount";
     Default = 1;
     Min = 1;
     Max = 10;
@@ -4456,8 +5313,11 @@ crates:AddSlider("amount", { Text = "amount";
     Compact = true;
     Callback = function(value)
         selectedamount = math_floor(value)
-    end; });
-crates:AddButton({ Text = "open case";
+    end;
+});
+
+crates:AddButton({
+    Text = "open case";
 	Func = function()
 		local caseid = displayid[SelectedCrateName];
 		if caseid then
@@ -4465,7 +5325,7 @@ crates:AddButton({ Text = "open case";
 			if success then
 				setthreadidentity(2);
 				modules.Name["ToastNotificationActionsClient"].add( "success", `Opened {tostring(selectedamount)} case(s) of {SelectedCrateName}`, 2 )(modules.Name["RoduxStore"].store);
-				modules.Name["SoundHandler"].playSound({ soundObject = ReplicatedStorage.Shared.Assets.Sounds.Success, parent = Workspace.Sounds, });
+				modules.Name["SoundHandler"].playSound({soundObject = ReplicatedStorage.Shared.Assets.Sounds.Success, parent = Workspace.Sounds, });
 				setthreadidentity(7);
 			else
 				setthreadidentity(2);
@@ -4477,52 +5337,74 @@ crates:AddButton({ Text = "open case";
 			modules.Name["ToastNotificationActionsClient"].add( "error", "Please select a valid case from the dropdown.", 2, true )(modules.Name["RoduxStore"].store);
 			setthreadidentity(7);
 		end;
-	end; });
-crates:AddButton({ Text = "S N O W V E I L";
-	Func = StartSnowveilEffect; });
-crates:AddDropdown("spoofervalues", { Text = "device spoofer";
-	Values = { "pc", "phone", "tablet", "xbox" };
-	Default = getgenv().settings.selecteddevice;
+	end;
+});
+
+crates:AddDropdown("spoofervalues", {
+    Text = "device spoofer";
+	Values = {"pc", "phone", "tablet", "xbox" };
+	Default = settings.selecteddevice;
 	Multi = false;
 	Callback = function(v)
-		getgenv().settings.selecteddevice = v;
-	end; });
-crates:AddToggle("devicespoofer", { Text = "device spoofer";
-	Default = getgenv().settings.devicespoofer;
+		settings.selecteddevice = v;
+	end;
+});
+
+crates:AddToggle("devicespoofer", {
+    Text = "device spoofer";
+	Default = settings.devicespoofer;
 	Callback = function(v)
-		getgenv().settings.devicespoofer = v;
-	end; });
-miscauto:AddToggle("fastrespawn", { Text = "fast respawn";
+		settings.devicespoofer = v;
+	end;
+});
+
+miscauto:AddToggle("fastrespawn", {
+    Text = "fast respawn";
     Default = false;
     Callback = function(Value)
-        getgenv().settings.fastrespawn = Value;
-    end; });
-miscauto:AddToggle("ar", { Text = "auto revive";
+        settings.fastrespawn = Value;
+    end;
+});
+
+miscauto:AddToggle("ar", {
+    Text = "auto revive";
     Default = false;
     Callback = function(Value)
-        getgenv().settings.ar = Value;
-    end; });
-miscauto:AddToggle("loopspawn", { Text = "loop spawn";
+        settings.ar = Value;
+    end;
+});
+
+miscauto:AddToggle("loopspawn", {
+    Text = "loop spawn";
     Default = false;
     Callback = function(Value)
-        getgenv().settings.loopspawn = Value;
-    end; });
-miscauto:AddToggle("autoqueue", { Text = "auto queue";
+        settings.loopspawn = Value;
+    end;
+});
+
+miscauto:AddToggle("autoqueue", {
+    Text = "auto queue";
     Default = false;
     Tooltip = "auto loads script";
     Callback = function(Value)
-        getgenv().settings.autoqueue = Value;
+        settings.autoqueue = Value;
         if Value then
             local script_key = script_key or "";
             local payload = string.format([[
-script_key="%s";
-loadstring(game:HttpGet("https://raw.githubusercontent.com/nilsolutions/nilsolutions/refs/heads/main/loader.lua"))();
-]], script_key)
-            if queue_on_teleport then queue_on_teleport(payload) end
+                script_key="%s";
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/nilsolutions/nilsolutions/refs/heads/main/loader.lua"))();
+                ]], script_key)
+            if queue_on_teleport then
+                queue_on_teleport(payload);
+            end;
         else
-            if clear_teleport_queue then clear_teleport_queue() end
-        end
-    end; });
+            if clear_teleport_queue then
+                clear_teleport_queue();
+            end;
+        end;
+    end;
+});
+
 function bestmatch(Input)
     if not Input or Input == "" then return nil; end;
     Input = Input:lower();
@@ -4535,30 +5417,42 @@ function bestmatch(Input)
     end;
     return nil;
 end;
+
 local misc1 = misc_tab:AddTab("players");
 local currenttarget = misc1:AddLabel("current target: none");
 local SelectedPlayer = nil;
-misc1:AddInput("playersearch", { Placeholder = "enter name or display";
+misc1:AddInput("playersearch", {
+    Placeholder = "enter name or display";
     Default = "";
-    ClearTextOnFocus = false;
+    Finished = false;
     Callback = function(Text)
-        Text = Text:lower()
-        local target = bestmatch(Text)
+    Text = Text:lower()
+        local target = bestmatch(Text);
         if target then
-            SelectedPlayer = target
-            currenttarget:SetText("current target: " .. target.DisplayName .. " (@" .. target.Name .. ")")
+            SelectedPlayer = target;
+            currenttarget:SetText("current target: " .. target.DisplayName .. " (@" .. target.Name .. ")");
         else
             SelectedPlayer = nil
-            currenttarget:SetText("current target: none")
-        end
-    end; });
-local PlayerNames = {};
-local function UpdatePlayerDropdown()
-    table.clear(PlayerNames);
-    for plr, _ in pairs(cachedplayers) do if plr ~= localplayer then table.insert(PlayerNames, plr.Name); end; end;
-    if Options.PlayerDropdown then Options.PlayerDropdown:SetValues(PlayerNames); end;
+            currenttarget:SetText("current target: none");
+        end;
+    end;
+});
+
+local player_names = {};
+local function players_dropdown()
+    table.clear(player_names);
+    for plr, _ in pairs(cachedplayers) do
+        if plr ~= localplayer then
+            table.insert(player_names, plr.Name);
+        end;
+    end;
+    if Options.PlayerDropdown then
+        Options.PlayerDropdown:SetValues(player_names);
+    end;
 end;
-misc1:AddDropdown("PlayerDropdown", { Values = PlayerNames;
+
+misc1:AddDropdown("PlayerDropdown", {
+    Values = player_names;
     Default = nil;
     Multi = false;
     AllowNull = true;
@@ -4575,30 +5469,42 @@ misc1:AddDropdown("PlayerDropdown", { Values = PlayerNames;
             currenttarget:SetText("current target: none");
             if Options.playersearch then Options.playersearch:SetValue(""); end;
         end;
-    end; });
-UpdatePlayerDropdown();
+    end;
+});
+
+players_dropdown();
+
 game.Players.PlayerAdded:Connect(function()
     task.wait(0.1);
-    UpdatePlayerDropdown();
+    players_dropdown();
 end);
+
 game.Players.PlayerRemoving:Connect(function(plr)
-    UpdatePlayerDropdown();
+    players_dropdown();
     if SelectedPlayer and SelectedPlayer == plr then
         SelectedPlayer = nil;
         currenttarget:SetText("current target: none");
         if Options.PlayerSearch then Options.PlayerSearch:SetValue(""); end;
     end;
 end);
-local viewDied = nil;
-local viewChanged = nil;
+
+local view_died = nil;
+local view_changed = nil;
+
 misc1:AddButton("teleport", function()
-    local s, e = pcall(function() framework:teleport(SelectedPlayer.Character.HumanoidRootPart.CFrame); end);
-    if e then library:Notify("select a target", 3); end;
+    local s, e = pcall(function()
+        framework:teleport(SelectedPlayer.Character.HumanoidRootPart.CFrame);
+    end);
+    if e then 
+        library:Notify("select a target", 3);
+    end;
 end);
+
 serverposition("heartbeat", "AvoidProjectiles", LPH_JIT_MAX(function(cf)
     return cf * cframe_new(0, 60, 0);
 end), 2);
-if not getgenv().safe_mode then
+
+if not safe_mode then
     misc1:AddButton("attempt fling", function()
         local s, e = pcall(function()
             local target = SelectedPlayer
@@ -4660,6 +5566,7 @@ if not getgenv().safe_mode then
         fling();
     end);
 end;
+
 misc1:AddButton("whitelist", function()
     local s, e = pcall(function()
         local playername = SelectedPlayer.Name;
@@ -4672,6 +5579,7 @@ misc1:AddButton("whitelist", function()
     end);
     if e then library:Notify("select a target", 3); end;
 end);
+
 misc1:AddButton("remove from whitelist", function()
     local s, e = pcall(function()
         local playername = SelectedPlayer.Name;
@@ -4685,41 +5593,46 @@ misc1:AddButton("remove from whitelist", function()
     end);
     if e then library:Notify("select a target", 3); end;
 end);
-misc1:AddToggle("spectateto", { Text = "spectate";
+
+misc1:AddToggle("spectateto", {
+    Text = "spectate";
 	Default = false;
 	Callback = function(v)
 		if not v then
 			viewing = nil;
-			if viewDied then viewDied:Disconnect(); viewDied = nil; end
-			if viewChanged then viewChanged:Disconnect(); viewChanged = nil; end
-			local myChar = localplayer.Character;
-			if myChar then
-				local hum = myChar:FindFirstChildOfClass("Humanoid");
-				if hum then workspace.CurrentCamera.CameraSubject = hum; end
+			if view_died then view_died:Disconnect(); view_died = nil; end;
+			if view_changed then view_changed:Disconnect(); view_changed = nil; end;
+			local my_character = localplayer.Character;
+			if my_character then
+				local hum = my_character:FindFirstChildOfClass("Humanoid");
+				if hum then workspace.CurrentCamera.CameraSubject = hum; end;
 			end
 		else
 			local target = SelectedPlayer;
 			if not target then return; end;
 			viewing = target;
-			local function updateView()
-				if not viewing or not viewing.Character then return; end
+			local function update_view()
+				if not viewing or not viewing.Character then return; end;
 				local hum = viewing.Character:FindFirstChildOfClass("Humanoid");
-				if hum then workspace.CurrentCamera.CameraSubject = hum; end
+				if hum then workspace.CurrentCamera.CameraSubject = hum; end;
 			end
-			updateView();
-			viewDied = viewing.CharacterAdded:Connect(function(char)
+			update_view();
+			view_died = viewing.CharacterAdded:Connect(function(char)
 				repeat task.wait(); until char:FindFirstChildOfClass("Humanoid");
-				updateView();
+				update_view();
 			end);
-			viewChanged = workspace.CurrentCamera:GetPropertyChangedSignal("CameraSubject"):Connect(function()
+			view_changed = workspace.CurrentCamera:GetPropertyChangedSignal("CameraSubject"):Connect(function()
 				if viewing and viewing.Character then
 					local hum = viewing.Character:FindFirstChildOfClass("Humanoid");
-					if hum and workspace.CurrentCamera.CameraSubject ~= hum then workspace.CurrentCamera.CameraSubject = hum; end
-				end
+					if hum and workspace.CurrentCamera.CameraSubject ~= hum then
+                        workspace.CurrentCamera.CameraSubject = hum;
+                    end;
+				end;
 			end);
-		end
+		end;
 	end;
 });
+
 do
     local cas = game:GetService("ContextActionService");
     local function on_space(action_name, input_state)
@@ -4777,67 +5690,72 @@ do
         watch_character(localplayer.Character);
     end;
 end;
-network:BindEvents({ 
+network:BindEvents({
     KilledPlayer = function(statData)
-		local KillSayStuff = Data.KillSayStuff
-		local MockHandler = modules.Name["MockPlayerHandler"]
-		local KillStreak = modules.Name["KillStreakConfigs"]
-		local diedPlayer = MockHandler.getPlayerOrMockFromPlayerOrMockUserId(statData.playerOrMockUserIdThatDied)
-		local killType = statData.singleKillType
-		local killStreak = statData.killStreak
-		local headShot = statData.isHeadshot
-		local collat = statData.isCollat
-		local multiplier = statData.xpMult
-		local baseXp = statData.baseXpToGive
-		local baseCredits = statData.baseCreditsToGive
-		if diedPlayer and getgenv().settings.killsay then
-			local PickFrom = KillSayStuff.Normal
-			local GotXp = baseXp
-			local GotCredits = baseCredits
-			if killType == "2" then
-				PickFrom = KillSayStuff.Assist
-			elseif killType == "3" then
-				PickFrom = KillSayStuff.Finish
-				GotXp = statData.finishXpToGive
-				GotCredits = statData.finishCreditsToGive
-			elseif killType == "4" then
-				PickFrom = KillSayStuff.Glory
-				GotXp = statData.gkXpToGive
-				GotCredits = statData.gkCreditsToGive
-			end
+		local KillSayStuff = Data.KillSayStuff;
+		local MockHandler = modules.Name["MockPlayerHandler"];
+		local KillStreak = modules.Name["KillStreakConfigs"];
+		local diedPlayer = MockHandler.getPlayerOrMockFromPlayerOrMockUserId(statData.playerOrMockUserIdThatDied);
+		local kill_type = statData.singleKillType;
+		local killStreak = statData.killStreak;
+		local headShot = statData.isHeadshot;
+		local collat = statData.isCollat;
+		local multiplier = statData.xpMult;
+		local base_experience = statData.baseXpToGive;
+		local baseCredits = statData.baseCreditsToGive;
+		if diedPlayer and settings.killsay then
+			local PickFrom = KillSayStuff.Normal;
+			local GotXp = base_experience;
+			local got_credits = baseCredits;
+			if kill_type == "2" then
+				PickFrom = KillSayStuff.Assist;
+			elseif kill_type == "3" then
+				PickFrom = KillSayStuff.Finish;
+				GotXp = statData.finishXpToGive;
+				got_credits = statData.finishCreditsToGive;
+			elseif kill_type == "4" then
+				PickFrom = KillSayStuff.Glory;
+				GotXp = statData.gkXpToGive;
+				got_credits = statData.gkCreditsToGive;
+			end;
 			if headShot then
-				PickFrom = PickFrom.Headshot or PickFrom
-				GotXp = statData.headshotXpToGive
-				GotCredits = statData.headshotCreditsToGive
-			end
+				PickFrom = PickFrom.Headshot or PickFrom;
+				GotXp = statData.headshotXpToGive;
+				got_credits = statData.headshotCreditsToGive;
+			end;
 			if collat then
-				PickFrom = PickFrom.Collat or PickFrom
-				GotXp = statData.collatXpToGive
-				GotCredits = statData.collatCreditsToGive
-			end
-			local killStreakData = killStreak > 1 and (KillStreak[killStreak - 1] or KillStreak[#KillStreak])
-			if killStreakData then
-				GotXp = statData.killStreakXpToGive
-				GotCredits = statData.killStreakCreditsToGive
-			end
-			local Message
+				PickFrom = PickFrom.Collat or PickFrom;
+				GotXp = statData.collatXpToGive;
+				got_credits = statData.collatCreditsToGive;
+			end;
+			local killstreak_data = killStreak > 1 and (KillStreak[killStreak - 1] or KillStreak[#KillStreak]);
+			if killstreak_data then
+				GotXp = statData.killStreakXpToGive;
+				got_credits = statData.killStreakCreditsToGive;
+			end;
+			local Message;
 			repeat
-				Message = PickFrom[math_random(1, #PickFrom)]
-				task.wait()
-			until typeof(Message) == "string"
-			Message = Message:gsub("%%Died%%", diedPlayer.DisplayName)
-			Message = Message:gsub("%%XP%%", GotXp * multiplier)
-			Message = Message:gsub("%%Credits%%", GotCredits)
-			if killStreakData then
-				Message = Message:gsub("%%KillstreakDisplayName%%", killStreakData.displayName)
+				Message = PickFrom[math_random(1, #PickFrom)];
+				task.wait();
+			until typeof(Message) == "string";
+			Message = Message:gsub("%%Died%%", diedPlayer.DisplayName);
+			Message = Message:gsub("%%XP%%", GotXp * multiplier);
+			Message = Message:gsub("%%Credits%%", got_credits);
+			if killstreak_data then
+				Message = Message:gsub("%%KillstreakDisplayName%%", killstreak_data.displayName);
 			else
-				Message = Message:gsub("%%KillstreakDisplayName%%", "Double Kill")
-			end
+				Message = Message:gsub("%%KillstreakDisplayName%%", "Double Kill");
+			end;
 			local Weapon = framework:get_weapon() or framework:get_ranged()
-			if Weapon then Message = Message:gsub("%%Weapon%%", Weapon.Name) end
-			if CanSend then TextChatService.TextChannels.RBXGeneral:SendAsync(Message) end
-		end
-	end })
+			if Weapon then
+                Message = Message:gsub("%%Weapon%%", Weapon.Name);
+            end;
+			if CanSend then
+                TextChatService.TextChannels.RBXGeneral:SendAsync(Message);
+            end;
+		end;
+	end;
+});
 setthreadidentity(8);
 local CachedPlayers = {};
 local function UpdateCachedPlayers()
@@ -4851,9 +5769,10 @@ players.PlayerRemoving:Connect(function() UpdateCachedPlayers(); end);
 local FlingThread;
 local CanFlingAll = false;
 setthreadidentity(8);
-if not getgenv().safe_mode then
-    misc1:AddToggle("loopflingall", { Text = "loop attempt fling all";
-        Default = false;
+if not safe_mode then
+    misc1:AddToggle("loopflingall", {
+    Text = "loop attempt fling all";
+    Default = false;
         Callback = function(Value)
             if not Value then
                 CanFlingAll = false;
@@ -4911,262 +5830,462 @@ if not getgenv().safe_mode then
         end;
     });
 end;
-auto:AddToggle("WhitelistFriends", { Text = "whitelist friends";
-	Default = false;
-	Callback = function(value)
-		Toggles.WhitelistFriends.Value = value;
-		getgenv().whitelistfriends = value;
-	end; });
-auto:AddToggle("autostomp", { Text = "auto stomp";
+
+auto:AddToggle("check_whitelist_global", {
+    Text = "check whitelist";
+    Default = false;
+});
+
+local global_wl_dep = auto:AddDependencyBox();
+
+global_wl_dep:SetupDependencies({
+    {Toggles.check_whitelist_global, true};
+});
+
+global_wl_dep:AddDropdown("global_whitelist_type", {
+    Values = {"kill aura", "strafe", "silent aim", "ragebot"};
+    Default = {"kill aura"};
+    Multi = true;
+    Text = "type";
+});
+
+global_wl_dep:AddDropdown("global_whitelist_mode", {
+    Values = {"team", "whitelist", "clan", "friend"};
+    Default = {"team"};
+    Multi = true;
+    Text = "mode";
+});
+
+auto:AddToggle("autostomp", {
+    Text = "auto stomp";
     Default = false;
     Callback = function(Value)
-        getgenv().settings.autostompshove = Value;
-    end; });
-auto:AddToggle("autoglory", { Text = "auto glory";
+        settings.autostompshove = Value;
+    end;
+});
+
+auto:AddToggle("autoglory", {
+    Text = "auto glory";
     Default = false;
     Callback = function(Value)
-        getgenv().settings.autoglory = Value;
-    end; });
-auto:AddToggle("BeartrapEnemy", { Text = "beartrap enemy";
+        settings.autoglory = Value;
+    end;
+});
+
+auto:AddToggle("BeartrapEnemy", {
+    Text = "beartrap enemy";
 	Default = false;
 	Callback = function(v)
-		getgenv().settings.BeartrapEnemy = v;
-	end; });
-auto:AddToggle("AutoAttachC4", { Text = "auto attach c4";
+		settings.BeartrapEnemy = v;
+	end;
+});
+
+auto:AddToggle("AutoAttachC4", {
+    Text = "auto attach c4";
 	Default = false;
 	Callback = function(v)
-		getgenv().settings.AutoAttachC4 = v;
-	end; });
-auto:AddToggle("AutoDetonateC4", { Text = "auto detonate c4";
+		settings.AutoAttachC4 = v;
+	end;
+});
+
+auto:AddToggle("AutoDetonateC4", {
+    Text = "auto detonate c4";
 	Default = false;
 	Callback = function(v)
-		getgenv().settings.AutoDetonateC4 = v;
-	end; });
-auto:AddToggle('SpamBioRepairSound', { Text = 'spam bio-repair pen sound', Default = false, Tooltip = 'spams bio-repair pen sound (use with tool)', Callback = function()
-        if Toggles.SpamBioRepairSound.Value then
-            workspace.ChildAdded:Connect(function(child) if child:IsA("Sound") and child.Name == "jab" then child:Destroy() end end)
+		settings.AutoDetonateC4 = v;
+	end;
+});
+
+auto:AddToggle('spam_bio_repair', {
+    Text = 'spam bio-repair pen sound';
+    Default = false;
+	Tooltip = 'spams bio-repair pen sound (use with tool)';
+    Callback = function()
+        if Toggles.spam_bio_repair.Value then
+            workspace.ChildAdded:Connect(function(child)
+                if child:IsA("Sound") and child.Name == "jab" then
+                    child:Destroy();
+                end;
+            end);
             task_spawn(LPH_JIT_MAX(function()
-                local stomp = { Torso = workspace }
-                while Toggles.SpamBioRepairSound.Value do
-                    modules.Name["VFXClient"].runAndReplicateEffect("HealthPen", { stomp, }, "jab")
-                    task.wait(0.01)
-                end
+                local stomp = {Torso = workspace; };
+                while Toggles.spam_bio_repair.Value do
+                    modules.Name["VFXClient"].runAndReplicateEffect("HealthPen", {stomp, }, "jab");
+                    task.wait(0.01);
+                end;
             end));
-        end
-    end })
-auto:AddSlider("stomprange", { Text = "stomp range";
+        end;
+    end;
+});
+
+auto:AddSlider("stomprange", {
+    Text = "stomp range";
     Default = 10;
     Min = 1;
     Max = 10;
     Rounding = 0;
     Compact = true;
 	Callback = function(Value)
-		getgenv().settings.stompshoverange = Value;
-	end; });
-auto:AddSlider("glorydelay", { Text = "glory delay";
+		settings.stompshoverange = Value;
+	end;
+});
+
+auto:AddSlider("glorydelay", {
+    Text = "glory delay";
     Default = 0.5;
     Min = 0.1;
     Max = 1;
     Rounding = 1;
     Compact = true;
 	Callback = function(Value)
-		getgenv().settings.glorydelay = Value;
-	end; });
-auto:AddSlider("gloryrange", { Text = "glory range";
+		settings.glorydelay = Value;
+	end;
+});
+
+auto:AddSlider("gloryrange", {
+    Text = "glory range";
     Default = 10;
     Min = 1;
     Max = 10;
     Rounding = 1;
     Compact = true;
 	Callback = function(Value)
-		getgenv().settings.gloryrange = Value;
-	end; });
-    local server_gb = tabs.misc:AddRightGroupbox("server");
-    server_gb:AddButton({ Text = "serverhop to highest";
-        Func = function()
-            local ok, res = pcall(function() return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100")); end);
-            if ok and res and res.data then
-                for i, v in pairs(res.data) do
-                    if v.playing < v.maxPlayers and v.id ~= game.JobId then
-                        if typeof(queue_on_teleport) == "function" then
-                            queue_on_teleport(string.format([[
-								script_key="%s";
-								loadstring(game:HttpGet("https://raw.githubusercontent.com/nilsolutions/nilsolutions/refs/heads/main/loader.lua"))();
-								]], script_key or ""));
-                        end;
-                        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, v.id, localplayer, "", "=");
-                        break;
-                    end;
-                end;
-            end;
-        end; }):AddButton({ Text = "serverhop to lowest";
-        Func = function()
-            local ok, res = pcall(function() return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")); end);
-            if ok and res and res.data then
-                for i, v in pairs(res.data) do
-                    if v.playing < v.maxPlayers and v.id ~= game.JobId then
-                        if typeof(queue_on_teleport) == "function" then
-                            queue_on_teleport(string.format([[
-								script_key="%s";
-								loadstring(game:HttpGet("https://raw.githubusercontent.com/nilsolutions/nilsolutions/refs/heads/main/loader.lua"))();
-                            ]], script_key or ""));
-                        end;
-                        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, v.id, localplayer, "", "=");
-                        break;
-                    end;
-                end;
-            end;
-        end; });
-    server_gb:AddButton({ Text = "serverhop";
-        Func = function()
-            local ok, res = pcall(function() return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100")); end);
-            if ok and res and res.data then
-                local target = res.data[math_random(1, #res.data)];
-                if target and target.id ~= game.JobId then
+		settings.gloryrange = Value;
+	end;
+});
+
+local server_gb = tabs.misc:AddRightGroupbox("server");
+
+server_gb:AddButton({
+    Text = "serverhop to highest";
+    Func = function()
+        local ok, res = pcall(function() return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100")); end);
+        if ok and res and res.data then
+            for i, v in pairs(res.data) do
+                if v.playing < v.maxPlayers and v.id ~= game.JobId then
                     if typeof(queue_on_teleport) == "function" then
                         queue_on_teleport(string.format([[
 							script_key="%s";
 							loadstring(game:HttpGet("https://raw.githubusercontent.com/nilsolutions/nilsolutions/refs/heads/main/loader.lua"))();
-                        ]], script_key or ""));
+							]], script_key or ""));
                     end;
-                    game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, target.id, localplayer, "", "=");
+                    teleportservice:TeleportToPlaceInstance(game.PlaceId, v.id, localplayer, "", "=");
+                    break;
                 end;
             end;
-        end; }):AddButton({ Text = "rejoin";
-        Func = function()
-            if typeof(queue_on_teleport) == "function" then
-                queue_on_teleport(string.format([[
-					script_key="%s";
-					loadstring(game:HttpGet("https://raw.githubusercontent.com/nilsolutions/nilsolutions/refs/heads/main/loader.lua"))();
-                ]], script_key or ""));
+        end;
+    end;
+}):AddButton({
+    Text = "serverhop to lowest";
+    Func = function()
+       local ok, res = pcall(function() return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")); end);
+       if ok and res and res.data then
+           for i, v in pairs(res.data) do
+               if v.playing < v.maxPlayers and v.id ~= game.JobId then
+                   if typeof(queue_on_teleport) == "function" then
+                       queue_on_teleport(string.format([[
+						script_key="%s";
+						loadstring(game:HttpGet("https://raw.githubusercontent.com/nilsolutions/nilsolutions/refs/heads/main/loader.lua"))();
+                       ]], script_key or ""));
+                   end;
+                   teleportservice:TeleportToPlaceInstance(game.PlaceId, v.id, localplayer, "", "=");
+                   break;
+               end;
+           end;
+       end;
+    end;
+});
+
+server_gb:AddButton({
+    Text = "serverhop";
+    Func = function()
+        local ok, res = pcall(function() return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100")); end);
+        if ok and res and res.data then
+            local target = res.data[math_random(1, #res.data)];
+            if target and target.id ~= game.JobId then
+                if typeof(queue_on_teleport) == "function" then
+                    queue_on_teleport(string.format([[
+						script_key="%s";
+						loadstring(game:HttpGet("https://raw.githubusercontent.com/nilsolutions/nilsolutions/refs/heads/main/loader.lua"))();
+                    ]], script_key or ""));
+                end;
+                teleportservice:TeleportToPlaceInstance(game.PlaceId, target.id, localplayer, "", "=");
             end;
-            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, localplayer, "", "=");
-        end; });
+        end;
+    end;
+}):AddButton({
+    Text = "rejoin";
+    Func = function()
+        if typeof(queue_on_teleport) == "function" then
+            queue_on_teleport(string.format([[
+				script_key="%s";
+				loadstring(game:HttpGet("https://raw.githubusercontent.com/nilsolutions/nilsolutions/refs/heads/main/loader.lua"))();
+            ]], script_key or ""));
+        end;
+        teleportservice:TeleportToPlaceInstance(game.PlaceId, game.JobId, localplayer, "", "=");
+    end;
+});
+
 local visuals = tabs.visuals;
 local crosshairsection = visuals:AddRightGroupbox("crosshair");
-crosshairsection:AddToggle("CrosshairEnabled", { Text = "crosshair enabled";
-    Default = false; }):AddColorPicker("CrosshairColor", { Default = Color3.new(1, 1, 1);
-    Title = "crosshair color"; });
-crosshairsection:AddToggle("CrosshairOutline", { Text = "outline";
-    Default = false; });
-crosshairsection:AddSlider("CrosshairSize", { Text = "size";
+
+crosshairsection:AddToggle("CrosshairEnabled", {
+    Text = "crosshair enabled";
+    Default = false;
+}):AddColorPicker("CrosshairColor", {
+    Default = Color3.new(1, 1, 1);
+    Title = "crosshair color";
+});
+
+crosshairsection:AddToggle("CrosshairOutline", {
+    Text = "outline";
+    Default = false;
+});
+
+crosshairsection:AddSlider("CrosshairSize", {
+    Text = "size";
     Default = 10;
     Min = 1;
     Max = 50;
     Rounding = 0;
-    Compact = true; });
-crosshairsection:AddSlider("CrosshairGap", { Text = "gap";
+    Compact = true;
+});
+
+crosshairsection:AddSlider("CrosshairGap", {
+    Text = "gap";
     Default = 5;
     Min = 0;
     Max = 20;
     Rounding = 0;
-    Compact = true; });
-crosshairsection:AddSlider("CrosshairThickness", { Text = "thickness";
+    Compact = true;
+});
+
+crosshairsection:AddSlider("CrosshairThickness", {
+    Text = "thickness";
     Default = 1;
     Min = 1;
     Max = 5;
     Rounding = 0;
-    Compact = true; });
-crosshairsection:AddSlider("CrosshairSmoothing", { Text = "smoothing";
+    Compact = true;
+});
+
+crosshairsection:AddSlider("CrosshairSmoothing", {
+    Text = "smoothing";
     Default = 1;
     Min = 1;
     Max = 20;
     Rounding = 0;
-    Compact = true; });
-crosshairsection:AddToggle("CrosshairSpin", { Text = "spin crosshair";
-    Default = false; });
-crosshairsection:AddSlider("CrosshairSpinSpeed", { Text = "spin speed";
+    Compact = true;
+});
+
+crosshairsection:AddToggle("CrosshairSpin", {
+    Text = "spin crosshair";
+    Default = false;
+});
+
+crosshairsection:AddSlider("CrosshairSpinSpeed", {
+    Text = "spin speed";
     Default = 1;
     Min = 1;
     Max = 20;
     Rounding = 0;
-    Compact = true; });
+    Compact = true;
+});
+
 local weaponchamssection = visuals:AddRightGroupbox("weapon chams");
-weaponchamssection:AddToggle("WeaponChamsEnabled", { Text = "weapon chams enabled";
-    Default = false; }):AddColorPicker("WeaponChamsColor", { Default = Color3.new(1, 0, 0);
-    Title = "chams color"; });
-weaponchamssection:AddToggle("WeaponChamsHighlight", { Text = "enable highlight";
-    Default = false; }):AddColorPicker("WeaponChamsHighlightColor", { Default = Color3.new(1, 0, 0);
-    Title = "highlight color"; });
-weaponchamssection:AddDropdown("WeaponChamsMaterial", { Text = "material";
+
+weaponchamssection:AddToggle("WeaponChamsEnabled", {
+    Text = "weapon chams enabled";
+    Default = false;
+}):AddColorPicker("WeaponChamsColor", {
+    Default = Color3.new(1, 0, 0);
+    Title = "chams color";
+});
+
+weaponchamssection:AddToggle("WeaponChamsHighlight", {
+    Text = "enable highlight";
+    Default = false;
+}):AddColorPicker("WeaponChamsHighlightColor", {
+    Default = Color3.new(1, 0, 0);
+    Title = "highlight color";
+});
+
+weaponchamssection:AddDropdown("WeaponChamsMaterial", {
+    Text = "material";
     Default = "Plastic";
-    Values = {"ForceField", "Neon", "Glass", "Plastic"}; });
+    Values = {"ForceField", "Neon", "Glass", "Plastic"};
+});
+
 local lightingsection = visuals:AddRightGroupbox("lightning");
 local lightingsection1 = visuals:AddRightGroupbox("fog")
 local Lighting = game:GetService("Lighting");
 local Map = workspace:FindFirstChild("Map");
-if not Lighting:FindFirstChild("atmosphere") then Instance.new("Atmosphere", Lighting).Name = "atmosphere"; end;
-local originalAtmosphere = { Density = Lighting.atmosphere.Density, Decay = Lighting.atmosphere.Decay, Offset = Lighting.atmosphere.Offset, Glare = Lighting.atmosphere.Glare, Haze = Lighting.atmosphere.Haze, };
-local Skyboxes = { None = {}, Nebula = { SkyboxBk = "rbxassetid://159454299", SkyboxDn = "rbxassetid://159454296", SkyboxFt = "rbxassetid://159454293", SkyboxLf = "rbxassetid://159454286", SkyboxRt = "rbxassetid://159454300", SkyboxUp = "rbxassetid://159454288", }, Vaporwave = { SkyboxBk = "rbxassetid://1417494030", SkyboxDn = "rbxassetid://1417494146", SkyboxFt = "rbxassetid://1417494253", SkyboxLf = "rbxassetid://1417494402", SkyboxRt = "rbxassetid://1417494499", SkyboxUp = "rbxassetid://1417494643", }, Clouds = { SkyboxBk = "rbxassetid://570557514", SkyboxDn = "rbxassetid://570557775", SkyboxFt = "rbxassetid://570558157", SkyboxLf = "rbxassetid://570551248", SkyboxRt = "rbxassetid://570557727", SkyboxUp = "rbxassetid://570558036", }, Twilight = { SkyboxBk = "rbxassetid://2649648296", SkyboxDn = "rbxassetid://2649648296", SkyboxFt = "rbxassetid://2649648296", SkyboxLf = "rbxassetid://2649648296", SkyboxRt = "rbxassetid://2649648296", SkyboxUp = "rbxassetid://2649648296", }, };
-lightingsection:AddToggle("Ambience", { Text = "world ambience";
+
+local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
+if not atmosphere then
+    atmosphere = Instance.new("Atmosphere", Lighting)
+end
+atmosphere.Name = "atmosphere"
+
+local original_atmosphere = {
+    Density = Lighting.atmosphere.Density;
+    Decay = Lighting.atmosphere.Decay;
+    Color = Lighting.atmosphere.Color;
+    Offset = Lighting.atmosphere.Offset;
+    Glare = Lighting.atmosphere.Glare;
+    Haze = Lighting.atmosphere.Haze;
+};
+
+local Skyboxes = {
+    None = {};
+    Nebula = {
+        SkyboxBk = "rbxassetid://159454299";
+        SkyboxDn = "rbxassetid://159454296";
+        SkyboxFt = "rbxassetid://159454293";
+        SkyboxLf = "rbxassetid://159454286";
+        SkyboxRt = "rbxassetid://159454300";
+        SkyboxUp = "rbxassetid://159454288";
+    };
+    Vaporwave = {
+        SkyboxBk = "rbxassetid://1417494030",
+        SkyboxDn = "rbxassetid://1417494146",
+        SkyboxFt = "rbxassetid://1417494253";
+        SkyboxLf = "rbxassetid://1417494402";
+        SkyboxRt = "rbxassetid://1417494499";
+        SkyboxUp = "rbxassetid://1417494643";
+    };
+    Clouds = {
+        SkyboxBk = "rbxassetid://570557514";
+        SkyboxDn = "rbxassetid://570557775";
+        SkyboxFt = "rbxassetid://570558157";
+        SkyboxLf = "rbxassetid://570551248";
+        SkyboxRt = "rbxassetid://570557727";
+        SkyboxUp = "rbxassetid://570558036";
+    };
+    Twilight = {
+        SkyboxBk = "rbxassetid://2649648296";
+        SkyboxDn = "rbxassetid://2649648296";
+        SkyboxFt = "rbxassetid://2649648296";
+        SkyboxLf = "rbxassetid://2649648296";
+        SkyboxRt = "rbxassetid://2649648296";
+        SkyboxUp = "rbxassetid://2649648296";
+    };
+};
+
+lightingsection:AddToggle("Ambience", {
+    Text = "world ambience";
 	Default = false;
-	Tooltip = "Changes ambience"; }):AddColorPicker("AmbienceColor", { Default = Color3.new(1, 1, 1);
+	Tooltip = "Changes ambience";
+}):AddColorPicker("AmbienceColor", {
+    Default = Color3.new(1, 1, 1);
 	Title = "Ambience Color";
-	Transparency = 0; });
-lightingsection:AddToggle("ColorCorrection", { Text = "color correction";
+	Transparency = 0;
+});
+
+lightingsection:AddToggle("ColorCorrection", {
+    Text = "color correction";
 	Default = false;
-	Tooltip = "Changes Color Correction"; }):AddColorPicker("ColorCorrectionColor", { Default = Color3.new(1, 1, 1);
+	Tooltip = "Changes Color Correction";
+}):AddColorPicker("ColorCorrectionColor", {
+    Default = Color3.new(1, 1, 1);
 	Title = "Color Correction Color";
-	Transparency = 0; });
+	Transparency = 0;
+});
+
 local hitdetectionsection = visuals:AddRightGroupbox("hit detection");
-hitdetectionsection:AddToggle("HitDetectionEnabled", { Text = "enabled";
-    Default = false; }):AddColorPicker("HitEffectColor", { Default = Color3.new(1, 1, 1);
-    Title = "effect color"; });
-hitdetectionsection:AddDropdown("HitDetectionType", { Text = "detection type";
+
+hitdetectionsection:AddToggle("HitDetectionEnabled", {
+    Text = "enabled";
+    Default = false;
+}):AddColorPicker("HitEffectColor", {
+    Default = Color3.new(1, 1, 1);
+    Title = "effect color";
+});
+
+hitdetectionsection:AddDropdown("HitDetectionType", {
+    Text = "detection type";
 	Default = "Ranged";
 	Values = {"Both", "Melee", "Ranged"};
-	Tooltip = "melee works only for killaura"; });
-hitdetectionsection:AddDropdown("HitSound", { Text = "hit sound";
+	Tooltip = "melee works only for killaura";
+});
+
+hitdetectionsection:AddDropdown("HitSound", {
+    Text = "hit sound";
     Default = "None";
-    Values = {"None", "OSU", "Neverlose", "Bameware", "skeet", "Rust", "Lazer Beam", "Bow Hit", "TF2 Hitsound", "TF2 Critical"}; });
-hitdetectionsection:AddDropdown("HitEffects", { Multi = true;
+    Values = {"None", "OSU", "Neverlose", "Bameware", "skeet", "Rust", "Lazer Beam", "Bow Hit", "TF2 Hitsound", "TF2 Critical"};
+});
+
+hitdetectionsection:AddDropdown("HitEffects", {
+    Multi = true;
     Text = "hit effects";
     Default = {};
-	Values = {"Clone (Forcefield)", "Clone (Neon)", "Impact", "Pulse", "Fortnite"}; });
-hitdetectionsection:AddToggle("HitLogs", { Text = "hitlogs";
-    Default = false; }):AddColorPicker("HvhColor", { Default = Color3.fromRGB(150, 0, 255);
-    Title = ".hvh color"; });
-hitdetectionsection:AddSlider("HitSoundVolume", { Text = "hit sound volume";
+	Values = {"Clone (Forcefield)", "Clone (Neon)", "Impact", "Pulse", "Fortnite"};
+});
+
+hitdetectionsection:AddToggle("HitLogs", {
+    Text = "hitlogs";
+    Default = false;
+}):AddColorPicker("HvhColor", {
+    Default = Color3.fromRGB(150, 0, 255);
+    Title = ".hvh color";
+});
+
+hitdetectionsection:AddSlider("HitSoundVolume", {
+    Text = "hit sound volume";
 	Default = 1;
 	Min = 0.1;
 	Max = 10;
 	Rounding = 1;
-	Compact = true; });
-lightingsection:AddDropdown("Skybox", { Text = "skybox";
+	Compact = true;
+});
+
+lightingsection:AddDropdown("Skybox", {
+    Text = "skybox";
 	Default = "None";
 	Values = {"None", "Nebula", "Vaporwave", "Clouds", "Twilight"};
-	Tooltip = "Changes Skybox"; });
-lightingsection:AddToggle("ClockTime", { Text = "clock time";
+	Tooltip = "Changes Skybox";
+});
+
+lightingsection:AddToggle("ClockTime", {
+    Text = "clock time";
 	Default = false;
-	Tooltip = "Changes Clock Time"; });
-lightingsection:AddToggle("MaxZoom", { Text = "max zoom";
+	Tooltip = "Changes Clock Time";
+});
+
+lightingsection:AddToggle("MaxZoom", {
+    Text = "max zoom";
 	Default = false;
-	Tooltip = "Changes Max Zoom"; });
-lightingsection:AddToggle("FieldOfView", { Text = "field of view";
+	Tooltip = "Changes Max Zoom";
+});
+
+lightingsection:AddToggle("FieldOfView", {
+    Text = "field of view";
 	Default = false;
 	Tooltip = "Changes FOV";
 	Callback = function(Value)
 		if not Value then camera.FieldOfView = 70; end;
-	end; });
-lightingsection:AddToggle("NoclipCam", { Text = "noclip cam";
+	end;
+});
+
+lightingsection:AddToggle("clip_camera", {
+    Text = "noclip cam";
 	Default = false;
-	Tooltip = "Enables camera noclip";
 	Callback = function(Value)
 		local sc = (debug and debug.setconstant) or setconstant;
 		local gc = (debug and debug.getconstants) or getconstants;
 		local getgc = (debug and debug.getgc) or getgc;
-		local playerScripts = localplayer.PlayerScripts;
-		local popper = playerScripts.PlayerModule and playerScripts.PlayerModule.CameraModule and playerScripts.PlayerModule.CameraModule.ZoomController and playerScripts.PlayerModule.CameraModule.ZoomController.Popper;
-		local targetValueForNoclipCamOn = 0;
-		local targetValueForNoclipCamOff = 0.25;
-		local valueToSet = Value and targetValueForNoclipCamOn or targetValueForNoclipCamOff;
+		local player_scripts = localplayer.PlayerScripts;
+		local popper = player_scripts.PlayerModule and player_scripts.PlayerModule.CameraModule and player_scripts.PlayerModule.CameraModule.ZoomController and player_scripts.PlayerModule.CameraModule.ZoomController.Popper;
+		local target_value_noclip = 0;
+		local target_val_camoff = 0.25;
+		local value_to_set = Value and target_value_noclip or target_val_camoff;
 		local modified = false;
 		for _, v in pairs(getgc()) do
 			if type(v) == "function" and getfenv(v).script == popper then
 				for i, v1 in pairs(gc(v)) do
-					if tonumber(v1) == targetValueForNoclipCamOn or tonumber(v1) == targetValueForNoclipCamOff then
-						if tonumber(v1) ~= valueToSet then
-							sc(v, i, valueToSet);
+					if tonumber(v1) == target_value_noclip or tonumber(v1) == target_val_camoff then
+						if tonumber(v1) ~= value_to_set then
+							sc(v, i, value_to_set);
 							modified = true;
 							break;
 						end;
@@ -5175,93 +6294,129 @@ lightingsection:AddToggle("NoclipCam", { Text = "noclip cam";
 			end;
 			if modified then break; end;
 		end;
-	end; });
-lightingsection:AddToggle("Brightness", { Text = "brightness";
+	end;
+});
+
+lightingsection:AddToggle("Brightness", {
+    Text = "brightness";
 	Default = false;
-	Tooltip = "Changes Brightness"; });
-lightingsection:AddToggle("Environmental", { Text = "environmental";
+});
+
+lightingsection:AddToggle("Environmental", {
+    Text = "environmental";
 	Default = false;
-	Tooltip = "Changes Environmental Effects"; });
-lightingsection:AddToggle("Exposure", { Text = "exposure compensation";
+});
+
+lightingsection:AddToggle("Exposure", {
+    Text = "exposure compensation";
 	Default = false;
-	Tooltip = "Changes Exposure Effects"; });
-lightingsection:AddSlider("Time", { Text = "time";
+});
+
+lightingsection:AddSlider("Time", {
+    Text = "time";
 	Default = 12;
 	Min = 1;
 	Max = 24;
 	Rounding = 0;
 	Compact = true;
-	Tooltip = "The time for Clock Time"; });
-lightingsection:AddSlider("FOVLighting", { Text = "fov value";
+	Tooltip = "The time for Clock Time";
+});
+
+lightingsection:AddSlider("FOVLighting", {
+    Text = "fov value";
 	Default = 70;
 	Min = 1;
 	Max = 120;
 	Rounding = 0;
 	Compact = true;
-	Tooltip = "Your field of view"; });
-lightingsection:AddSlider("BrightnessValue", { Text = "brightness";
+});
+
+lightingsection:AddSlider("BrightnessValue", {
+    Text = "brightness";
 	Default = 2;
 	Min = 1;
 	Max = 10;
 	Rounding = 0;
 	Compact = true;
-	Tooltip = "How bright you want it to be"; });
-lightingsection:AddSlider("ExposureValue", { Text = "exposure";
+});
+
+lightingsection:AddSlider("ExposureValue", {
+    Text = "exposure";
 	Default = 0;
 	Min = 0;
 	Max = 10;
 	Rounding = 1;
 	Compact = true;
-	Tooltip = "Exposure scale"; });
-lightingsection:AddSlider("EnvironmentValue", { Text = "diffuse % specular";
+});
+
+lightingsection:AddSlider("EnvironmentValue", {
+    Text = "diffuse % specular";
 	Default = 1;
 	Min = 0;
 	Max = 1;
 	Rounding = 1;
 	Compact = true;
-	Tooltip = "Effect Scale"; });
-lightingsection:AddSlider("MaxZoomVal", { Text = "max zoom value";
+});
+
+lightingsection:AddSlider("MaxZoomVal", {
+    Text = "max zoom value";
 	Default = 24;
 	Min = 1;
 	Max = 1000;
 	Rounding = 0;
 	Compact = true;
 	Suffix = " studs";
-	Tooltip = "How far you want to zoom out to"; });
-lightingsection1:AddToggle("Fog", { Text = "fog";
+});
+
+lightingsection1:AddToggle("Fog", {
+    Text = "fog";
 	Default = false;
-	Tooltip = "Enables Fog"; }):AddColorPicker("FogColor", { Default = Color3.new(1, 1, 1);
-	Title = "Fog Color";
-	Transparency = 0; });
-lightingsection1:AddSlider("Density", { Text = "density";
+}):AddColorPicker("FogColor", {
+    Default = Color3.new(1, 1, 1);
+	Title = "fog Color";
+	Transparency = 0;
+});
+
+lightingsection1:AddSlider("Density", {
+    Text = "density";
 	Default = 1;
 	Min = 0;
 	Max = 1;
 	Rounding = 2;
 	Compact = true;
-	Tooltip = "Fog Density"; });
-lightingsection1:AddSlider("Glare", { Text = "glare";
+	Tooltip = "Fog Density";
+});
+
+lightingsection1:AddSlider("Glare", {
+    Text = "glare";
 	Default = 0;
 	Min = 0;
 	Max = 10;
 	Rounding = 0;
 	Compact = true;
-	Tooltip = "Fog Glare"; });
-lightingsection1:AddSlider("Haze", { Text = "haze";
+	Tooltip = "Fog Glare";
+});
+
+lightingsection1:AddSlider("Haze", {
+    Text = "haze";
 	Default = 0;
 	Min = 0;
 	Max = 10;
 	Rounding = 0;
 	Compact = true;
-	Tooltip = "Fog Haze"; });
+	Tooltip = "Fog Haze";
+});
 
 local FOVConnection; FOVConnection = camera:GetPropertyChangedSignal("FieldOfView"):Connect(function()
 	if not Active then
 		FOVConnection:Disconnect();
 		return;
 	end;
-	if Classes.FieldOfView.Value then camera.FieldOfView = Classes.FOVLighting.Value; end;
+	if Classes.FieldOfView.Value then
+        camera.FieldOfView = Classes.FOVLighting.Value;
+    end;
 end);
+
 local ColorCorrection = Lighting:FindFirstChildOfClass("ColorCorrectionEffect") or Instance.new("ColorCorrectionEffect");
 ColorCorrection.Parent = Lighting;
 local OldCorrection = ColorCorrection.TintColor;
@@ -5273,6 +6428,7 @@ local OldBrightness = Lighting.Brightness;
 local OldExposure = Lighting.ExposureCompensation;
 local OldClock = Lighting.ClockTime;
 local OldZoom = localplayer.CameraMaxZoomDistance;
+
 if Map then
 	Map.ChildAdded:Connect(function(map)
 		task.wait(3);
@@ -5291,8 +6447,12 @@ if Map then
 		end;
 	end);
 end;
+
 OldCorrection = ColorCorrection.TintColor;
+
 local water_parts = nil;
+local part_watchers = {};
+
 local function get_water_parts()
     if water_parts then 
         return water_parts;
@@ -5317,7 +6477,7 @@ local function get_water_parts()
     end));
     return water_parts;
 end;
-local part_watchers = {};
+
 local function set_water_collision(state)
     local wp = get_water_parts();
     for i = 1, #wp do
@@ -5327,6 +6487,7 @@ local function set_water_collision(state)
         end;
     end;
 end;
+
 local function stop_water()
     for _, c in part_watchers do 
         c:Disconnect();
@@ -5334,6 +6495,7 @@ local function stop_water()
     table.clear(part_watchers);
     set_water_collision(false);
 end;
+
 local function start_water()
     stop_water();
     set_water_collision(true);
@@ -5349,6 +6511,7 @@ local function start_water()
         end;
     end;
 end;
+
 Toggles.walkonwater:OnChanged(function()
     if Toggles.walkonwater.Value then
         start_water();
@@ -5356,88 +6519,104 @@ Toggles.walkonwater:OnChanged(function()
         stop_water();
     end;
 end);
+
 if Toggles.walkonwater.Value then 
     start_water();
 end;
+
 local ragdolling = false;
 framework:BindToRenderStep(LPH_JIT_MAX(function()
-        local canragdoll = Toggles.ragdoll.Value;
-        if not localplayer.Character then return; end;
-        local humanoid = localplayer.Character:FindFirstChild("Humanoid");
-        local remote = humanoid and humanoid:FindFirstChild("RagdollRemoteEvent");
-        if not remote then return end
-        local ragdolled = humanoid:GetAttribute("IsRagdolledServer");
-        if canragdoll then
-            if not ragdolling then ragdolling = true; end;
-            if not ragdolled then remote:FireServer(true); end;
-        else
-            if ragdolling then
-                remote:FireServer(false);
-                ragdolling = false;
-            end;
-		end;
-		framework:GetSessionData():getState().fallDamageClient.isDisabled = getgenv().settings.nfd or settings.loopkillall;
-		if not Lighting:FindFirstChild("atmosphere") then Instance.new("Atmosphere", Lighting).Name = "atmosphere"; end;
-		local Sky = Lighting:FindFirstChildOfClass("Sky");
-		if not Sky then return; end;
-		local skyboxval = Classes.Skybox.Value;
-		if skyboxval ~= getgenv()._lastskybox then
-			getgenv()._lastskybox = skyboxval;
-			local Skybox = Skyboxes[skyboxval];
-			if Skybox then for i, v in next, Skybox do Sky[i] = v; end; end;
-		end;
-		if Classes.FieldOfView.Value then camera.FieldOfView = Classes.FOVLighting.Value; end;
-		if Classes.Fog.Value then
-			Lighting.atmosphere.Density = Classes.Density.Value;
-			Lighting.atmosphere.Decay = Classes.FogColor.Value or Color3.new(1, 1, 1);
-			Lighting.atmosphere.Offset = 1;
-			Lighting.atmosphere.Glare = Classes.Glare.Value;
-			Lighting.atmosphere.Haze = Classes.Haze.Value;
-		else
-			for i, v in pairs(originalAtmosphere) do Lighting.atmosphere[i] = v; end;
-		end;
-		if Classes.Ambience.Value then
-			Lighting.OutdoorAmbient = Classes.AmbienceColor.Value or Color3.new(1, 1, 1);
-			Lighting.Ambient = Classes.AmbienceColor.Value or Color3.new(1, 1, 1);
-		else
-			Lighting.OutdoorAmbient = OldAmbience;
-			Lighting.Ambient = OldAmbience2;
-		end;
-		if Classes.MaxZoom.Value then
-			localplayer.CameraMaxZoomDistance = Classes.MaxZoomVal.Value;
-		else
-			localplayer.CameraMaxZoomDistance = OldZoom;
-		end;
-		if Classes.ClockTime.Value then
-			Lighting.ClockTime = Classes.Time.Value;
-		else
-			Lighting.ClockTime = OldClock;
-		end;
-		if Classes.ColorCorrection.Value then
-			ColorCorrection.Enabled = true;
-			ColorCorrection.TintColor = Classes.ColorCorrectionColor.Value or Color3.new(1, 1, 1);
-		else
-			ColorCorrection.Enabled = false;
-			ColorCorrection.TintColor = OldCorrection;
-		end;
-		if Classes.Brightness.Value then
-			Lighting.Brightness = Classes.BrightnessValue.Value;
-		else
-			Lighting.Brightness = OldBrightness;
-		end;
-		if Classes.Environmental.Value then
-			Lighting.EnvironmentDiffuseScale = Classes.EnvironmentValue.Value;
-			Lighting.EnvironmentSpecularScale = Classes.EnvironmentValue.Value;
-		else
-			Lighting.EnvironmentDiffuseScale = OldDiffuse;
-			Lighting.EnvironmentSpecularScale = OldDiffuse2;
-		end;
-		if Classes.Exposure.Value then
-			Lighting.ExposureCompensation = Classes.ExposureValue.Value;
-		else
-			Lighting.ExposureCompensation = OldExposure;
-		end;
-	end), nil, Enum.RenderPriority.Last );
+    local canragdoll = Toggles.ragdoll.Value;
+    if not localplayer.Character then return; end;
+    local humanoid = localplayer.Character:FindFirstChild("Humanoid");
+    local remote = humanoid and humanoid:FindFirstChild("RagdollRemoteEvent");
+    if not remote then return end
+    local ragdolled = humanoid:GetAttribute("IsRagdolledServer");
+    if canragdoll then
+        if not ragdolling then
+            ragdolling = true;
+        end;
+        if not ragdolled then
+            remote:FireServer(true);
+        end;
+    else
+        if ragdolling then
+            remote:FireServer(false);
+            ragdolling = false;
+        end;
+	end;
+	framework:GetSessionData():getState().fallDamageClient.isDisabled = settings.nfd or settings.loopkillall;
+	if not Lighting:FindFirstChild("atmosphere") then
+        local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
+        if not atmosphere then
+            atmosphere = Instance.new("Atmosphere", Lighting)
+        end
+        atmosphere.Name = "atmosphere"
+    end;
+	local Sky = Lighting:FindFirstChildOfClass("Sky");
+	if not Sky then return; end;
+	local skyboxval = Classes.Skybox.Value;
+	if skyboxval ~= _lastskybox then
+		_lastskybox = skyboxval;
+		local Skybox = Skyboxes[skyboxval];
+		if Skybox then for i, v in next, Skybox do Sky[i] = v; end; end;
+	end;
+	if Classes.FieldOfView.Value then
+        camera.FieldOfView = Classes.FOVLighting.Value;
+    end;
+	if Classes.Fog.Value then
+		Lighting.atmosphere.Density = Classes.Density.Value;
+		Lighting.atmosphere.Decay = Classes.FogColor.Value or Color3.new(1, 1, 1);
+		Lighting.atmosphere.Color = Classes.FogColor.Value or Color3.new(1, 1, 1);
+		Lighting.atmosphere.Offset = 0;
+		Lighting.atmosphere.Glare = Classes.Glare.Value;
+		Lighting.atmosphere.Haze = Classes.Haze.Value;
+	else
+		for i, v in pairs(original_atmosphere) do Lighting.atmosphere[i] = v; end;
+	end;
+	if Classes.Ambience.Value then
+		Lighting.OutdoorAmbient = Classes.AmbienceColor.Value or Color3.new(1, 1, 1);
+		Lighting.Ambient = Classes.AmbienceColor.Value or Color3.new(1, 1, 1);
+	else
+		Lighting.OutdoorAmbient = OldAmbience;
+		Lighting.Ambient = OldAmbience2;
+	end;
+	if Classes.MaxZoom.Value then
+		localplayer.CameraMaxZoomDistance = Classes.MaxZoomVal.Value;
+	else
+		localplayer.CameraMaxZoomDistance = OldZoom;
+	end;
+	if Classes.ClockTime.Value then
+		Lighting.ClockTime = Classes.Time.Value;
+	else
+		Lighting.ClockTime = OldClock;
+	end;
+	if Classes.ColorCorrection.Value then
+		ColorCorrection.Enabled = true;
+		ColorCorrection.TintColor = Classes.ColorCorrectionColor.Value or Color3.new(1, 1, 1);
+	else
+		ColorCorrection.Enabled = false;
+		ColorCorrection.TintColor = OldCorrection;
+	end;
+	if Classes.Brightness.Value then
+		Lighting.Brightness = Classes.BrightnessValue.Value;
+	else
+		Lighting.Brightness = OldBrightness;
+	end;
+	if Classes.Environmental.Value then
+		Lighting.EnvironmentDiffuseScale = Classes.EnvironmentValue.Value;
+		Lighting.EnvironmentSpecularScale = Classes.EnvironmentValue.Value;
+	else
+		Lighting.EnvironmentDiffuseScale = OldDiffuse;
+		Lighting.EnvironmentSpecularScale = OldDiffuse2;
+	end;
+	if Classes.Exposure.Value then
+		Lighting.ExposureCompensation = Classes.ExposureValue.Value;
+	else
+		Lighting.ExposureCompensation = OldExposure;
+	end;
+end), nil, Enum.RenderPriority.Last);
+
 local function esp1()
     local GetService = game.GetService
     local Service = function(Name) return cloneref(GetService(game, Name)) end
@@ -5503,38 +6682,52 @@ local function esp1()
     local WaitForChild = game.WaitForChild
     local FindFirstChildWhichIsA = game.FindFirstChildWhichIsA
     local IsA = game.IsA
-getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tahoma", FontSize = 12, FontType = "lowercase", MaxDistance = 1000, BoundingBox = { Enabled = false, DynamicBox = false, IncludeAccessories = false, Rotation = 90, Color = {Color3_fromRGB(105, 187, 245), Color3_fromRGB(105, 187, 245)}, Transparency = {0, 0}, Glow = { Enabled = false, Rotation = 90, Color = {Color3_fromRGB(105, 187, 245), Color3_fromRGB(105, 187, 245)}, Transparency = {0.75, 0.75}, }, Fill = { Enabled = false, Rotation = 90, Color = {Color3_fromRGB(105, 187, 245), Color3_fromRGB(105, 187, 245)}, Transparency = {1, 0.5}, }, }, Bars = { HealthBar = { Enabled = false, Position = "Left", Color = {Color3_fromRGB(131, 245, 78), Color3_fromRGB(255, 255, 0), Color3_fromRGB(252, 71, 77)}, Type = function(Player, TargetInfo)
-                        return TargetInfo.HealthBarValue or 1
-                    end, Text = { Enabled = false, FollowBar = true, Ending = "", Position = "Left", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, Type = function(Player, TargetInfo)
-                            local health = TargetInfo.LastHealth or 100
-                            local maxHealth = TargetInfo.LastMaxHealth or 100
-                            return health, health ~= maxHealth
-                        end, }, }, ArmorBar = { Enabled = false, Position = "Bottom", Color = {Color3_fromRGB(52, 131, 235), Color3_fromRGB(52, 131, 235), Color3_fromRGB(52, 131, 235)}, Type = function(Player, TargetInfo)
-                        return TargetInfo.HealthBarValue or 1
-                    end, Text = { Enabled = false, FollowBar = true, Ending = "%", Position = "Left", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, Type = function(Player, TargetInfo)
-                            local health = TargetInfo.LastHealth or 100
-                            local maxHealth = TargetInfo.LastMaxHealth or 100
-                            return health, health ~= maxHealth
-                        end, }, }, }, Name = { Enabled = false, UseDisplay = false, Position = "Top", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, }, Distance = { Enabled = false, Ending = "st", Position = "Bottom", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, }, Weapon = { Enabled = false, Position = "Bottom", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, }, Flags = { Enabled = false, Position = "Right", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, Type = function(Player, TargetInfo)
-                    local currentTick = os_clock()
-                    if currentTick - TargetInfo.FlagsDelay < 0.25 then return TargetInfo.CachedFlagsString or "" end
-                    TargetInfo.FlagsDelay = currentTick
-                    local Flags = {}
-                    if not IsA(Player, "Player") then
-                        TargetInfo.CachedFlagsString = ""
-                        return ""
-                    end
-                    local Character = Player.Character
-                    local Humanoid = Character and Character:FindFirstChild("Humanoid")
-                    if not Humanoid then
-                        TargetInfo.CachedFlagsString = ""
-                        return ""
-                    end
-                    if Humanoid.MoveDirection.Magnitude > 0 then table_insert(Flags, "moving") end
-                    if Humanoid.Jump then table_insert(Flags, "jumping") end
-                    TargetInfo.CachedFlagsString = table_concat(Flags, "\n")
-                    return TargetInfo.CachedFlagsString
-                end }, }, Connections = {}, Errors = {}, Objects = {}, Targets = {}, Utilities = {}, Folder = "ESP", Font = nil, Holder = nil, }
+    ESP = {
+        Settings = {
+        Enabled = false, LocalPlayer = false, Font = "Tahoma", FontSize = 12, FontType = "lowercase", MaxDistance = 1000, BoundingBox = {
+        Enabled = false, DynamicBox = false, IncludeAccessories = false, Rotation = 90, Color = {Color3_fromRGB(105, 187, 245), Color3_fromRGB(105, 187, 245)}, Transparency = {0, 0}, Glow = {
+        Enabled = false, Rotation = 90, Color = {Color3_fromRGB(105, 187, 245), Color3_fromRGB(105, 187, 245)}, Transparency = {0.75, 0.75}, }, Fill = {
+        Enabled = false, Rotation = 90, Color = {Color3_fromRGB(105, 187, 245), Color3_fromRGB(105, 187, 245)}, Transparency = {1, 0.5}, }, }, Bars = {
+        HealthBar = {
+        Enabled = false, Position = "Left", Color = {Color3_fromRGB(131, 245, 78), Color3_fromRGB(255, 255, 0), Color3_fromRGB(252, 71, 77)}, Type = function(Player, TargetInfo)
+                            return TargetInfo.HealthBarValue or 1
+                        end, Text = {
+                            Enabled = false, FollowBar = true, Ending = "", Position = "Left", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, Type = function(Player, TargetInfo)
+                                local health = TargetInfo.LastHealth or 100
+                                local maxHealth = TargetInfo.LastMaxHealth or 100
+                                return health, health ~= maxHealth
+                            end, }, }, ArmorBar = {
+                                Enabled = false, Position = "Bottom", Color = {Color3_fromRGB(52, 131, 235), Color3_fromRGB(52, 131, 235), Color3_fromRGB(52, 131, 235)}, Type = function(Player, TargetInfo)
+                            return TargetInfo.HealthBarValue or 1
+                        end, Text = {
+                            Enabled = false, FollowBar = true, Ending = "%", Position = "Left", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, Type = function(Player, TargetInfo)
+                                local health = TargetInfo.LastHealth or 100
+                                local maxHealth = TargetInfo.LastMaxHealth or 100
+                                return health, health ~= maxHealth
+                            end, }, }, }, Name = {
+                                Enabled = false, UseDisplay = false, Position = "Top", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, }, Distance = {
+                                Enabled = false, Ending = "st", Position = "Bottom", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, }, Weapon = {
+                                Enabled = false, Position = "Bottom", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, }, Flags = {
+                                Enabled = false, Position = "Right", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, Type = function(Player, TargetInfo)
+                        local currentTick = os_clock()
+                        if currentTick - TargetInfo.FlagsDelay < 0.25 then return TargetInfo.CachedFlagsString or "" end
+                        TargetInfo.FlagsDelay = currentTick
+                        local Flags = {}
+                        if not IsA(Player, "Player") then
+                            TargetInfo.CachedFlagsString = ""
+                            return ""
+                        end
+                        local Character = Player.Character
+                        local Humanoid = Character and Character:FindFirstChild("Humanoid")
+                        if not Humanoid then
+                            TargetInfo.CachedFlagsString = ""
+                            return ""
+                        end
+                        if Humanoid.MoveDirection.Magnitude > 0 then table_insert(Flags, "moving") end
+                        if Humanoid.Jump then table_insert(Flags, "jumping") end
+                        TargetInfo.CachedFlagsString = table_concat(Flags, "\n")
+                        return TargetInfo.CachedFlagsString
+                    end }, }, Connections = {}, Errors = {}, Objects = {}, Targets = {}, Utilities = {}, Folder = "ESP", Font = nil, Holder = nil, }
     local Client = Players.LocalPlayer
     local Camera = FindFirstChildWhichIsA(Workspace, "Camera")
     local Viewport = Camera.ViewportSize
@@ -5542,18 +6735,20 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
     local ObjectsTable = ESP.Objects
     local FolderLocation = ESP.Folder
     local ESPErrors = ESP.Errors
-    local ESPSettings = ESP.Settings
+    local esp_settings = ESP.Settings
     local WorldToViewportPoint = Camera.WorldToViewportPoint
     local math_abs = math.abs
     local math_floor = math.floor
     local Utility = {}
-    local FontsToDownload = { ["Tahoma"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/main/zekton_rg.ttf"}, ["Minecraftia"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/refs/heads/main/Minecraftia.ttf"}, ["Silkscreen"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/refs/heads/main/Silkscreen.ttf"}, }
+    local FontsToDownload = {
+        ["Tahoma"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/main/zekton_rg.ttf"}, ["Minecraftia"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/refs/heads/main/Minecraftia.ttf"}, ["Silkscreen"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/refs/heads/main/Silkscreen.ttf"}, }
     do
         if not isfolder(FolderLocation) then makefolder(FolderLocation) end
         if not isfolder(FolderLocation .. "\\Fonts") then makefolder(FolderLocation .. "\\Fonts") end
     end
     do
-        if not getgenv().Fonts then getgenv().Fonts = { Loaded = {} }; end;
+        if not Fonts then Fonts = {
+            Loaded = {} }; end;
         local function loadfonts()
             for name, table in FontsToDownload do
                 if not isfile(FolderLocation .. "\\Fonts\\" .. name .. ".ttf") then
@@ -5561,7 +6756,9 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                     if ok and data then writefile(FolderLocation .. "\\Fonts\\" .. name .. ".ttf", data); end;
                 end;
                 if not isfile(FolderLocation .. "\\Fonts\\" .. name .. ".font") then
-                    local cfg = { name = name, faces = {{ name = "Regular", weight = 9e9, style = "normal", assetId = getcustomasset(FolderLocation .. "\\Fonts\\" .. name .. ".ttf") }} };
+                    local cfg = {
+                        name = name, faces = {{
+                        name = "Regular", weight = 9e9, style = "normal", assetId = getcustomasset(FolderLocation .. "\\Fonts\\" .. name .. ".ttf") }} };
                     writefile(FolderLocation .. "\\Fonts\\" .. name .. ".font", HttpService:JSONEncode(cfg));
                 end;
             end;
@@ -5599,7 +6796,7 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
             local MinX, MinY, MaxX, MaxY = 9000, 9000, -9000, -9000
             local BoxWidth, BoxHeight = 0, 0
             local Position, OnScreen = WorldToViewportPoint(Camera, RootPart.Position)
-            if ESPSettings.BoundingBox.DynamicBox then
+            if esp_settings.BoundingBox.DynamicBox then
                 for _, Part in Parts do
                     if Part.ClassName ~= "HumanoidRootPart" and (Part:IsA("BasePart")) then
                         local Size = Part.Size / 2
@@ -5628,7 +6825,7 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
             return BoxWidth, BoxHeight, MinX, MinY, OnScreen
         end
         function Utility.GetFontType(Text)
-            local FontType = string_lower(ESPSettings.FontType)
+            local FontType = string_lower(esp_settings.FontType)
             if FontType == "uppercase" then
                 return string_upper(Text)
             elseif FontType == "lowercase" then
@@ -5640,19 +6837,22 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
     end
     Utility.AddConnection(Camera:GetPropertyChangedSignal("ViewportSize"), function() Viewport = Camera.ViewportSize end)
     do
-        ESP.Font = Fonts.Loaded[ESPSettings.Font]
-        ESP.Holder = Utility.CreateObject("ScreenGui", { Name = "\n", ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets, ZIndexBehavior = Enum.ZIndexBehavior.Global, ResetOnSpawn = false, DisplayOrder = 1, IgnoreGuiInset = true, Parent = gethui() })
+        ESP.Font = Fonts.Loaded[esp_settings.Font]
+        ESP.Holder = Utility.CreateObject("ScreenGui", {
+            Name = "\n", ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets, ZIndexBehavior = Enum.ZIndexBehavior.Global, ResetOnSpawn = false, DisplayOrder = 1, IgnoreGuiInset = true, Parent = gethui() })
         function ESP.AddTarget(Target)
             if ESP.Targets[Target] then return end
-            local TargetInfo = { Objects = {}, CharacterObjects = {}, CharacterConnection = nil, HealthConnection = nil, ToolConnection = {Added = nil, Removed = nil}, CurrentTool = Utility.GetFontType("none"), TargetName = Utility.GetFontType(ESPSettings.Name.UseDisplay and (IsA(Target, "Player") and Target.DisplayName or Target.Name) or Target.Name), DistanceEnding = Utility.GetFontType(ESPSettings.Distance.Ending), HealthBarValue = 1, LastHealth = 100, LastMaxHealth = 100, FlagsDelay = 0, CachedFlagsString = "", LastTick = os_clock(), LastLazyUpdate = 0, LastDistanceText = "", LastDistanceValue = -1, }
+            local TargetInfo = {
+                Objects = {}, CharacterObjects = {}, CharacterConnection = nil, HealthConnection = nil, ToolConnection = {Added = nil, Removed = nil}, CurrentTool = Utility.GetFontType("none"), TargetName = Utility.GetFontType(esp_settings.Name.UseDisplay and (IsA(Target, "Player") and Target.DisplayName or Target.Name) or Target.Name), DistanceEnding = Utility.GetFontType(esp_settings.Distance.Ending), HealthBarValue = 1, LastHealth = 100, LastMaxHealth = 100, FlagsDelay = 0, CachedFlagsString = "", LastTick = os_clock(), LastLazyUpdate = 0, LastDistanceText = "", LastDistanceValue = -1, }
             local Objects = TargetInfo.Objects
             local LastTick = TargetInfo.LastTick
             local ToolConnection = TargetInfo.ToolConnection
             local CharacterObjects = TargetInfo.CharacterObjects
             local ESPFont = ESP.Font
-            local ESPFontSize = ESPSettings.FontSize
+            local ESPFontSize = esp_settings.FontSize
             local ESPHolder = ESP.Holder
-            local TextAlignments = { ["Left"] = "Right", ["Right"] = "Left", ["Top"] = "Center", ["Bottom"] = "Center", }
+            local TextAlignments = {
+                ["Left"] = "Right", ["Right"] = "Left", ["Top"] = "Center", ["Bottom"] = "Center", }
             CharacterObjects.Character = IsA(Target, "Player") and Target.Character or Target
             CharacterObjects.Children = CharacterObjects.Character and CharacterObjects.Character:GetChildren() or {}
             CharacterObjects.Descendants = CharacterObjects.Character and CharacterObjects.Character:GetDescendants() or {}
@@ -5761,19 +6961,24 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                         Objects["BoxFillGradient"] = Utility.CreateObject("UIGradient", {Parent = Objects["BoxFill"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 1), NumberSequenceKeypoint_new(1, 1)}})
                     end
                     do
-                        for BarName, Bar in ESPSettings.Bars do
+                        for BarName, Bar in esp_settings.Bars do
                             Objects[BarName .. "Outline"] = Utility.CreateObject("Frame", {Parent = Objects[Bar.Position .. "BarHolder"], ZIndex = 5, LayoutOrder = 0, Visible = true, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(0, 0, 0)})
                             Utility.CreateObject("UIStroke", {Parent = Objects[BarName .. "Outline"], Thickness = 1, LineJoinMode = Enum.LineJoinMode.Miter})
                             Objects[BarName] = Utility.CreateObject("Frame", {Parent = Objects[BarName .. "Outline"], ZIndex = 6, LayoutOrder = 0, Visible = true, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
                             Objects[BarName .. "Gradient"] = Utility.CreateObject("UIGradient", {Parent = Objects[BarName], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}})
-                            Objects[BarName .. "Text"] = Utility.CreateObject("TextLabel", { Parent = Objects[Bar.Position .. "TextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects[BarName .. "Text"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+                            Objects[BarName .. "Text"] = Utility.CreateObject("TextLabel", {
+                                Parent = Objects[Bar.Position .. "TextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects[BarName .. "Text"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
                         end
                     end
                     do
-                        Objects["TargetName"] = Utility.CreateObject("TextLabel", { Parent = Objects["TopTextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects["TargetName"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
-                        Objects["Distance"] = Utility.CreateObject("TextLabel", { Parent = Objects["BottomTextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects["Distance"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
-                        Objects["Flags"] = Utility.CreateObject("TextLabel", { Parent = Objects["RightTextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects["Flags"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
-                        Objects["Weapon"] = Utility.CreateObject("TextLabel", { Parent = Objects["BottomTextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "none", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects["Weapon"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+                        Objects["TargetName"] = Utility.CreateObject("TextLabel", {
+                            Parent = Objects["TopTextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects["TargetName"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+                        Objects["Distance"] = Utility.CreateObject("TextLabel", {
+                            Parent = Objects["BottomTextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects["Distance"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+                        Objects["Flags"] = Utility.CreateObject("TextLabel", {
+                            Parent = Objects["RightTextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects["Flags"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+                        Objects["Weapon"] = Utility.CreateObject("TextLabel", {
+                            Parent = Objects["BottomTextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "none", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects["Weapon"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
                     end
                     ESP.Targets[Target] = TargetInfo
                 end
@@ -5784,7 +6989,7 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                 local lastboxposy = 0;
                 local lastupdatetick = 0;
                 function TargetInfo.Update()
-                    if (not ESPSettings.LocalPlayer) and Target == Client then
+                    if (not esp_settings.LocalPlayer) and Target == Client then
                         if Objects["TargetHolder"].Visible then Objects["TargetHolder"].Visible = false; end;
                         return;
                     end;
@@ -5814,14 +7019,14 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                     end;
                     local rootpos = CharacterObjects.HumanoidRootPart.Position;
                     local distance = (Camera.CFrame.Position - rootpos).Magnitude;
-                    if distance > ESPSettings.MaxDistance then
+                    if distance > esp_settings.MaxDistance then
                         if Objects["TargetHolder"].Visible then Objects["TargetHolder"].Visible = false; end;
                         lastonscreen = false;
                         return;
                     end;
                     local bodyparts = nil;
-                    if ESPSettings.BoundingBox.DynamicBox then
-                        bodyparts = ESPSettings.BoundingBox.IncludeAccessories and CharacterObjects.Descendants or CharacterObjects.Children;
+                    if esp_settings.BoundingBox.DynamicBox then
+                        bodyparts = esp_settings.BoundingBox.IncludeAccessories and CharacterObjects.Descendants or CharacterObjects.Children;
                         if IsA(Target, "BasePart") then bodyparts = {Target}; end;
                     end;
                     local boxwidth, boxheight, boxposx, boxposy, onscreen = Utility.CalculateBox(Target, CharacterObjects.HumanoidRootPart, bodyparts);
@@ -5846,7 +7051,7 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                     local BoxWidth, BoxHeight, BoxPositionX, BoxPositionY = boxwidth, boxheight, boxposx, boxposy;
                     local BoxSize = UDim2_fromOffset(bw, bh);
                     local BoxOutline, BoxInline, BoxFill, BoxGlow = Objects["BoxOutline"], Objects["BoxInline"], Objects["BoxFill"], Objects["BoxGlow"]; do
-                        local BoxEnabled, BoxColor, BoxTransparency, BoxRotation = ESPSettings.BoundingBox.Enabled, ESPSettings.BoundingBox.Color, ESPSettings.BoundingBox.Transparency, ESPSettings.BoundingBox.Rotation;
+                        local BoxEnabled, BoxColor, BoxTransparency, BoxRotation = esp_settings.BoundingBox.Enabled, esp_settings.BoundingBox.Color, esp_settings.BoundingBox.Transparency, esp_settings.BoundingBox.Rotation;
                         if BoxEnabled then
                             if not BoxOutline.Parent.Visible then BoxOutline.Parent.Visible = true end
                             local CachedBoxSize = UDim2_fromOffset(BoxWidth, BoxHeight)
@@ -5871,7 +7076,7 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                                 if BoxOutlineGradient.Rotation ~= BoxRotation then BoxOutlineGradient.Rotation = BoxRotation end
                             end
                             local BoxGlowGradient = Objects["BoxGlowGradient"]; do
-                                local BoxGlowEnabled, BoxGlowColor, BoxGlowTransparency, BoxGlowRotation = ESPSettings.BoundingBox.Glow.Enabled, ESPSettings.BoundingBox.Glow.Color, ESPSettings.BoundingBox.Glow.Transparency, ESPSettings.BoundingBox.Glow.Rotation
+                                local BoxGlowEnabled, BoxGlowColor, BoxGlowTransparency, BoxGlowRotation = esp_settings.BoundingBox.Glow.Enabled, esp_settings.BoundingBox.Glow.Color, esp_settings.BoundingBox.Glow.Transparency, esp_settings.BoundingBox.Glow.Rotation
                                 if BoxGlowEnabled then
                                     if BoxGlow.ImageTransparency ~= 0 then BoxGlow.ImageTransparency = 0 end
                                     if BoxGlowGradient.Rotation ~= BoxGlowRotation then BoxGlowGradient.Rotation = BoxGlowRotation end
@@ -5890,8 +7095,8 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                                 end
                             end
                             local BoxFillGradient = Objects["BoxFillGradient"]; do
-                                local BoxFillColor, BoxFillTransparency, BoxFillRotation = ESPSettings.BoundingBox.Fill.Color, ESPSettings.BoundingBox.Fill.Transparency, ESPSettings.BoundingBox.Fill.Rotation
-                                if BoxFill.Visible ~= ESPSettings.BoundingBox.Fill.Enabled then BoxFill.Visible = ESPSettings.BoundingBox.Fill.Enabled end
+                                local BoxFillColor, BoxFillTransparency, BoxFillRotation = esp_settings.BoundingBox.Fill.Color, esp_settings.BoundingBox.Fill.Transparency, esp_settings.BoundingBox.Fill.Rotation
+                                if BoxFill.Visible ~= esp_settings.BoundingBox.Fill.Enabled then BoxFill.Visible = esp_settings.BoundingBox.Fill.Enabled end
                                 if BoxFill.Size ~= CachedBoxSize then BoxFill.Size = CachedBoxSize end
                                 if BoxFillGradient.Rotation ~= BoxFillRotation then BoxFillGradient.Rotation = BoxFillRotation end
                                 if TargetInfo.LastFillColor1 ~= BoxFillColor[1] or TargetInfo.LastFillColor2 ~= BoxFillColor[2] then
@@ -5912,7 +7117,7 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                             if BoxFill.Visible then BoxFill.Visible = false end
                         end
                     end
-                    for BarName, BarInfo in ESPSettings.Bars do
+                    for BarName, BarInfo in esp_settings.Bars do
                         local Bar, BarOutline, BarGradient = Objects[BarName], Objects[BarName .. "Outline"], Objects[BarName .. "Gradient"]; do
                             local BarEnabled, BarColor, BarTransparency = BarInfo.Enabled, BarInfo.Color, BarInfo.Transparency
                             local Position = BarInfo.Position
@@ -5938,7 +7143,8 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                                     TargetInfo[BarName.."LastColor1"] = BarColor[1]
                                     TargetInfo[BarName.."LastColor2"] = BarColor[2]
                                     TargetInfo[BarName.."LastColor3"] = BarColor[3]
-                                    BarGradient.Color = ColorSequence_new{ ColorSequenceKeypoint_new(0, BarColor[1]), ColorSequenceKeypoint_new(0, BarColor[2]), ColorSequenceKeypoint_new(1, BarColor[3]) }
+                                    BarGradient.Color = ColorSequence_new{
+                                        ColorSequenceKeypoint_new(0, BarColor[1]), ColorSequenceKeypoint_new(0, BarColor[2]), ColorSequenceKeypoint_new(1, BarColor[3]) }
                                 end
                             else
                                 if NewParent.Visible then NewParent.Visible = false end
@@ -5977,14 +7183,14 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                         end
                     end
                     local NameText = Objects["TargetName"]; do
-                        local NameEnabled, NameColor, NameTransparency = ESPSettings.Name.Enabled, ESPSettings.Name.Color, ESPSettings.Name.Transparency
+                        local NameEnabled, NameColor, NameTransparency = esp_settings.Name.Enabled, esp_settings.Name.Color, esp_settings.Name.Transparency
                         if NameEnabled then
-                            TargetInfo.TargetName = Utility.GetFontType(ESPSettings.Name.UseDisplay and (IsA(Target, "Player") and Target.DisplayName or Target.Name) or Target.Name)
+                            TargetInfo.TargetName = Utility.GetFontType(esp_settings.Name.UseDisplay and (IsA(Target, "Player") and Target.DisplayName or Target.Name) or Target.Name)
                             local newText = TargetInfo.TargetName
-                            local newParent = Objects[ESPSettings.Name.Position .. "TextHolder"]
+                            local newParent = Objects[esp_settings.Name.Position .. "TextHolder"]
                             if not NameText.Visible then NameText.Visible = true end
                             if NameText.Text ~= newText then NameText.Text = newText end
-                            if NameText.TextXAlignment ~= TextAlignments[ESPSettings.Name.Position] then NameText.TextXAlignment = TextAlignments[ESPSettings.Name.Position] end
+                            if NameText.TextXAlignment ~= TextAlignments[esp_settings.Name.Position] then NameText.TextXAlignment = TextAlignments[esp_settings.Name.Position] end
                             if NameText.Parent ~= newParent then NameText.Parent = newParent end
                             if NameText.TextColor3 ~= NameColor then NameText.TextColor3 = NameColor end
                             if NameText.TextTransparency ~= NameTransparency then NameText.TextTransparency = NameTransparency end
@@ -5994,7 +7200,7 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                         end
                     end
                     local DistanceText = Objects["Distance"]; do
-                        local DistanceEnabled, DistanceColor, DistanceTransparency = ESPSettings.Distance.Enabled, ESPSettings.Distance.Color, ESPSettings.Distance.Transparency;
+                        local DistanceEnabled, DistanceColor, DistanceTransparency = esp_settings.Distance.Enabled, esp_settings.Distance.Color, esp_settings.Distance.Transparency;
                         if DistanceEnabled then
                             local roundeddistance = math_floor(distance);
                             if TargetInfo.LastDistanceValue ~= roundeddistance then
@@ -6002,9 +7208,9 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                                 TargetInfo.LastDistanceText = tostring(roundeddistance) .. TargetInfo.DistanceEnding;
                             end
                             local newText = TargetInfo.LastDistanceText
-                            local newParent = Objects[ESPSettings.Distance.Position .. "TextHolder"]
+                            local newParent = Objects[esp_settings.Distance.Position .. "TextHolder"]
                             if not DistanceText.Visible then DistanceText.Visible = true end
-                            if DistanceText.TextXAlignment ~= TextAlignments[ESPSettings.Distance.Position] then DistanceText.TextXAlignment = TextAlignments[ESPSettings.Distance.Position] end
+                            if DistanceText.TextXAlignment ~= TextAlignments[esp_settings.Distance.Position] then DistanceText.TextXAlignment = TextAlignments[esp_settings.Distance.Position] end
                             if DistanceText.Parent ~= newParent then DistanceText.Parent = newParent end
                             if DistanceText.TextColor3 ~= DistanceColor then DistanceText.TextColor3 = DistanceColor end
                             if DistanceText.TextTransparency ~= DistanceTransparency then DistanceText.TextTransparency = DistanceTransparency end
@@ -6015,12 +7221,12 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                         end
                     end
                     local WeaponText = Objects["Weapon"]; do
-                        local WeaponEnabled, WeaponColor, WeaponTransparency = ESPSettings.Weapon.Enabled, ESPSettings.Weapon.Color, ESPSettings.Weapon.Transparency
+                        local WeaponEnabled, WeaponColor, WeaponTransparency = esp_settings.Weapon.Enabled, esp_settings.Weapon.Color, esp_settings.Weapon.Transparency
                         if IsA(Target, "Player") and WeaponEnabled then
                             local newText = TargetInfo.CurrentTool
-                            local newParent = Objects[ESPSettings.Weapon.Position .. "TextHolder"]
+                            local newParent = Objects[esp_settings.Weapon.Position .. "TextHolder"]
                             if not WeaponText.Visible then WeaponText.Visible = true end
-                            if WeaponText.TextXAlignment ~= TextAlignments[ESPSettings.Weapon.Position] then WeaponText.TextXAlignment = TextAlignments[ESPSettings.Weapon.Position] end
+                            if WeaponText.TextXAlignment ~= TextAlignments[esp_settings.Weapon.Position] then WeaponText.TextXAlignment = TextAlignments[esp_settings.Weapon.Position] end
                             if WeaponText.Parent ~= newParent then WeaponText.Parent = newParent end
                             if WeaponText.TextColor3 ~= WeaponColor then WeaponText.TextColor3 = WeaponColor end
                             if WeaponText.TextTransparency ~= WeaponTransparency then WeaponText.TextTransparency = WeaponTransparency end
@@ -6031,12 +7237,12 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                         end
                     end
                     local FlagsText = Objects["Flags"]; do
-                        local FlagsEnabled, FlagsColor, FlagsTransparency = ESPSettings.Flags.Enabled, ESPSettings.Flags.Color, ESPSettings.Flags.Transparency
+                        local FlagsEnabled, FlagsColor, FlagsTransparency = esp_settings.Flags.Enabled, esp_settings.Flags.Color, esp_settings.Flags.Transparency
                         if FlagsEnabled then
-                            local newText = ESPSettings.Flags.Type(Target, TargetInfo)
-                            local newParent = Objects[ESPSettings.Flags.Position .. "TextHolder"]
+                            local newText = esp_settings.Flags.Type(Target, TargetInfo)
+                            local newParent = Objects[esp_settings.Flags.Position .. "TextHolder"]
                             if not FlagsText.Visible then FlagsText.Visible = true end
-                            if FlagsText.TextXAlignment ~= TextAlignments[ESPSettings.Flags.Position] then FlagsText.TextXAlignment = TextAlignments[ESPSettings.Flags.Position] end
+                            if FlagsText.TextXAlignment ~= TextAlignments[esp_settings.Flags.Position] then FlagsText.TextXAlignment = TextAlignments[esp_settings.Flags.Position] end
                             if FlagsText.Parent ~= newParent then FlagsText.Parent = newParent end
                             if FlagsText.TextColor3 ~= FlagsColor then FlagsText.TextColor3 = FlagsColor end
                             if FlagsText.TextTransparency ~= FlagsTransparency then FlagsText.TextTransparency = FlagsTransparency end
@@ -6069,17 +7275,20 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
         function ESP.RemoveTarget(NewTarget) for Target, TargetInfo in ESP.Targets do if Target == NewTarget then TargetInfo.Remove() end end end
         function ESP.AddUtility(Target, UtilityName, OptionName)
             if ESP.Utilities[Target] then return end
-            local Info = { Objects = {}, Option = OptionName; Name = UtilityName; }
+            local Info = {
+                Objects = {}, Option = OptionName; Name = UtilityName; }
             local Objects = Info.Objects
             local ESPFont = ESP.Font
-            local ESPFontSize = ESPSettings.FontSize
+            local ESPFontSize = esp_settings.FontSize
             local ESPHolder = ESP.Holder
             function Info.Init()
                 Objects["TargetHolder"] = Utility.CreateObject("Frame", {Parent = ESPHolder, Visible = false, BackgroundTransparency = 1, Size = UDim2_new(0, 0, 0, 0)})
                 Objects["BoxOutline"] = Utility.CreateObject("UIStroke", {Parent = Objects["TargetHolder"], Thickness = 2, LineJoinMode = Enum.LineJoinMode.Miter})
-                Objects["TargetName"] = Utility.CreateObject("TextLabel", { Parent = Objects["TargetHolder"], FontFace = ESPFont, TextSize = ESPFontSize, TextColor3 = Color3.new(1,1,1), Text = UtilityName, AnchorPoint = Vector2_new(0.5, 1), Position = UDim2_fromScale(0.5, 0), Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.XY }); 
+                Objects["TargetName"] = Utility.CreateObject("TextLabel", {
+                    Parent = Objects["TargetHolder"], FontFace = ESPFont, TextSize = ESPFontSize, TextColor3 = Color3.new(1,1,1), Text = UtilityName, AnchorPoint = Vector2_new(0.5, 1), Position = UDim2_fromScale(0.5, 0), Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.XY }); 
                 Utility.CreateObject("UIStroke", {Parent = Objects["TargetName"], Color = Color3_fromRGB(0, 0, 0)})
-                Objects["Distance"] = Utility.CreateObject("TextLabel", { Parent = Objects["TargetHolder"], FontFace = ESPFont, TextSize = ESPFontSize, TextColor3 = Color3.new(1,1,1), Text = "", AnchorPoint = Vector2_new(0.5, 0), Position = UDim2_fromScale(0.5, 1), Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.XY }); 
+                Objects["Distance"] = Utility.CreateObject("TextLabel", {
+                    Parent = Objects["TargetHolder"], FontFace = ESPFont, TextSize = ESPFontSize, TextColor3 = Color3.new(1,1,1), Text = "", AnchorPoint = Vector2_new(0.5, 0), Position = UDim2_fromScale(0.5, 1), Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.XY }); 
                 Utility.CreateObject("UIStroke", {Parent = Objects["Distance"], Color = Color3_fromRGB(0, 0, 0)})
                 ESP.Utilities[Target] = Info
             end
@@ -6097,7 +7306,7 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
                     return;
                 end;
                 local distance = (Camera.CFrame.Position - rootpos).Magnitude;
-                if distance > ESPSettings.MaxDistance then Objects["TargetHolder"].Visible = false; return; end;
+                if distance > esp_settings.MaxDistance then Objects["TargetHolder"].Visible = false; return; end;
                 local pos, onscreen = WorldToViewportPoint(Camera, rootpos);
                 if onscreen then
                     local size = (WorldToViewportPoint(Camera, rootpos - vector3_new(0, 2, 0)).Y - WorldToViewportPoint(Camera, rootpos + vector3_new(0, 2, 0)).Y) / 2
@@ -6124,7 +7333,7 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
         function ESP.Unload()
             for _, Connection in ESP.Connections do Connection:Disconnect() end
             for _, Object in ESP.Objects do Object:Destroy() end
-            getgenv().Fonts = nil
+            Fonts = nil
         end
     end
     do
@@ -6161,231 +7370,354 @@ getgenv().ESP = { Settings = { Enabled = false, LocalPlayer = false, Font = "Tah
         end));
     end;
 end;
+
 esp1();
-espsection:AddToggle("esp_box", { Text = "bounding box";
-    Default = getgenv().ESP.Settings.BoundingBox.Enabled;
+
+espsection:AddToggle("esp_box", {
+    Text = "bounding box";
+    Default = ESP.Settings.BoundingBox.Enabled;
     Callback = function(v)
-        getgenv().ESP.Settings.BoundingBox.Enabled = v;
-    end; }):AddColorPicker("esp_box_color1", { Default = getgenv().ESP.Settings.BoundingBox.Color[1];
+        ESP.Settings.BoundingBox.Enabled = v;
+    end;
+}):AddColorPicker("esp_box_color1", {
+    Default = ESP.Settings.BoundingBox.Color[1];
     Title = "box color";
-    Transparency = getgenv().ESP.Settings.BoundingBox.Transparency[1];
+    Transparency = ESP.Settings.BoundingBox.Transparency[1];
     Callback = function(Value)
-        getgenv().ESP.Settings.BoundingBox.Color[1] = Value
-    end; }):AddColorPicker("esp_box_color2", { Default = getgenv().ESP.Settings.BoundingBox.Color[2];
+        ESP.Settings.BoundingBox.Color[1] = Value;
+    end;
+}):AddColorPicker("esp_box_color2", {
+    Default = ESP.Settings.BoundingBox.Color[2];
     Title = "box color";
-    Transparency = getgenv().ESP.Settings.BoundingBox.Transparency[2];
+    Transparency = ESP.Settings.BoundingBox.Transparency[2];
     Callback = function(Value)
-        getgenv().ESP.Settings.BoundingBox.Color[2] = Value
-    end; });
-espsection:AddToggle("esp_box_glow", { Text = "box glow";
-    Default = getgenv().ESP.Settings.BoundingBox.Glow.Enabled;
+        ESP.Settings.BoundingBox.Color[2] = Value;
+    end;
+});
+
+espsection:AddToggle("esp_box_glow", {
+    Text = "box glow";
+    Default = ESP.Settings.BoundingBox.Glow.Enabled;
     Callback = function(v)
-        getgenv().ESP.Settings.BoundingBox.Glow.Enabled = v;
-    end; }):AddColorPicker("esp_glow_color1", { Default = getgenv().ESP.Settings.BoundingBox.Glow.Color[1];
+        ESP.Settings.BoundingBox.Glow.Enabled = v;
+    end;
+}):AddColorPicker("esp_glow_color1", {
+    Default = ESP.Settings.BoundingBox.Glow.Color[1];
     Title = "glow color";
-    Transparency = getgenv().ESP.Settings.BoundingBox.Glow.Transparency[1];
+    Transparency = ESP.Settings.BoundingBox.Glow.Transparency[1];
     Callback = function(Value)
-        getgenv().ESP.Settings.BoundingBox.Glow.Color[1] = Value
-    end; }):AddColorPicker("esp_glow_color2", { Default = getgenv().ESP.Settings.BoundingBox.Glow.Color[2];
+        ESP.Settings.BoundingBox.Glow.Color[1] = Value;
+    end;
+}):AddColorPicker("esp_glow_color2", {
+    Default = ESP.Settings.BoundingBox.Glow.Color[2];
     Title = "glow color";
-    Transparency = getgenv().ESP.Settings.BoundingBox.Glow.Transparency[2];
+    Transparency = ESP.Settings.BoundingBox.Glow.Transparency[2];
     Callback = function(Value)
-        getgenv().ESP.Settings.BoundingBox.Glow.Color[2] = Value
-    end; });
-espsection:AddToggle("esp_box_fill", { Text = "box fill";
-    Default = getgenv().ESP.Settings.BoundingBox.Fill.Enabled;
+        ESP.Settings.BoundingBox.Glow.Color[2] = Value;
+    end;
+});
+
+espsection:AddToggle("esp_box_fill", {
+    Text = "box fill";
+    Default = ESP.Settings.BoundingBox.Fill.Enabled;
     Callback = function(v)
-        getgenv().ESP.Settings.BoundingBox.Fill.Enabled = v;
-    end; }):AddColorPicker("esp_fill_color1", { Default = getgenv().ESP.Settings.BoundingBox.Fill.Color[1];
+        ESP.Settings.BoundingBox.Fill.Enabled = v;
+    end;
+}):AddColorPicker("esp_fill_color1", {
+    Default = ESP.Settings.BoundingBox.Fill.Color[1];
     Title = "fill color";
-    Transparency = getgenv().ESP.Settings.BoundingBox.Fill.Transparency[1];
+    Transparency = ESP.Settings.BoundingBox.Fill.Transparency[1];
     Callback = function(Value)
-        getgenv().ESP.Settings.BoundingBox.Fill.Color[1] = Value
-    end; }):AddColorPicker("esp_fill_color2", { Default = getgenv().ESP.Settings.BoundingBox.Fill.Color[2];
+        ESP.Settings.BoundingBox.Fill.Color[1] = Value;
+    end;
+}):AddColorPicker("esp_fill_color2", {
+    Default = ESP.Settings.BoundingBox.Fill.Color[2];
     Title = "fill color";
-    Transparency = getgenv().ESP.Settings.BoundingBox.Fill.Transparency[2];
+    Transparency = ESP.Settings.BoundingBox.Fill.Transparency[2];
     Callback = function(Value)
-        getgenv().ESP.Settings.BoundingBox.Fill.Color[2] = Value
-    end; });
-espsection:AddToggle("esp_healthbar", { Text = "health bar";
-    Default = getgenv().ESP.Settings.Bars.HealthBar.Enabled;
+        ESP.Settings.BoundingBox.Fill.Color[2] = Value;
+    end;
+});
+
+espsection:AddToggle("esp_healthbar", {
+    Text = "health bar";
+    Default = ESP.Settings.Bars.HealthBar.Enabled;
     Callback = function(v)
-        getgenv().ESP.Settings.Bars.HealthBar.Enabled = v;
-    end; }):AddColorPicker("esp_health_color1", { Default = getgenv().ESP.Settings.Bars.HealthBar.Color[1];
+        ESP.Settings.Bars.HealthBar.Enabled = v;
+    end;
+}):AddColorPicker("esp_health_color1", {
+    Default = ESP.Settings.Bars.HealthBar.Color[1];
     Title = "health high";
     Callback = function(Value)
-        getgenv().ESP.Settings.Bars.HealthBar.Color[1] = Value
-    end; }):AddColorPicker("esp_health_color2", { Default = getgenv().ESP.Settings.Bars.HealthBar.Color[2];
+        ESP.Settings.Bars.HealthBar.Color[1] = Value;
+    end;
+}):AddColorPicker("esp_health_color2", {
+    Default = ESP.Settings.Bars.HealthBar.Color[2];
     Title = "health mid";
     Callback = function(Value)
-        getgenv().ESP.Settings.Bars.HealthBar.Color[2] = Value
-    end; }):AddColorPicker("esp_health_color3", { Default = getgenv().ESP.Settings.Bars.HealthBar.Color[3];
+        ESP.Settings.Bars.HealthBar.Color[2] = Value;
+    end;
+}):AddColorPicker("esp_health_color3", {
+    Default = ESP.Settings.Bars.HealthBar.Color[3];
     Title = "health low";
     Callback = function(Value)
-        getgenv().ESP.Settings.Bars.HealthBar.Color[3] = Value
-    end; });
-espsection:AddToggle("esp_name", { Text = "name";
-    Default = getgenv().ESP.Settings.Name.Enabled;
+        ESP.Settings.Bars.HealthBar.Color[3] = Value;
+    end;
+});
+
+espsection:AddToggle("esp_name", {
+    Text = "name";
+    Default = ESP.Settings.Name.Enabled;
     Callback = function(v)
-        getgenv().ESP.Settings.Name.Enabled = v;
-    end; }):AddColorPicker("esp_name_color", { Default = getgenv().ESP.Settings.Name.Color;
+        ESP.Settings.Name.Enabled = v;
+    end;
+}):AddColorPicker("esp_name_color", {
+    Default = ESP.Settings.Name.Color;
     Title = "name color";
-    Transparency = getgenv().ESP.Settings.Name.Transparency;
+    Transparency = ESP.Settings.Name.Transparency;
     Callback = function(Value)
-        getgenv().ESP.Settings.Name.Color = Value
-    end; });
-espsection:AddToggle("esp_distance", { Text = "distance";
-    Default = getgenv().ESP.Settings.Distance.Enabled;
+        ESP.Settings.Name.Color = Value;
+    end;
+});
+
+espsection:AddToggle("esp_distance", {
+    Text = "distance";
+    Default = ESP.Settings.Distance.Enabled;
     Callback = function(v)
-        getgenv().ESP.Settings.Distance.Enabled = v;
-    end; }):AddColorPicker("esp_distance_color", { Default = getgenv().ESP.Settings.Distance.Color;
+        ESP.Settings.Distance.Enabled = v;
+    end;
+}):AddColorPicker("esp_distance_color", {
+    Default = ESP.Settings.Distance.Color;
     Title = "distance color";
-    Transparency = getgenv().ESP.Settings.Distance.Transparency;
+    Transparency = ESP.Settings.Distance.Transparency;
     Callback = function(Value)
-        getgenv().ESP.Settings.Distance.Color = Value
-    end; });
-espsection:AddToggle("esp_weapon", { Text = "weapon";
-    Default = getgenv().ESP.Settings.Weapon.Enabled;
+        ESP.Settings.Distance.Color = Value;
+    end;
+});
+
+espsection:AddToggle("esp_weapon", {
+    Text = "weapon";
+    Default = ESP.Settings.Weapon.Enabled;
     Callback = function(v)
-        getgenv().ESP.Settings.Weapon.Enabled = v;
-    end; }):AddColorPicker("esp_weapon_color", { Default = getgenv().ESP.Settings.Weapon.Color;
+        ESP.Settings.Weapon.Enabled = v;
+    end;
+}):AddColorPicker("esp_weapon_color", {
+    Default = ESP.Settings.Weapon.Color;
     Title = "weapon color";
-    Transparency = getgenv().ESP.Settings.Weapon.Transparency;
+    Transparency = ESP.Settings.Weapon.Transparency;
     Callback = function(Value)
-        getgenv().ESP.Settings.Weapon.Color = Value
-    end; });
-espsection:AddToggle("esp_flags", { Text = "flags";
-    Default = getgenv().ESP.Settings.Flags.Enabled;
+        ESP.Settings.Weapon.Color = Value;
+    end;
+});
+
+espsection:AddToggle("esp_flags", {
+    Text = "flags";
+    Default = ESP.Settings.Flags.Enabled;
     Callback = function(v)
-        getgenv().ESP.Settings.Flags.Enabled = v;
-    end; }):AddColorPicker("esp_flags_color", { Default = getgenv().ESP.Settings.Flags.Color;
+        ESP.Settings.Flags.Enabled = v;
+    end;
+}):AddColorPicker("esp_flags_color", {
+    Default = ESP.Settings.Flags.Color;
     Title = "flags color";
-    Transparency = getgenv().ESP.Settings.Flags.Transparency;
+    Transparency = ESP.Settings.Flags.Transparency;
     Callback = function(Value)
-        getgenv().ESP.Settings.Flags.Color = Value
-    end; });
-espsection:AddDropdown("name_type", { Values = {"display name", "name"};
+        ESP.Settings.Flags.Color = Value;
+    end;
+});
+
+espsection:AddDropdown("name_type", {
+    Values = {"display name", "name"};
 	Default = "display name";
 	Multi = false;
 	Text = "name type";
 	Callback = function(v)
 		if Options.name_type.Value == "display name" then
-			getgenv().ESP.Settings.Name.UseDisplay = true;
+			ESP.Settings.Name.UseDisplay = true;
 		else
-			getgenv().ESP.Settings.Name.UseDisplay = false;
+			ESP.Settings.Name.UseDisplay = false;
 		end;
-	end; });
-espsection:AddSlider("max_distance", { Text = "max distance";
-    Default = getgenv().ESP.Settings.MaxDistance;
+	end;
+});
+
+espsection:AddSlider("max_distance", {
+    Text = "max distance";
+    Default = ESP.Settings.MaxDistance;
 	Min = 100;
 	Max = 100000;
 	Compact = true;
 	Rounding = 0;
     Callback = function(v)
-        getgenv().ESP.Settings.MaxDistance = v;
-    end; });
-espsection:AddToggle("Tracer", { Text = "tracer";
+        ESP.Settings.MaxDistance = v;
+    end;
+});
+
+espsection:AddToggle("Tracer", {
+    Text = "tracer";
 	Default = false;
-	Tooltip = "Show enemy tracers"; }):AddColorPicker("TracerColor", { Default = Color3.new(1, 1, 1);
-	Title = "Tracer Color";
-	Transparency = 0; });
-espsection:AddSlider("TracerMaxDist", { Text = "tracer length";
+}):AddColorPicker("TracerColor", {
+    Default = Color3.new(1, 1, 1);
+	Title = "tracer Color";
+	Transparency = 0;
+});
+
+espsection:AddSlider("TracerMaxDist", {
+    Text = "tracer length";
 	Default = 1000;
 	Min = 100;
 	Max = 5000;
 	Rounding = 0;
 	Compact = true;
 	Suffix = " studs";
-	Tooltip = "Maximum distance to show tracer"; });
-espsection:AddDropdown("TracerOrigin", { Text = "tracer origin";
+});
+
+espsection:AddDropdown("TracerOrigin", {
+    Text = "tracer origin";
 	Default = "Bottom";
 	Values = {"Bottom", "Cursor"};
-	Tooltip = "Where tracers originate from"; });
-espsection:AddToggle("TracerAutoSelect", { Text = "tracer autoselect";
+});
+
+espsection:AddToggle("TracerAutoSelect", {
+    Text = "tracer autoselect";
 	Default = false;
-	Tooltip = "shows tracer to your current target"; });
-espsection:AddSlider("TracerAutoSelectDistance", { Text = "autoselect distance";
+});
+
+espsection:AddSlider("TracerAutoSelectDistance", {
+    Text = "autoselect distance";
 	Default = 1000;
 	Min = 100;
 	Max = 5000;
 	Rounding = 0;
 	Compact = true;
 	Suffix = " studs";
-	Tooltip = "Max distance for autoselect tracer"; });
-espsection:AddToggle("OutOfFOV", { Text = "enabled";
+});
+
+espsection:AddToggle("OutOfFOV", {
+    Text = "enabled";
 	Default = false;
-	Tooltip = "Show enemies that are out of your field of view"; });
-espsection:AddSlider("OutFOVSize", { Text = "size";
+});
+
+espsection:AddSlider("OutFOVSize", {
+    Text = "size";
 	Default = 15;
 	Min = 10;
 	Max = 15;
 	Rounding = 0;
 	Compact = true;
-	Tooltip = "How big the indicator is"; });
-espsection:AddSlider("OutFOVOffset", { Text = "offset";
+});
+
+espsection:AddSlider("OutFOVOffset", {
+    Text = "offset";
 	Default = 400;
 	Min = 100;
 	Max = 700;
 	Rounding = 0;
 	Compact = true;
-	Tooltip = "The offset of the indicator"; });
-espsection:AddDropdown("OFFSettings", { Text = "settings";
+});
+
+espsection:AddDropdown("OFFSettings", {
+    Text = "settings";
 	Default = "None";
 	Values = {"None", "Outline", "Blinking", "Both"};
-	Tooltip = "Type of indicator"; });
-espsection:AddToggle("UtilityESP", { Text = "enabled";
+});
+
+espsection:AddToggle("UtilityESP", {
+    Text = "enabled";
 	Default = false;
-	Tooltip = "Show utilities locations"; });
-espsection:AddSlider("UtilityESPMaxDistance", { Text = "max distance";
+});
+espsection:AddSlider("UtilityESPMaxDistance", {
+    Text = "max distance";
 	Default = 5000;
 	Min = 250;
 	Max = 5000;
 	Rounding = 0;
 	Compact = true;
-	Suffix = " studs"; });
-espsection:AddToggle("C4", { Text = "c4";
+	Suffix = " studs";
+});
+
+espsection:AddToggle("C4", {
+    Text = "c4";
 	Default = false;
-	Tooltip = "Show C4"; }):AddColorPicker("C4Color", { Default = Color3.new(1, 0, 0); 
-    Title = "c4 color"; });
-espsection:AddToggle("Grenade", { Text = "grenade";
-	Default = false; }):AddColorPicker("GrenadeColor", { Default = Color3.new(0, 1, 0);
-    Title = "grenade color"; });
-espsection:AddToggle("Claymore", { Text = "claymore";
-	Default = false; }):AddColorPicker("ClaymoreColor", { Default = Color3.new(1, 1, 0);
-    Title = "claymore color"; });
-espsection:AddToggle("Beartrap", { Text = "bear trap";
+	Tooltip = "Show C4";
+}):AddColorPicker("C4Color", {
+    Default = Color3.new(1, 0, 0); 
+    Title = "c4 color";
+});
+
+espsection:AddToggle("Grenade", {
+    Text = "grenade";
 	Default = false;
-	Tooltip = "Show Bear Trap"; }):AddColorPicker("BeartrapColor", { Default = Color3.new(1, 0.5, 0);
-    Title = "bear trap color"; });
+}):AddColorPicker("GrenadeColor", {
+    Default = Color3.new(0, 1, 0);
+    Title = "grenade color";
+});
+
+espsection:AddToggle("Claymore", {
+    Text = "claymore";
+	Default = false;
+}):AddColorPicker("ClaymoreColor", {
+    Default = Color3.new(1, 1, 0);
+    Title = "claymore color";
+});
+
+espsection:AddToggle("Beartrap", {
+    Text = "bear trap";
+	Default = false;
+	Tooltip = "Show Bear Trap";
+}):AddColorPicker("BeartrapColor", {
+    Default = Color3.new(1, 0.5, 0);
+    Title = "bear trap color";
+});
+
 local charactersection = tabs.visuals:AddLeftGroupbox("character visuals");
-charactersection:AddToggle("RainbowCharacter", { Text = "rainbow character";
-    Default = false; });
-charactersection:AddToggle("OutlineGlow", { Text = "outline glow";
-    Default = false; }):AddColorPicker("OutlineGlowColor", { Default = Color3.new(1, 1, 1);
-    Title = "glow color"; });
-charactersection:AddDropdown("CharacterMaterial", { Text = "material";
+charactersection:AddToggle("RainbowCharacter", {
+    Text = "rainbow character";
+    Default = false;
+});
+
+charactersection:AddToggle("OutlineGlow", {
+    Text = "outline glow";
+    Default = false;
+}):AddColorPicker("OutlineGlowColor", {
+    Default = Color3.new(1, 1, 1);
+    Title = "glow color";
+});
+
+charactersection:AddDropdown("CharacterMaterial", {
+    Text = "material";
     Default = "Plastic";
-    Values = {"ForceField", "Plastic"}; });
-charactersection:AddToggle("CustomMaterialColor", { Text = "material color";
-    Default = false; }):AddColorPicker("CharacterMaterialColor", { Default = Color3.new(1, 1, 1);
-    Title = "material color"; });
-charactersection:AddSlider("CharacterTransparency", { Text = "transparency";
+    Values = {"ForceField", "Plastic"};
+});
+
+charactersection:AddToggle("CustomMaterialColor", {
+    Text = "material color";
+    Default = false;
+}):AddColorPicker("CharacterMaterialColor", {
+    Default = Color3.new(1, 1, 1);
+    Title = "material color";
+});
+
+charactersection:AddSlider("CharacterTransparency", {
+    Text = "transparency";
     Default = 0;
     Min = 0;
     Max = 1;
     Rounding = 1;
-    Compact = true; });
-charactersection:AddToggle("RemoveAccessories", { Text = "remove accessories";
-    Default = false; });
-do
-	getgenv().currently_spoofing = false;
-	getgenv().lastservercframe = nil;
-	getgenv().retrieve_position(LPH_JIT_MAX(function(cf, is_spoofing)
-		getgenv().currently_spoofing = is_spoofing;
-		getgenv().lastservercframe = cf;
-	end));
+    Compact = true;
+});
 
-	local dv_clone, dvconnection, parts_map, tool_conn_added, tool_conn_removed;
+charactersection:AddToggle("RemoveAccessories", {
+    Text = "remove accessories";
+    Default = false;
+});
+
+do
+	currently_spoofing = false;
+	lastservercframe = nil;
+	retrieve_position(LPH_JIT_MAX(function(cf, is_spoofing)
+		currently_spoofing = is_spoofing;
+		lastservercframe = cf;
+	end));
+	local dv_clone, dvconnection, parts_map, tool_conn_added, tool_conn_removed, dv_char;
 	local function get_material()
 		local material_name = Options.desyncvisualisermaterial and Options.desyncvisualisermaterial.Value or "ForceField";
 		return Enum.Material[material_name] or Enum.Material.ForceField;
@@ -6501,10 +7833,12 @@ do
 		end);
 	end;
 	local function create_clone(color)
-		if (dv_clone) then dv_clone:Destroy(); end;
+		if (dv_clone) then dv_clone:Destroy(); dv_clone = nil; end;
 		parts_map = {};
 		local char = localplayer.Character;
-		if (not char) then return nil; end;
+		if (not char or not char:FindFirstChild("HumanoidRootPart")) then dv_char = nil; return nil; end;
+        dv_char = char;
+        local parts_added = 0;
 		local selected_material = get_material();
 		char.Archivable = true;
 		local clone = char:Clone();
@@ -6516,10 +7850,12 @@ do
 				local original = char:FindFirstChild(v.Name, true);
 				if (original and original:IsA("BasePart") and not original.Parent:IsA("Tool")) then
 					parts_map[original] = v;
+                    parts_added = parts_added + 1;
 				end;
 				apply_clone_part_settings(v, color, selected_material);
 			end;
 		end;
+		if (parts_added == 0) then dv_char = nil; clone:Destroy(); return nil; end;
 		clone.Parent = char.Parent;
 		dv_clone = clone;
 		refresh_tool_parts();
@@ -6553,19 +7889,19 @@ do
 			dvconnection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
 				local char = localplayer.Character;
 				local hrp = char and char:FindFirstChild("HumanoidRootPart");
-				if (not hrp or not getgenv().lastservercframe) then
+				if (not hrp or not lastservercframe) then
 					if (dv_clone) then dv_clone.Parent = nil; end;
 					return;
 				end;
-				local isdesynced = getgenv().currently_spoofing;
+				local isdesynced = currently_spoofing;
 				if (isdesynced) then
-					if (not dv_clone or not dv_clone.Parent) then
+					if (not dv_clone or not dv_clone.Parent or dv_char ~= char) then
 						local color = (Options.desyncvisualisercolor and Options.desyncvisualisercolor.Value) or Color3.fromRGB(128, 0, 255);
 						create_clone(color);
 					end;
 					if (dv_clone) then
 						dv_clone.Parent = workspace.Terrain;
-						local color = Options.desyncvisualisercolor.Value;
+						local color = (Options.desyncvisualisercolor and Options.desyncvisualisercolor.Value) or Color3.fromRGB(128, 0, 255);
 						local hrp_cframe = hrp.CFrame;
 						local selected_material = get_material();
 						for original, clone_part in pairs(parts_map) do
@@ -6577,7 +7913,7 @@ do
 									clone_part.Color = color;
 								end;
 								local offset = hrp_cframe:ToObjectSpace(original.CFrame);
-								clone_part.CFrame = getgenv().lastservercframe * offset;
+								clone_part.CFrame = lastservercframe * offset;
 							else
 								parts_map[original] = nil;
 							end;
@@ -6595,56 +7931,95 @@ do
 		Title = "visualiser color";
 		Transparency = 0;
 	});
-	charactersection:AddDropdown("desyncvisualisermaterial", { Text = "visualiser material"; Default = "ForceField"; Values = {"ForceField", "Neon"}; });
-	localplayer.CharacterAdded:Connect(function()
+	charactersection:AddDropdown("desyncvisualisermaterial", {
+    Text = "visualiser material";
+    Default = "ForceField"; Values = {"ForceField", "Neon"};
+    });
+	localplayer.CharacterAdded:Connect(function(char)
 		if (Toggles.desyncvisualiser and Toggles.desyncvisualiser.Value) then
+			task.wait(0.5);
 			bind_tool_connections();
-			create_clone(Options.desyncvisualisercolor.Value);
+            dv_char = nil;
 		end;
 	end);
 end;
-getgenv().serenium_global_rainbow_color = Color3.new(1,1,1);
-local currentRagebotTarget = nil;
+
+local serenium_global_rainbow_color = Color3.new(1,1,1);
+local current_ragebot_target = nil;
+
 local function InitializeESP()
-	local FOVCircles = { Silent = drawing_new("Circle"), Aimbot = drawing_new("Circle"), Visuals = drawing_new("Circle"), Outline = drawing_new("Circle"), Fill = drawing_new("Circle") }
-	local lastFOVCirclePos = userinputservice:GetMouseLocation()
-	local currentFOVCircleSize = 50
-	local FOVCircleSilent = FOVCircles.Silent
-	local FOVCircleAimbot = FOVCircles.Aimbot
-	local FOVCircleVisuals = FOVCircles.Visuals
-	local FOVCircleVisualsOutline = FOVCircles.Outline
-	local FOVCircleVisualsFill = FOVCircles.Fill
-	FOVCircles.Silent.Visible = false;
-	FOVCircles.Aimbot.Visible = false;
-	FOVCircles.Visuals.Visible = false;
-	FOVCircles.Outline.Visible = false;
-	FOVCircles.Fill.Visible = false;
-	FOVCircles.Silent.Transparency = 1;
-	FOVCircles.Aimbot.Transparency = 1;
-	FOVCircles.Visuals.Transparency = 1;
-	FOVCircles.Outline.Transparency = 1;
-	FOVCircles.Fill.Transparency = 0.5;
-	FOVCircles.Silent.Color = Color3.new(1, 1, 1);
-    local PlayerDrawings = {};
-	local PlrConnections = {};
-	local TracerPoints = {};
-	local ESPSettings = { Line = { Thickness = 1, Color = Color3.fromRGB(0, 255, 0), }, Text = { Size = 13, Center = true, Outline = true, Font = Drawing.Fonts.Plex, Color = Color3.fromRGB(255, 255, 255), }, Square = { Thickness = 1, Color = Color3.new(1, 1, 1), Filled = false, }, Triangle = { Color = Color3.fromRGB(255, 255, 255), Filled = true, Visible = false, Thickness = 1, }, Image = { Color = Color3.fromRGB(255, 255, 255), Visible = false, }, }
-	local AimbotHighlight = Instance.new("Highlight", workspace.Terrain)
-	local RagebotHighlight = Instance.new("Highlight", workspace.Terrain)
-	local SilentAimHighlight = Instance.new("Highlight", workspace.Terrain)
-	AimbotHighlight.FillColor = Color3.new(1, 1, 1)
-	RagebotHighlight.FillColor = Color3.new(1, 1, 1)
-	SilentAimHighlight.FillColor = Color3.new(1, 1, 1)
-	local AimbotHighlight = Instance.new("Highlight", workspace.Terrain)
-	local RagebotHighlight = Instance.new("Highlight", workspace.Terrain)
-	local SilentAimHighlight = Instance.new("Highlight", workspace.Terrain)
-	AimbotHighlight.FillColor = Color3.new(1, 1, 1)
-	RagebotHighlight.FillColor = Color3.new(1, 1, 1)
-	SilentAimHighlight.FillColor = Color3.new(1, 1, 1)
-	local UtilityColors = { C4 = Color3.fromRGB(255, 0, 0), Grenade = Color3.fromRGB(0, 255, 0), Claymore = Color3.fromRGB(255, 255, 0), Beartrap = Color3.fromRGB(255, 128, 0), }
+	local fov_circles = {
+        Silent = drawing_new("Circle");
+        Aimbot = drawing_new("Circle");
+        Visuals = drawing_new("Circle");
+        Outline = drawing_new("Circle");
+        Fill = drawing_new("Circle");
+    };
+
+	local last_fov_circle_position = userinputservice:GetMouseLocation();
+	local current_fov_circle_size = 50;
+	local fov_cricle_silent = fov_circles.Silent;
+	local fov_circle_aimbot = fov_circles.Aimbot;
+	local fov_circle_visuals = fov_circles.Visuals;
+	local fov_circle_visuals_outline = fov_circles.Outline;
+	local fov_circle_visuals_fill = fov_circles.Fill;
+	fov_circles.Silent.Visible = false;
+	fov_circles.Aimbot.Visible = false;
+	fov_circles.Visuals.Visible = false;
+	fov_circles.Outline.Visible = false;
+	fov_circles.Fill.Visible = false;
+	fov_circles.Silent.Transparency = 1;
+	fov_circles.Aimbot.Transparency = 1;
+	fov_circles.Visuals.Transparency = 1;
+	fov_circles.Outline.Transparency = 1;
+	fov_circles.Fill.Transparency = 0.5;
+	fov_circles.Silent.Color = Color3.new(1, 1, 1);
+    local player_drawings = {};
+	local player_connections = {};
+	local tracer_points = {};
+
+	local esp_settings = {
+        Line = {
+            Thickness = 1, Color = Color3.fromRGB(0, 255, 0);
+        };
+        Text = {
+            Size = 13, Center = true, Outline = true, Font = Drawing.Fonts.Plex, Color = Color3.fromRGB(255, 255, 255);
+        };
+        Square = {
+            Thickness = 1, Color = Color3.new(1, 1, 1), Filled = false;
+        };
+        Triangle = {
+            Color = Color3.fromRGB(255, 255, 255), Filled = true, Visible = false, Thickness = 1;
+        };
+        Image = {
+            Color = Color3.fromRGB(255, 255, 255), Visible = false;
+        }; 
+    };
+
+	local aimbot_highlight = Instance.new("Highlight", workspace.Terrain);
+	local ragebot_highlight = Instance.new("Highlight", workspace.Terrain);
+	local silentaim_highlight = Instance.new("Highlight", workspace.Terrain);
+	aimbot_highlight.FillColor = Color3.new(1, 1, 1);
+	ragebot_highlight.FillColor = Color3.new(1, 1, 1);
+	silentaim_highlight.FillColor = Color3.new(1, 1, 1);
+	local aimbot_highlight = Instance.new("Highlight", workspace.Terrain);
+	local ragebot_highlight = Instance.new("Highlight", workspace.Terrain);
+	local silentaim_highlight = Instance.new("Highlight", workspace.Terrain);
+	aimbot_highlight.FillColor = Color3.new(1, 1, 1);
+	ragebot_highlight.FillColor = Color3.new(1, 1, 1);
+	silentaim_highlight.FillColor = Color3.new(1, 1, 1);
+
+	local utility_colors = {
+        C4 = Color3.fromRGB(255, 0, 0);
+        Grenade = Color3.fromRGB(0, 255, 0);
+        Claymore = Color3.fromRGB(255, 255, 0);
+        Beartrap = Color3.fromRGB(255, 128, 0);
+    };
+
 	local animations = {};
+
 	do
-		local blacklist = { "rbxassetid://106649093705106", "rbxassetid://6423003415", "rbxassetid://101463478179793", };
+		local blacklist = {"rbxassetid://106649093705106", "rbxassetid://6423003415", "rbxassetid://101463478179793";};
 		local blacklistset = {};
 		for i = 1, #blacklist do blacklistset[blacklist[i]] = true; end;
 		task_spawn(LPH_JIT_MAX(function()
@@ -6661,119 +8036,166 @@ local function InitializeESP()
 				end;
 			end;
 		end));
-	end
-    local SwingImage = "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"
-	local ParryImage = "iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkCAYAAAB+TFE1AAAgAElEQVR4Ae2dB7gsRdW1QXLOGUmSM0iWnAUEQYIEAZEokkSyEgxIEBMGUD8BlaAiiCAiSI4iQZGgSJQcJKgYv/9fXy3OnjtzzpmZ012dqqpXP8997pyZDtVvVVd11d577ckm0yYCIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACItBWAgDmBrAagFUBrAxgRQArAFgOwDIAlgKwJIDFASwGYFEACwNYCMCCAOYHMC+AeQDMBWBOALMDmBXALABmAjAjgOkBTAtgGgBTAZgCwDvayl33LQIiIAIiMIYAgM0AXAfg1wDucH/fDuBWALcAuAnADQB+Zfv8EsA1AK52g9hVAK4EcAWAy91AdhmAS91A9mM3kP3QDWQXu4HsIgAXAvi+G8guAHC+G8i+6way7wD4NoBzAZxgg98UY4qmP0VABERABNpEAMD2AF5Ac9vfAdwJ4KOcNbWJve5VBERABESghwCAHQC82Nx49PaV/z+Af9vMaysAM2s5r6eS9FEEREAE2kAAwAcAvNTwgNR7+VecPeqbbrlwQwAztKEOdI8iIAIiIAKTTTYZgB3dctnLvSNCAJ//nxsofw/gk3SqUEWJgAiIgAi0gACAnQBwVhLi9jdzptiT3nstqA7dogiIgAi0lwCAnQG8GuJoZGXibOk18+LbAMDU7a0t3bkIiIAIJEwAwAcB/CXgAam3aG+5GKevWnzU9AlXi25NBERABNpHAMCuAF7v7fUD//y/AO4FcCSApQFM2b5a0x2LgAiIQIIEAOwG4I3AB6F+xeMgej2AD1MRIsGq0S2JgAiIQLsIANgdwJv9evxIvmNQ7/dcDNMa7ao53a0IiIAIJEYAwB4A/hrJ4DOomFzGe9rFLZ1p2nvTJFZNuh0REAERSJ8AALpU0706le0BtwR5uAnAyr6UfhPWHYqACKRCAMBeAKgnl9L2LxN6pUv77KnUle5DBERABJImAGBvAHSnTm3rLONRUXyDpCtRNycCIiAC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zNX7pogHJM6GngfwK3PKYM6h2VXBIiACIiACkREw6Zu/Rjog3eiysJ5m97CEkt9F1vhUXBEQARHoELCMsBeavSWWMek5AN8CsCOAdzFvU+d+9L8IiIAIiECEBCwQdmsATwQ8EnE57u8WL0R9PQqZUjVhWtmGImx0KrIIiIAI9CNgs6OzAw2EpYfcgwCuAnAEgGW0HNevFvWdCIiACCRAwDTafhfY7IiirpwJMXX6Ohw0E0CtWxABERABERhEgHYXAJ+y5HIhjEm3OUHX4wEwy+oibkBSrNCgytP3IiACIpASAQCLArijoZGIdiGm+uZsiAnu6Ka9ILOspsRY9yICIiACIjABAXNmOLbmwYiD0BsA/gjgMhuEZpigqPpZBERABEQgZQImE3R3jQPSAwAutgR3S8k5IeXWpXsTAREQgRwEAOxUQ9wRcwv9EMBxTkFhXQAz5yiidhUBERABEUidgMv7M4tTur60wtnRvaaLRw+5BeSckHqL0v2JgAiIgCcBANua7lsZYxLzCtEu9CiAsyyf0mwApvIsng4TAREQARFoAwFLvfBtt4xGRWzfjc4JrwO4x5bktpR3XBtaj+5RBERABEokAGAjAA/7jkROtofOCecC+BiAJeWcUGLl6FQiIAIi0BYCZjv6vEcg7F8AUHz1QFN2kJBpWxqN7lMEREAEqiBgKbvzZIR9xNma9gewnAtenUuzoSpqRecUAREQgZYRoI0HwIlOKohOCP02fv+i2YVOB7AYlbQZQNsyVLpdERABERCBKgmYNly/2RE95G5xv58P4P0ApqmyHDq3CIiACIhAywkA2AfAP3umRlyOo5v2vuacICHTlrcR3b4IiIAIVE4AwAwArnE5hd4EcAmA3V2OodWUZbVy9LqACIiACIhALwEAm7jA1d1cyu/5zdNuit7f9VkEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAERKA2Av8HNUDh8/6XipQAAAAASUVORK5CYII="
-	SwingImage = base64.decode(SwingImage)
-	ParryImage = base64.decode(ParryImage)
+	end;
+
+    local swing_image = "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"
+	local parry_image = "iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkCAYAAAB+TFE1AAAgAElEQVR4Ae2dB7gsRdW1QXLOGUmSM0iWnAUEQYIEAZEokkSyEgxIEBMGUD8BlaAiiCAiSI4iQZGgSJQcJKgYv/9fXy3OnjtzzpmZ012dqqpXP8997pyZDtVvVVd11d577ckm0yYCIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACIiACItBWAgDmBrAagFUBrAxgRQArAFgOwDIAlgKwJIDFASwGYFEACwNYCMCCAOYHMC+AeQDMBWBOALMDmBXALABmAjAjgOkBTAtgGgBTAZgCwDvayl33LQIiIAIiMIYAgM0AXAfg1wDucH/fDuBWALcAuAnADQB+Zfv8EsA1AK52g9hVAK4EcAWAy91AdhmAS91A9mM3kP3QDWQXu4HsIgAXAvi+G8guAHC+G8i+6way7wD4NoBzAZxgg98UY4qmP0VABERABNpEAMD2AF5Ac9vfAdwJ4KOcNbWJve5VBERABESghwCAHQC82Nx49PaV/z+Af9vMaysAM2s5r6eS9FEEREAE2kAAwAcAvNTwgNR7+VecPeqbbrlwQwAztKEOdI8iIAIiIAKTTTYZgB3dctnLvSNCAJ//nxsofw/gk3SqUEWJgAiIgAi0gACAnQBwVhLi9jdzptiT3nstqA7dogiIgAi0lwCAnQG8GuJoZGXibOk18+LbAMDU7a0t3bkIiIAIJEwAwAcB/CXgAam3aG+5GKevWnzU9AlXi25NBERABNpHAMCuAF7v7fUD//y/AO4FcCSApQFM2b5a0x2LgAiIQIIEAOwG4I3AB6F+xeMgej2AD1MRIsGq0S2JgAiIQLsIANgdwJv9evxIvmNQ7/dcDNMa7ao53a0IiIAIJEYAwB4A/hrJ4DOomFzGe9rFLZ1p2nvTJFZNuh0REAERSJ8AALpU0706le0BtwR5uAnAyr6UfhPWHYqACKRCAMBeAKgnl9L2LxN6pUv77KnUle5DBERABJImAGBvAHSnTm3rLONRUXyDpCtRNycCIiAC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zNX7pogHJM6GngfwK3PKYM6h2VXBIiACIiACkREw6Zu/Rjog3eiysJ5m97CEkt9F1vhUXBEQARHoELCMsBeavSWWMek5AN8CsCOAdzFvU+d+9L8IiIAIiECEBCwQdmsATwQ8EnE57u8WL0R9PQqZUjVhWtmGImx0KrIIiIAI9CNgs6OzAw2EpYfcgwCuAnAEgGW0HNevFvWdCIiACCRAwDTafhfY7IiirpwJMXX6Ohw0E0CtWxABERABERhEgHYXAJ+y5HIhjEm3OUHX4wEwy+oibkBSrNCgytP3IiACIpASAQCLArijoZGIdiGm+uZsiAnu6Ka9ILOspsRY9yICIiACIjABAXNmOLbmwYiD0BsA/gjgMhuEZpigqPpZBERABEQgZQImE3R3jQPSAwAutgR3S8k5IeXWpXsTAREQgRwEAOxUQ9wRcwv9EMBxTkFhXQAz5yiidhUBERABEUidgMv7M4tTur60wtnRvaaLRw+5BeSckHqL0v2JgAiIgCcBANua7lsZYxLzCtEu9CiAsyyf0mwApvIsng4TAREQARFoAwFLvfBtt4xGRWzfjc4JrwO4x5bktpR3XBtaj+5RBERABEokAGAjAA/7jkROtofOCecC+BiAJeWcUGLl6FQiIAIi0BYCZjv6vEcg7F8AUHz1QFN2kJBpWxqN7lMEREAEqiBgKbvzZIR9xNma9gewnAtenUuzoSpqRecUAREQgZYRoI0HwIlOKohOCP02fv+i2YVOB7AYlbQZQNsyVLpdERABERCBKgmYNly/2RE95G5xv58P4P0ApqmyHDq3CIiACIhAywkA2AfAP3umRlyOo5v2vuacICHTlrcR3b4IiIAIVE4AwAwArnE5hd4EcAmA3V2OodWUZbVy9LqACIiACIhALwEAm7jA1d1cyu/5zdNuit7f9VkEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAEREAERKA2Av8HNUDh8/6XipQAAAAASUVORK5CYII="
+	
+    swing_image = base64.decode(swing_image);
+	parry_image = base64.decode(parry_image);
+
 	function New(Type, Outline, Name)
 		local drawing = drawing_new(Type)
-		for i, v in pairs(ESPSettings[Type]) do drawing[i] = v end
+		for i, v in pairs(esp_settings[Type]) do
+            drawing[i] = v;
+        end;
 		if Outline then
-			drawing.Color = Color3.new(0, 0, 0)
-			drawing.Thickness = 3
-		end
-		return drawing
-	end
-	local PlrConnections = {}
+			drawing.Color = Color3.new(0, 0, 0);
+			drawing.Thickness = 3;
+		end;
+		return drawing;
+	end;
+
+	local player_connections = {};
+
 	local function Add(Player)
-		if not PlayerDrawings[Player] then
-            local Character = Player.Character
-			if not PlrConnections[Player] then PlrConnections[Player] = {} end
+		if not player_drawings[Player] then
+            local Character = Player.Character;
+			if not player_connections[Player] then
+                player_connections[Player] = {};
+            end;
+
 			local function check(char)
-				if not char or char:GetAttribute("AlreadyFoundParry") then return end
+				if not char or char:GetAttribute("AlreadyFoundParry") then
+                    return;
+                end;
+                
 				for i, v in pairs(char:GetChildren()) do
 					if v:GetAttribute("ParryShieldId") then
 						local thing = v:GetChildren()[1]
 						if thing then
 							char:SetAttribute("AlreadyFoundParry", true)
-							table.insert( PlrConnections[Player], thing:GetPropertyChangedSignal("Transparency"):Connect(function()
-									if thing.Transparency ~= 1 then Player:SetAttribute("LastParry", tick()) end
-								end) )
-						end
-					end
-				end
-			end
-			local function OnNewTool(Tool)
+							table.insert(player_connections[Player], thing:GetPropertyChangedSignal("Transparency"):Connect(function()
+                                if thing.Transparency ~= 1 then
+                                    Player:SetAttribute("LastParry", tick());
+                                end;
+                            end));
+						end;
+					end;
+				end;
+			end;
+
+			local function on_new_tool(Tool)
 				check(Player.Character)
-				if not Tool:IsA("Tool") then return end
-				local Configuration = modules.Name["WeaponMetadata"] and modules.Name["WeaponMetadata"][Tool:GetAttribute("ItemId")]
-				if Configuration then Player:SetAttribute("SwingCooldown", Configuration.cooldown or 1) end
-			end
-			table.insert( PlrConnections[Player], Player.CharacterAdded:Connect(function(Character)
-					local PlayerDrawing = PlayerDrawings[Player]
-					local Root = Character:WaitForChild("HumanoidRootPart")
-					local Hum = Character:WaitForChild("Humanoid")
-					if PlayerDrawing then
-						PlayerDrawing.RootPart = Root
-						PlayerDrawing.Humanoid = Hum
-                        if not PlayerDrawing.Highlight or not PlayerDrawing.Highlight.Parent then
-                            if PlayerDrawing.Highlight then pcall(function() PlayerDrawing.Highlight:Destroy() end) end
-                            PlayerDrawing.Highlight = Instance.new("Highlight")
-                            PlayerDrawing.Highlight.Name = "ESP_Highlight"
-                            PlayerDrawing.Highlight.FillTransparency = 1
-                            PlayerDrawing.Highlight.OutlineTransparency = 0
-                        end
-                        PlayerDrawing.Highlight.Parent = Character
-					end
-					check(Character)
-					table.insert(PlrConnections[Player], Character.ChildAdded:Connect(OnNewTool))
-					local animator = Hum:FindFirstChildOfClass("Animator")
-					if animator then
-						table.insert( PlrConnections[Player], animator.AnimationPlayed:Connect(function(track)
-								if track.Animation and track.Animation.AnimationId and table.find(animations, track.Animation.AnimationId) then Player:SetAttribute("LastSwing", tick()) end
-							end) )
-					end
-				end) )
-			local Root = Character and Character:FindFirstChild("HumanoidRootPart")
-			local Hum = Root and Character:FindFirstChild("Humanoid")
+				if not Tool:IsA("Tool") then return; end;
+				local Configuration = modules.Name["WeaponMetadata"] and modules.Name["WeaponMetadata"][Tool:GetAttribute("ItemId")];
+				if Configuration then
+                    Player:SetAttribute("SwingCooldown", Configuration.cooldown or 1);
+                end;
+			end;
+
+			table.insert(player_connections[Player], Player.CharacterAdded:Connect(function(Character)
+                local PlayerDrawing = player_drawings[Player];
+				local Root = Character:WaitForChild("HumanoidRootPart");
+				local Hum = Character:WaitForChild("Humanoid");
+				if PlayerDrawing then
+					PlayerDrawing.RootPart = Root;
+					PlayerDrawing.Humanoid = Hum;
+                    if not PlayerDrawing.Highlight or not PlayerDrawing.Highlight.Parent then
+                        if PlayerDrawing.Highlight then
+                            pcall(function()
+                                PlayerDrawing.Highlight:Destroy();
+                            end);
+                        end;
+                        PlayerDrawing.Highlight = Instance.new("Highlight");
+                        PlayerDrawing.Highlight.Name = "ESP_Highlight";
+                        PlayerDrawing.Highlight.FillTransparency = 1;
+                        PlayerDrawing.Highlight.OutlineTransparency = 0;
+                    end;
+                    PlayerDrawing.Highlight.Parent = Character;
+				end;
+                
+				check(Character);
+				table.insert(player_connections[Player], Character.ChildAdded:Connect(on_new_tool));
+				local animator = Hum:FindFirstChildOfClass("Animator");
+				if animator then
+					table.insert(player_connections[Player], animator.AnimationPlayed:Connect(function(track)
+                        if track.Animation and track.Animation.AnimationId and table.find(animations, track.Animation.AnimationId) then
+                            Player:SetAttribute("LastSwing", tick());
+                        end;
+					end));
+				end;
+			end));
+
+			local Root = Character and Character:FindFirstChild("HumanoidRootPart");
+			local Hum = Root and Character:FindFirstChild("Humanoid");
 			if Character then
-				for i, v in pairs(Character:GetChildren()) do OnNewTool(v) end
-				check(Character)
-				table.insert(PlrConnections[Player], Character.ChildAdded:Connect(OnNewTool))
+				for i, v in pairs(Character:GetChildren()) do
+                    on_new_tool(v);
+                end;
+				check(Character);
+				table.insert(player_connections[Player], Character.ChildAdded:Connect(on_new_tool))
 				if Hum then
 					local animator = Hum:FindFirstChildOfClass("Animator")
 					if animator then
-						table.insert( PlrConnections[Player], animator.AnimationPlayed:Connect(function(track)
-								if track.Animation and track.Animation.AnimationId and table.find(animations, track.Animation.AnimationId) then Player:SetAttribute("LastSwing", tick()) end
-							end) )
+						table.insert(player_connections[Player], animator.AnimationPlayed:Connect(function(track)
+                            if track.Animation and track.Animation.AnimationId and table.find(animations, track.Animation.AnimationId) then
+                                Player:SetAttribute("LastSwing", tick());
+                            end;
+						end));
 					end
 				end
 			end
-			PlayerDrawings[Player] = { Offscreen = New("Triangle", nil, "Offscreen"), Name = New("Text", nil, "Name"), Tool = New("Text", nil, "Tool"), Distance = New("Text", nil, "Distance"), BoxOutline = New("Square", true, "BoxOutline"), Box = New("Square", nil, "Box"), HealthOutline = New("Line", true, "HealthOutline"), Health = New("Line", nil, "Health"), Tracer = New("Line", nil, "Tracer"), TracerOutline = New("Line", nil, "TracerOutline"), Swing = LastSwing, Parry = LastParry, Highlight = Instance.new("Highlight"), RootPart = Root, Humanoid = Hum, }
-            PlayerDrawings[Player].Highlight.Name = "ESP_Highlight"
-            PlayerDrawings[Player].Highlight.Enabled = false
-            PlayerDrawings[Player].Highlight.FillTransparency = 1
-            PlayerDrawings[Player].Highlight.OutlineTransparency = 0
-            if Character then PlayerDrawings[Player].Highlight.Parent = Character end
-		end
-	end
-	for Player, _ in pairs(cachedplayers) do if Player ~= localplayer then Add(Player) end end
+
+			player_drawings[Player] = {Offscreen = New("Triangle", nil, "Offscreen"), Name = New("Text", nil, "Name"), Tool = New("Text", nil, "Tool"), Distance = New("Text", nil, "Distance"), BoxOutline = New("Square", true, "BoxOutline"), Box = New("Square", nil, "Box"), HealthOutline = New("Line", true, "HealthOutline"), Health = New("Line", nil, "Health"), Tracer = New("Line", nil, "Tracer"), TracerOutline = New("Line", nil, "TracerOutline"), Swing = LastSwing, Parry = LastParry, Highlight = Instance.new("Highlight"), RootPart = Root, Humanoid = Hum, }
+            player_drawings[Player].Highlight.Name = "ESP_Highlight"
+            player_drawings[Player].Highlight.Enabled = false
+            player_drawings[Player].Highlight.FillTransparency = 1
+            player_drawings[Player].Highlight.OutlineTransparency = 0
+            if Character then
+                player_drawings[Player].Highlight.Parent = Character;
+            end;
+		end;
+	end;
+
+	for Player, _ in pairs(cachedplayers) do
+        if Player ~= localplayer then
+            Add(Player);
+        end;
+    end;
+
 	players.PlayerAdded:Connect(Add)
 	players.PlayerRemoving:Connect(function(Player)
-		if PlayerDrawings[Player] then
-			for i, v in pairs(PlayerDrawings[Player]) do
+		if player_drawings[Player] then
+			for i, v in pairs(player_drawings[Player]) do
 				if v and i ~= "RootPart" and i ~= "Humanoid" then
 					if i == "Highlight" then
-						v:Destroy()
+						v:Destroy();
 					else
-						v:Remove()
-					end
-				end
-			end
-			if PlrConnections[Player] and next(PlrConnections[Player]) then for i, v in pairs(PlrConnections[Player]) do v:Disconnect() end end
-			PlayerDrawings[Player] = nil
-		end
-	end)
+						v:Remove();
+					end;
+				end;
+			end;
+			if player_connections[Player] and next(player_connections[Player]) then
+                for i, v in pairs(player_connections[Player]) do
+                    v:Disconnect();
+                end;
+            end;
+			player_drawings[Player] = nil;
+		end;
+	end);
+
 	if Map then
 		Map.ChildRemoved:Connect(function(Utility)
-			if getgenv().ESP and getgenv().ESP.RemoveUtility then getgenv().ESP.RemoveUtility(Utility) end
-		end)
-	end
+			if ESP and ESP.RemoveUtility then
+                ESP.RemoveUtility(Utility);
+            end;
+		end);
+	end;
 
 	if EffectsJunk then
 		EffectsJunk.ChildRemoved:Connect(function(Utility)
-			if getgenv().ESP and getgenv().ESP.RemoveUtility then getgenv().ESP.RemoveUtility(Utility) end
+			if ESP and ESP.RemoveUtility then ESP.RemoveUtility(Utility) end
 		end)
 	end
 
@@ -6781,103 +8203,125 @@ local function InitializeESP()
 		angle = math.rad(angle)
 		return vector2_new( math_floor(math_cos(angle) * (point.X - center.X) - math_sin(angle) * (point.Y - center.Y) + center.X), math_floor(math_sin(angle) * (point.X - center.X) + math_cos(angle) * (point.Y - center.Y) + center.Y) )
 	end
-	local _espSkipKeys = {RootPart = true, Humanoid = true, SessionData = true, Highlight = true};
-    if getgenv().SereniumPlayerDrawings then
-        for _, drawings in pairs(getgenv().SereniumPlayerDrawings) do
+    
+    if SereniumPlayerDrawings then
+        for _, drawings in pairs(SereniumPlayerDrawings) do
             for _, drawing in pairs(drawings) do
-                if type(drawing) == "table" and drawing.Remove then pcall(function() drawing:Remove() end) end
-            end
-        end
-    end
-    getgenv().SereniumPlayerDrawings = PlayerDrawings
-    if getgenv().SereniumUtilityDrawings then
-        for _, drawings in pairs(getgenv().SereniumUtilityDrawings) do
+                if type(drawing) == "table" and drawing.Remove then
+                    pcall(function() drawing:Remove();
+                    end);
+                end;
+            end;
+        end;
+    end;
+
+    SereniumPlayerDrawings = player_drawings
+    if SereniumUtilityDrawings then
+        for _, drawings in pairs(SereniumUtilityDrawings) do
             for _, drawing in pairs(drawings) do
-                if type(drawing) == "table" and drawing.Remove then pcall(function() drawing:Remove() end) end
-            end
-        end
-    end
-    getgenv().SereniumUtilityDrawings = UtilityDrawings
-    if getgenv().SereniumFOVCircle then
-        for _, drawing in pairs(getgenv().SereniumFOVCircle) do
-            if type(drawing) == "table" and drawing.Remove then pcall(function() drawing:Remove() end) end
-        end
-    end
-    getgenv().SereniumFOVCircle = FOVCircles
+                if type(drawing) == "table" and drawing.Remove then
+                    pcall(function()
+                        drawing:Remove();
+                    end);
+                end;
+            end;
+        end;
+    end;
+
+    SereniumUtilityDrawings = UtilityDrawings
+    if SereniumFOVCircle then
+        for _, drawing in pairs(SereniumFOVCircle) do
+            if type(drawing) == "table" and drawing.Remove then
+                pcall(function() drawing:Remove();
+                end);
+            end;
+        end;
+    end;
+
+    SereniumFOVCircle = fov_circles
 		local lastrainbowtick = 0;
 		local lastespdrawtick = 0;
+
 		runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
-        local nowtick = tick();
-        if nowtick - lastrainbowtick >= 0.1 then
-            lastrainbowtick = nowtick;
-            getgenv().serenium_global_rainbow_color = Color3.fromHSV(nowtick % 5 / 5, 1, 1);
+        local now_tick = tick();
+        if now_tick - lastrainbowtick >= 0.1 then
+            lastrainbowtick = now_tick;
+            serenium_global_rainbow_color = Color3.fromHSV(now_tick % 5 / 5, 1, 1);
         end;
-        local mousePos = userinputservice:GetMouseLocation();
+
+        local mouse_position = userinputservice:GetMouseLocation();
         local smooth_amount = math.max(1, Classes.FOVCircleSmoothing.Value);
-        if getgenv().settings.stick and stick_target then
-            local sticky_character = stick_target.Character
-            local stick_primarypart = sticky_character and sticky_character:FindFirstChild("HumanoidRootPart")
+        if settings.stick and stick_target then
+            local sticky_character = stick_target.Character;
+            local stick_primarypart = sticky_character and sticky_character:FindFirstChild("HumanoidRootPart");
             if stick_primarypart then
-                local screen_position, on_screen = camera:WorldToViewportPoint(stick_primarypart.Position)
+                local screen_position, on_screen = camera:WorldToViewportPoint(stick_primarypart.Position);
                 if on_screen then
-                    local target_position = vector2_new(screen_position.X, screen_position.Y)
-                    lastFOVCirclePos = lastFOVCirclePos + (target_position - lastFOVCirclePos) / smooth_amount
+                    local target_position = vector2_new(screen_position.X, screen_position.Y);
+                    last_fov_circle_position = last_fov_circle_position + (target_position - last_fov_circle_position) / smooth_amount;
                 else
-                    lastFOVCirclePos = lastFOVCirclePos + (mousePos - lastFOVCirclePos) / smooth_amount
-                end
+                    last_fov_circle_position = last_fov_circle_position + (mouse_position - last_fov_circle_position) / smooth_amount;
+                end;
             else
-                lastFOVCirclePos = lastFOVCirclePos + (mousePos - lastFOVCirclePos) / smooth_amount
-            end
+                last_fov_circle_position = last_fov_circle_position + (mouse_position - last_fov_circle_position) / smooth_amount;
+            end;
         else
-            lastFOVCirclePos = lastFOVCirclePos + (mousePos - lastFOVCirclePos) / smooth_amount
-        end
-        local targetSize = Classes.FOVSize.Value
-        currentFOVCircleSize = currentFOVCircleSize + (targetSize - currentFOVCircleSize) / smooth_amount
+            last_fov_circle_position = last_fov_circle_position + (mouse_position - last_fov_circle_position) / smooth_amount;
+        end;
+
+        local target_size = Classes.FOVSize.Value;
+        current_fov_circle_size = current_fov_circle_size + (target_size - current_fov_circle_size) / smooth_amount;
+
         if (Classes.ShowFOV and Classes.ShowFOV.Value and Classes.SilentAim.Value) then
-            local fovColor = Classes.FOVCircleColor.Value
-            local fillEnabled = Classes.FOVCircleFill.Value
-            local fillColor = Classes.FOVCircleFillColor.Value
-            local fillTransparency = (Options.FOVCircleFillColor and Options.FOVCircleFillColor.Transparency) or 0.5
-            local outlineEnabled = Classes.FOVCircleOutline.Value
-            local outlineColor = Classes.FOVCircleOutlineColor.Value
-            if outlineEnabled then
-                FOVCircleVisualsOutline.Visible = true
-                FOVCircleVisualsOutline.Position = lastFOVCirclePos
-                FOVCircleVisualsOutline.Radius = currentFOVCircleSize + 1
-                FOVCircleVisualsOutline.Color = outlineColor
-                FOVCircleVisualsOutline.Thickness = 0.1
-                FOVCircleVisualsOutline.ZIndex = 1
+            local fov_color = Classes.FOVCircleColor.Value;
+            local fill_enabled = Classes.FOVCircleFill.Value;
+            local fill_color = Classes.FOVCircleFillColor.Value;
+            local fill_transparency = (Options.FOVCircleFillColor and Options.FOVCircleFillColor.Transparency) or 0.5;
+            local outline_enabled = Classes.FOVCircleOutline.Value;
+            local outline_color = Classes.FOVCircleOutlineColor.Value;
+
+            if outline_enabled then
+                fov_circle_visuals_outline.Visible = true;
+                fov_circle_visuals_outline.Position = last_fov_circle_position;
+                fov_circle_visuals_outline.Radius = current_fov_circle_size + 1;
+                fov_circle_visuals_outline.Color = outline_color;
+                fov_circle_visuals_outline.Thickness = 0.1;
+                fov_circle_visuals_outline.ZIndex = 1;
             else
-                FOVCircleVisualsOutline.Visible = false
-            end
-            FOVCircleVisuals.Visible = true
-            FOVCircleVisuals.Position = lastFOVCirclePos
-            FOVCircleVisuals.Radius = currentFOVCircleSize
-            FOVCircleVisuals.Color = fovColor
-            FOVCircleVisuals.Thickness = 1
-            FOVCircleVisuals.ZIndex = 2
-            if fillEnabled then
-                FOVCircleVisualsFill.Visible = true
-                FOVCircleVisualsFill.Position = lastFOVCirclePos
-                FOVCircleVisualsFill.Radius = currentFOVCircleSize
-                FOVCircleVisualsFill.Color = fillColor
-                FOVCircleVisualsFill.Transparency = (1 - fillTransparency)
-                FOVCircleVisualsFill.Filled = true
-                FOVCircleVisualsFill.ZIndex = 0
+                fov_circle_visuals_outline.Visible = false;
+            end;
+
+            fov_circle_visuals.Visible = true;
+            fov_circle_visuals.Position = last_fov_circle_position;
+            fov_circle_visuals.Radius = current_fov_circle_size;
+            fov_circle_visuals.Color = fov_color;
+            fov_circle_visuals.Thickness = 1;
+            fov_circle_visuals.ZIndex = 2;
+
+            if fill_enabled then
+                fov_circle_visuals_fill.Visible = true;
+                fov_circle_visuals_fill.Position = last_fov_circle_position;
+                fov_circle_visuals_fill.Radius = current_fov_circle_size;
+                fov_circle_visuals_fill.Color = fill_color;
+                fov_circle_visuals_fill.Transparency = (1 - fill_transparency);
+                fov_circle_visuals_fill.Filled = true;
+                fov_circle_visuals_fill.ZIndex = 0;
             else
-                FOVCircleVisualsFill.Visible = false
-            end
+                fov_circle_visuals_fill.Visible = false;
+            end;
         else
-            FOVCircleVisuals.Visible = false
-            FOVCircleVisualsOutline.Visible = false
-            FOVCircleVisualsFill.Visible = false
-        end
-        local closestPlayerToCursor = nil;
-        local mousePos = userinputservice:GetMouseLocation();
-        local lastcursorscan = getgenv()._lastcursorscan or 0;
-        if nowtick - lastcursorscan >= 0.1 then
-            getgenv()._lastcursorscan = nowtick;
-            local mousePos = userinputservice:GetMouseLocation();
+            fov_circle_visuals.Visible = false;
+            fov_circle_visuals_outline.Visible = false;
+            fov_circle_visuals_fill.Visible = false;
+        end;
+
+        local closest_to_mousecursor = nil;
+        local mouse_position = userinputservice:GetMouseLocation();
+        local cursor_scan = last_cursor_scan or 0;
+
+        if now_tick - cursor_scan >= 0.1 then
+            last_cursor_scan = now_tick;
+            local mouse_position = userinputservice:GetMouseLocation();
             local closest_distance = math.huge;
             for Player, _ in pairs(cachedplayers) do
                 if Player == localplayer then continue; end;
@@ -6886,27 +8330,28 @@ local function InitializeESP()
                 if not root then continue; end;
                 local Pos, OnScreen = camera:WorldToViewportPoint(root.Position);
                 if OnScreen then
-                    local screenDist = (vector2_new(Pos.X, Pos.Y) - mousePos).Magnitude;
+                    local screenDist = (vector2_new(Pos.X, Pos.Y) - mouse_position).Magnitude;
                     if screenDist < closest_distance then
                         closest_distance = screenDist;
-                        closestPlayerToCursor = Player;
+                        closest_to_mousecursor = Player;
                     end;
                 end;
             end;
-            getgenv()._lastcursorplayer = closestPlayerToCursor;
+            _lastcursorplayer = closest_to_mousecursor;
         else
-            closestPlayerToCursor = getgenv()._lastcursorplayer;
+            closest_to_mousecursor = _lastcursorplayer;
         end;
-        if nowtick - lastespdrawtick < 0.05 then return; end;
-        lastespdrawtick = nowtick;
-        local maxdist = getgenv().ESP.Settings.MaxDistance;
+
+        if now_tick - lastespdrawtick < 0.05 then return; end;
+        lastespdrawtick = now_tick;
+        local maxdist = ESP.Settings.MaxDistance;
         local tracerenabled = Classes.Tracer.Value;
         local tracermaxdist = Classes.TracerMaxDist.Value;
-        local ragetarget = getgenv().serenium_ragebot_target or getgenv().LockedTarget;
-        local satarget = getgenv().serenium_sa_target;
+        local ragetarget = serenium_ragebot_target or locked_target;
+        local satarget = serenium_sa_target;
         for player in pairs(cachedplayers) do
             if player == localplayer then continue; end;
-            local playerdrawing = PlayerDrawings[player];
+            local playerdrawing = player_drawings[player];
             if not playerdrawing then continue; end;
             local rootpart = playerdrawing.RootPart;
             local humanoid = playerdrawing.Humanoid;
@@ -6923,6 +8368,7 @@ local function InitializeESP()
                 playerdrawing.TracerOutline.Visible = false;
                 continue;
             end;
+
             local isragetarget = (ragetarget == player);
             local issatarget = (satarget == player);
             if playerdrawing.Highlight then
@@ -6934,6 +8380,7 @@ local function InitializeESP()
                     playerdrawing.Highlight.Enabled = false;
                 end;
             end;
+
             local campos = camera.CFrame.Position;
             local rootpos = rootpart.Position;
             local distfromchar = (campos - rootpos).Magnitude;
@@ -6950,6 +8397,7 @@ local function InitializeESP()
                 playerdrawing.TracerOutline.Visible = false;
                 continue;
             end;
+
             local pos, onscreen = camera:WorldToViewportPoint(rootpos);
             if not onscreen then
                 playerdrawing.Box.Visible = false;
@@ -6982,7 +8430,7 @@ local function InitializeESP()
                         drawing.PointA = Rotate(point + vector2_new(size, size), point, rotation);
                         drawing.PointB = Rotate(point + vector2_new(-size, -size), point, rotation);
                         drawing.PointC = Rotate(point + vector2_new(-size, size), point, rotation);
-                        drawing.Color = ESPSettings.Triangle.Color;
+                        drawing.Color = esp_settings.Triangle.Color;
                         drawing.Filled = not ((offsettings == "Outline" or offsettings == "Both") or false);
                         drawing.Transparency = ((offsettings == "Blinking" or offsettings == "Both") or false) and (math_sin(tick() * 5) + 1) / 2 or 1;
                         drawing.Visible = true;
@@ -6992,6 +8440,7 @@ local function InitializeESP()
                 else
                     playerdrawing.Offscreen.Visible = false;
                 end;
+
             else
                 playerdrawing.Offscreen.Visible = false;
                 local size = (camera:WorldToViewportPoint(rootpos - vector3_new(0, 3, 0)).Y - camera:WorldToViewportPoint(rootpos + vector3_new(0, 2.6, 0)).Y) / 2;
@@ -7017,12 +8466,12 @@ local function InitializeESP()
                     local shoulddraw = false;
                     if autoselect then
                         local drawtarget = nil;
-                        if getgenv().settings.ragebot and (getgenv().serenium_ragebot_target or getgenv().LockedTarget) then
-                            drawtarget = getgenv().serenium_ragebot_target or getgenv().LockedTarget;
-                        elseif getgenv().settings.stick and stick_target then
+                        if settings.ragebot and (serenium_ragebot_target or locked_target) then
+                            drawtarget = serenium_ragebot_target or locked_target;
+                        elseif settings.stick and stick_target then
                             drawtarget = stick_target;
                         elseif distfromchar <= autodist then
-                            drawtarget = closestPlayerToCursor;
+                            drawtarget = closest_to_mousecursor;
                         end;
                         shoulddraw = (player == drawtarget);
                     else
@@ -7033,7 +8482,7 @@ local function InitializeESP()
                         local traceroutline = playerdrawing.TracerOutline;
                         if tracer and traceroutline then
                             local origin = Classes.TracerOrigin.Value;
-                            local frompos = (origin == "Cursor") and mousePos or vector2_new(camera.ViewportSize.X / 2, camera.ViewportSize.Y);
+                            local frompos = (origin == "Cursor") and mouse_position or vector2_new(camera.ViewportSize.X / 2, camera.ViewportSize.Y);
                             local topos = vector2_new(pos.X, pos.Y);
                             local tracercolor = Classes.TracerColor.Value or Color3.new(1, 1, 1);
                             if tracer.From ~= frompos then tracer.From = frompos; end;
@@ -7060,140 +8509,166 @@ local function InitializeESP()
             end;
         end;
     end));
-end
+end;
+
 InitializeESP()
-local function InitializeVisuals()
-    local WeaponChamsData = { OriginalProperties = {}, AppliedParts = {}, CurrentWeapon = nil, WeaponHighlight = nil }
-    local CharacterVisualsData = { OriginalProperties = {}, OutlineGlow = nil, RainbowConnection = nil }
-    local function CleanupWeaponChams()
-        if WeaponChamsData.WeaponHighlight then
-            pcall(function() WeaponChamsData.WeaponHighlight:Destroy() end) WeaponChamsData.WeaponHighlight = nil end
-        for part, props in pairs(WeaponChamsData.OriginalProperties) do
+local function initialize_visuals()
+    local weaponchams_data = {OriginalProperties = {}, AppliedParts = {}, CurrentWeapon = nil, WeaponHighlight = nil; };
+    local character_vis_data = {OriginalProperties = {}, OutlineGlow = nil, RainbowConnection = nil; };
+    local function clean_weapon_chams()
+        if weaponchams_data.WeaponHighlight then
+            pcall(function()
+                weaponchams_data.WeaponHighlight:Destroy();
+            end);
+            weaponchams_data.WeaponHighlight = nil;
+        end;
+        for part, props in pairs(weaponchams_data.OriginalProperties) do
             if part and part.Parent then
                 pcall(function()
-                    part.Material = props.Material
-                    part.Color = props.Color
-                    if props.Transparency then part.Transparency = props.Transparency end
-                    if props.TextureID and part:IsA("MeshPart") then part.TextureID = props.TextureID end
-                end)
-            end
-        end
-        WeaponChamsData.OriginalProperties = {}
-        WeaponChamsData.AppliedParts = {}
-        WeaponChamsData.CurrentWeapon = nil
-    end
-    local LastWeaponChams = { Material = nil, Color = nil, Highlight = nil, HighlightColor = nil }
-    local function ApplyWeaponChams(tool)
-        if not tool or not tool:IsA("Tool") then return end
+                    part.Material = props.Material;
+                    part.Color = props.Color;
+                    if props.Transparency then
+                        part.Transparency = props.Transparency;
+                    end;
+                    if props.TextureID and part:IsA("MeshPart") then
+                        part.TextureID = props.TextureID;
+                    end;
+                end);
+            end;
+        end;
+        weaponchams_data.OriginalProperties = {};
+        weaponchams_data.AppliedParts = {};
+        weaponchams_data.CurrentWeapon = nil;
+    end;
+    local last_weapon_chams = {Material = nil, Color = nil, Highlight = nil, HighlightColor = nil; };
+    local function apply_weapon_chams(tool)
+        if not tool or not tool:IsA("Tool") then return; end;
         if not Classes.WeaponChamsEnabled or not Classes.WeaponChamsEnabled.Value then
-            CleanupWeaponChams()
+            clean_weapon_chams()
             return
         end
-        local chamsMaterial = Classes.WeaponChamsMaterial and Classes.WeaponChamsMaterial.Value or "Plastic"
-        local chamsColor = Classes.WeaponChamsColor and Classes.WeaponChamsColor.Value or Color3.new(1, 0, 0)
-        local highlightEnabled = Classes.WeaponChamsHighlight and Classes.WeaponChamsHighlight.Value or false
-        local highlightColor = Classes.WeaponChamsHighlightColor and Classes.WeaponChamsHighlightColor.Value or Color3.new(1, 0, 0)
-        local settingsChanged = (LastWeaponChams.Material ~= chamsMaterial) or (LastWeaponChams.Color ~= chamsColor) or (LastWeaponChams.Highlight ~= highlightEnabled) or (LastWeaponChams.HighlightColor ~= highlightColor)
-        if WeaponChamsData.CurrentWeapon ~= tool or settingsChanged then
-            CleanupWeaponChams()
-            WeaponChamsData.CurrentWeapon = tool
-            LastWeaponChams.Material = chamsMaterial
-            LastWeaponChams.Color = chamsColor
-            LastWeaponChams.Highlight = highlightEnabled
-            LastWeaponChams.HighlightColor = highlightColor
+        local chams_material = Classes.WeaponChamsMaterial and Classes.WeaponChamsMaterial.Value or "Plastic";
+        local chams_color = Classes.WeaponChamsColor and Classes.WeaponChamsColor.Value or Color3.new(1, 0, 0);
+        local highlight_enabled = Classes.WeaponChamsHighlight and Classes.WeaponChamsHighlight.Value or false;
+        local highlight_color = Classes.WeaponChamsHighlightColor and Classes.WeaponChamsHighlightColor.Value or Color3.new(1, 0, 0);
+        local settings_changed = (last_weapon_chams.Material ~= chams_material) or (last_weapon_chams.Color ~= chams_color) or (last_weapon_chams.Highlight ~= highlight_enabled) or (last_weapon_chams.HighlightColor ~= highlight_color);
+
+        if weaponchams_data.CurrentWeapon ~= tool or settings_changed then
+            clean_weapon_chams();
+            weaponchams_data.CurrentWeapon = tool;
+            last_weapon_chams.Material = chams_material;
+            last_weapon_chams.Color = chams_color
+            last_weapon_chams.Highlight = highlight_enabled;
+            last_weapon_chams.HighlightColor = highlight_color;
         else
-            return
-        end
+            return;
+        end;
+
         for _, part in pairs(tool:GetDescendants()) do
             if part:IsA("BasePart") then
-                if not WeaponChamsData.OriginalProperties[part] then WeaponChamsData.OriginalProperties[part] = { Material = part.Material, Color = part.Color, Transparency = part.Transparency } end
+                if not weaponchams_data.OriginalProperties[part] then weaponchams_data.OriginalProperties[part] = {
+                    Material = part.Material, Color = part.Color, Transparency = part.Transparency; };
+                end;
                 pcall(function()
-                    if Enum.Material[chamsMaterial] then
-                        part.Material = Enum.Material[chamsMaterial]
+                    if Enum.Material[chams_material] then
+                        part.Material = Enum.Material[chams_material];
                     else
-                        part.Material = Enum.Material.Plastic
-                    end
-                    part.Color = chamsColor
+                        part.Material = Enum.Material.Plastic;
+                    end;
+                    part.Color = chams_color;
                     if part:IsA("MeshPart") and part.TextureID ~= "" then
-                        if not WeaponChamsData.OriginalProperties[part].TextureID then WeaponChamsData.OriginalProperties[part].TextureID = part.TextureID end
-                        part.TextureID = ""
-                    end
-                end)
-                WeaponChamsData.AppliedParts[part] = true
-            end
-        end
+                        if not weaponchams_data.OriginalProperties[part].TextureID then
+                            weaponchams_data.OriginalProperties[part].TextureID = part.TextureID;
+                        end;
+                        part.TextureID = "";
+                    end;
+                end);
+                weaponchams_data.AppliedParts[part] = true;
+            end;
+        end;
+
         if Classes.WeaponChamsHighlight and Classes.WeaponChamsHighlight.Value then
-            if not WeaponChamsData.WeaponHighlight or not WeaponChamsData.WeaponHighlight.Parent then
-                WeaponChamsData.WeaponHighlight = Instance.new("Highlight")
-                WeaponChamsData.WeaponHighlight.Name = "WeaponChams_Highlight"
-                WeaponChamsData.WeaponHighlight.FillTransparency = 0.5
-                WeaponChamsData.WeaponHighlight.OutlineTransparency = 0
-                WeaponChamsData.WeaponHighlight.Adornee = tool
-                WeaponChamsData.WeaponHighlight.Parent = tool
+            if not weaponchams_data.WeaponHighlight or not weaponchams_data.WeaponHighlight.Parent then
+                weaponchams_data.WeaponHighlight = Instance.new("Highlight")
+                weaponchams_data.WeaponHighlight.Name = "WeaponChams_Highlight"
+                weaponchams_data.WeaponHighlight.FillTransparency = 0.5
+                weaponchams_data.WeaponHighlight.OutlineTransparency = 0
+                weaponchams_data.WeaponHighlight.Adornee = tool
+                weaponchams_data.WeaponHighlight.Parent = tool
             end
-            local highlightColor = Classes.WeaponChamsHighlightColor and Classes.WeaponChamsHighlightColor.Value or Color3.new(1, 0, 0)
-            WeaponChamsData.WeaponHighlight.FillColor = highlightColor
-            WeaponChamsData.WeaponHighlight.OutlineColor = highlightColor
+            local highlight_color = Classes.WeaponChamsHighlightColor and Classes.WeaponChamsHighlightColor.Value or Color3.new(1, 0, 0)
+            weaponchams_data.WeaponHighlight.FillColor = highlight_color
+            weaponchams_data.WeaponHighlight.OutlineColor = highlight_color
         else
-            if WeaponChamsData.WeaponHighlight then
-                pcall(function() WeaponChamsData.WeaponHighlight:Destroy() end) WeaponChamsData.WeaponHighlight = nil end
+            if weaponchams_data.WeaponHighlight then
+                pcall(function() weaponchams_data.WeaponHighlight:Destroy() end) weaponchams_data.WeaponHighlight = nil end
         end
     end
-    local function CleanupCharacterVisuals()
-        if CharacterVisualsData.OutlineGlow then
-            pcall(function() CharacterVisualsData.OutlineGlow:Destroy() end) CharacterVisualsData.OutlineGlow = nil end
-        if CharacterVisualsData.RainbowConnection then
-            CharacterVisualsData.RainbowConnection:Disconnect()
-            CharacterVisualsData.RainbowConnection = nil
-        end
-        for part, props in pairs(CharacterVisualsData.OriginalProperties) do
+    local function clean_character_vis()
+        if character_vis_data.OutlineGlow then
+            pcall(function() 
+                character_vis_data.OutlineGlow:Destroy();
+            end);
+            character_vis_data.OutlineGlow = nil;
+        end;
+
+        if character_vis_data.RainbowConnection then
+            character_vis_data.RainbowConnection:Disconnect();
+            character_vis_data.RainbowConnection = nil;
+        end;
+
+        for part, props in pairs(character_vis_data.OriginalProperties) do
             if part and part.Parent then
                 pcall(function()
-                    part.Material = props.Material
-                    part.Color = props.Color
-                    part.Transparency = props.Transparency
-                end)
-            end
-        end
-        CharacterVisualsData.OriginalProperties = {}
-    end
-    local weaponChamsActive = false;
+                    part.Material = props.Material;
+                    part.Color = props.Color;
+                    part.Transparency = props.Transparency;
+                end);
+            end;
+        end;
+        character_vis_data.OriginalProperties = {};
+    end;
+
+    local weapon_chams_active = false;
     local lastchamscheck = 0;
-    local lastchamstool = nil;
+    local last_chams_tool = nil;
     runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
         local now = tick();
         if now - lastchamscheck < 0.1 then return; end;
         lastchamscheck = now;
         if Classes.WeaponChamsEnabled and Classes.WeaponChamsEnabled.Value then
-            weaponChamsActive = true;
+            weapon_chams_active = true;
             local equippedTool = character and character:FindFirstChildOfClass("Tool");
             if equippedTool then
-                if equippedTool ~= lastchamstool then
-                    lastchamstool = equippedTool;
-                    ApplyWeaponChams(equippedTool);
-                end;
+                last_chams_tool = equippedTool;
+                apply_weapon_chams(equippedTool);
             else
-                if lastchamstool then lastchamstool = nil; CleanupWeaponChams(); end;
+                if last_chams_tool then
+                    last_chams_tool = nil;
+                    clean_weapon_chams();
+                end;
             end;
         else
-            if weaponChamsActive then
-                weaponChamsActive = false;
-                lastchamstool = nil;
-                CleanupWeaponChams();
+            if weapon_chams_active then
+                weapon_chams_active = false;
+                last_chams_tool = nil;
+                clean_weapon_chams();
             end;
         end;
     end));
-    localplayer.CharacterAdded:Connect(function(newChar)
-        CleanupWeaponChams()
-        CleanupCharacterVisuals()
-        character = newChar
-        humanoidrootpart = newChar:WaitForChild("HumanoidRootPart")
-        humanoid = newChar:WaitForChild("Humanoid")
-    end)
-end
-InitializeVisuals()
-local function InitializeCombat()
-gunmods:AddToggle("NoSpread", { Text = "no spread";
+    localplayer.CharacterAdded:Connect(function(new_character)
+        clean_weapon_chams();
+        clean_character_vis();
+        character = new_character
+        humanoidrootpart = new_character:WaitForChild("HumanoidRootPart");
+        humanoid = new_character:WaitForChild("Humanoid");
+    end);
+end;
+
+initialize_visuals();
+
+gunmods:AddToggle("NoSpread", {
+    Text = "no spread";
 	Default = false;
 	Callback = function(value)
 		if value then
@@ -7203,8 +8678,11 @@ gunmods:AddToggle("NoSpread", { Text = "no spread";
 			revertranged("minSpread");
 			revertranged("maxSpread");
 		end;
-	end; });
-gunmods:AddToggle("NoRecoil", { Text = "no recoil";
+	end;
+});
+
+gunmods:AddToggle("NoRecoil", {
+    Text = "no recoil";
 	Default = false;
 	Callback = function(value)
 		if value then
@@ -7212,8 +8690,11 @@ gunmods:AddToggle("NoRecoil", { Text = "no recoil";
 		else
 			revertranged("recoilAmount");
 		end;
-	end; });
-gunmods:AddToggle("NoGravity", { Text = "no gravity";
+	end;
+});
+
+gunmods:AddToggle("NoGravity", {
+    Text = "no gravity";
 	Default = false;
 	Callback = function(value)
 		if value then
@@ -7221,13 +8702,19 @@ gunmods:AddToggle("NoGravity", { Text = "no gravity";
 		else
 			revertranged("gravity");
 		end;
-	end; });
-gunmods:AddToggle("NoReloadCancel", { Text = "no reload cancel";
+	end;
+});
+
+gunmods:AddToggle("NoReloadCancel", {
+    Text = "no reload cancel";
 	Default = false;
 	Callback = function(v)
-		getgenv().settings.nocancel = v;
-	end; });
-gunmods:AddToggle("NoReloadSlow", { Text = "no reload slowdown";
+		settings.nocancel = v;
+	end;
+});
+
+gunmods:AddToggle("NoReloadSlow", {
+    Text = "no reload slowdown";
 	Default = false;
 	Callback = function(value)
 		if value then
@@ -7235,8 +8722,11 @@ gunmods:AddToggle("NoReloadSlow", { Text = "no reload slowdown";
 		else
 			revertranged("reloadWalkSpeedMultiplier");
 		end;
-	end; });
-gunmods:AddToggle("InstantCharge", { Text = "instant charge";
+	end;
+});
+
+gunmods:AddToggle("InstantCharge", {
+    Text = "instant charge";
 	Default = false;
 	Callback = function(value)
 		if value then
@@ -7246,8 +8736,11 @@ gunmods:AddToggle("InstantCharge", { Text = "instant charge";
 			revertranged("chargeOnDuration");
 			revertranged("chargeOffDuration");
 		end;
-	end; });
-gunmods:AddToggle("InfiniteRange", { Text = "infinite range";
+	end;
+});
+
+gunmods:AddToggle("InfiniteRange", {
+    Text = "infinite range";
 	Default = false;
 	Callback = function(value)
 		if value then
@@ -7255,487 +8748,573 @@ gunmods:AddToggle("InfiniteRange", { Text = "infinite range";
 		else
 			revertranged("max_distance");
 		end;
-	end; });
-gunmods:AddToggle("Wallbang", { Text = "wallbang";
+	end;
+});
+
+gunmods:AddToggle("Wallbang", {
+    Text = "wallbang";
 	Default = false;
 	Callback = function(v)
 		Config.Wallbang = v;
-		getgenv().Wallbang = v;
-	end; });
-gunmods:AddToggle("always_head", { Text = "always head";
+		Wallbang = v;
+	end;
+});
+
+gunmods:AddToggle("always_head", {
+    Text = "always head";
 	Default = false;
 	Callback = function(v)
-		getgenv().settings.always_head = v;
-	end; });
-local Camera = workspace.CurrentCamera
-local KalmanFilter = {}
-KalmanFilter.__index = KalmanFilter
-function KalmanFilter.new() return setmetatable({ x = Vector3.zero, v = Vector3.zero, a = Vector3.zero, p = 1, r = 0.01, q = 0.001, }, KalmanFilter) end
+		settings.always_head = v;
+	end;
+});
+
+local Camera = workspace.CurrentCamera;
+local KalmanFilter = {};
+KalmanFilter.__index = KalmanFilter;
+
+function KalmanFilter.new()
+    return setmetatable({
+        x = Vector3.zero;
+        v = Vector3.zero;
+        a = Vector3.zero;
+        p = 1, r = 0.01;
+        q = 0.001;
+    }, KalmanFilter);
+end;
+
 function KalmanFilter:update(measured_pos, measured_vel, dt)
-	local predicted_x = self.x + self.v * dt + 0.5 * self.a * dt * dt
-	local predicted_v = self.v + self.a * dt
-	local p_pred = self.p + self.q
-	local k = p_pred / (p_pred + self.r)
-	self.x = predicted_x + k * (measured_pos - predicted_x)
-	self.v = predicted_v + k * (measured_vel - predicted_v)
-	self.p = (1 - k) * p_pred
-	return self.x, self.v
-end
+	local predicted_x = self.x + self.v * dt + 0.5 * self.a * dt * dt;
+	local predicted_v = self.v + self.a * dt;
+	local p_pred = self.p + self.q;
+	local k = p_pred / (p_pred + self.r);
+	self.x = predicted_x + k * (measured_pos - predicted_x);
+	self.v = predicted_v + k * (measured_vel - predicted_v);
+	self.p = (1 - k) * p_pred;
+	return self.x, self.v;
+end;
+
 function PredictTargetPosition(origin, destination, weapon_speed, ping, gravity)
-	local filter = destination.KalmanFilter or KalmanFilter.new()
-	destination.KalmanFilter = filter
-	local measured_pos = destination.Position
-	local measured_vel = destination.Velocity or Vector3.zero
-	local dt = runservice.Heartbeat:Wait()
-	local estimated_pos, estimated_vel = filter:update(measured_pos, measured_vel, dt)
-	local network_delay = ping / 1000
-	local future_pos = estimated_pos + estimated_vel * network_delay
-	local travel_time = (future_pos - origin).magnitude / weapon_speed
-	if measured_vel.Y <= -15 or measured_vel.Y >= 15 then measured_vel = vector3_new(measured_vel.X, measured_vel.Y * travel_time, measured_vel.Z) end
-	future_pos = future_pos + estimated_vel * travel_time
-	future_pos = future_pos + vector3_new(0, -0.5 * gravity * travel_time ^ 2, 0)
-	return future_pos
-end
-local HitDetection = { ConnectedCasters = {}, ProcessedCasts = {}, last_clone_time = {}, }
-function HitDetection:ConnectToCaster(caster)
-    if not caster or self.ConnectedCasters[caster] then return end
-    self.ConnectedCasters[caster] = true
+	local filter = destination.KalmanFilter or KalmanFilter.new();
+	destination.KalmanFilter = filter;
+	local measured_pos = destination.Position;
+	local measured_vel = destination.Velocity or Vector3.zero;
+	local dt = runservice.Heartbeat:Wait();
+	local estimated_pos, estimated_vel = filter:update(measured_pos, measured_vel, dt);
+	local network_delay = ping / 1000;
+	local future_pos = estimated_pos + estimated_vel * network_delay;
+	local travel_time = (future_pos - origin).magnitude / weapon_speed;
+	if measured_vel.Y <= -15 or measured_vel.Y >= 15 then
+        measured_vel = vector3_new(measured_vel.X, measured_vel.Y * travel_time, measured_vel.Z);
+    end;
+	future_pos = future_pos + estimated_vel * travel_time;
+	future_pos = future_pos + vector3_new(0, -0.5 * gravity * travel_time ^ 2, 0);
+	return future_pos;
+end;
+
+local hit_detection = {
+    ConnectedCasters = {};
+    ProcessedCasts = {};
+    last_clone_time = {};
+};
+
+function hit_detection:ConnectToCaster(caster)
+    if not caster or self.ConnectedCasters[caster] then return; end;
+    self.ConnectedCasters[caster] = true;
     caster.RayHit:Connect(function(cast, result)
-        if not Classes.HitDetectionEnabled.Value then return end
-        if self.ProcessedCasts[cast] then return end
-        if not cast.UserData then return end
-        if cast.UserData.player and cast.UserData.player ~= localplayer then return end
-        local struckPart = result.Instance
-        local character = struckPart and struckPart.Parent
+        if not Classes.HitDetectionEnabled.Value then return; end;
+        if self.ProcessedCasts[cast] then return; end;
+        if not cast.UserData then return; end;
+        if cast.UserData.player and cast.UserData.player ~= localplayer then return; end;
+        local struckPart = result.Instance;
+        local character = struckPart and struckPart.Parent;
         if character and character:FindFirstChildOfClass("Humanoid") then
             local player = game.Players:GetPlayerFromCharacter(character)
             if player and player ~= localplayer then
-                self.ProcessedCasts[cast] = true
-                task.delay(5, function() self.ProcessedCasts[cast] = nil end)
-                local damage = 0
-                local tool = cast.UserData.tool
+                self.ProcessedCasts[cast] = true;
+                task.delay(5, function()
+                    self.ProcessedCasts[cast] = nil;
+                end);
+                local damage = 0;
+                local tool = cast.UserData.tool;
                 if tool then
-                    local keys = {tool.Name}
-                    if tool:GetAttribute("ItemId") then table.insert(keys, tool:GetAttribute("ItemId")) end
-                    local dCfg = nil
+                    local keys = {tool.Name};
+                    if tool:GetAttribute("ItemId") then
+                        table.insert(keys, tool:GetAttribute("ItemId"));
+                    end;
+                    local damage_config = nil;
                     for _, k in ipairs(keys) do
-                         dCfg = framework:getmetadata(k) or framework:getutility(k)
-                         if not dCfg and modules.Name["WeaponMetadata"] then dCfg = modules.Name["WeaponMetadata"][k] end
-                         if dCfg then break end
-                    end
-                    if dCfg then
-                         damage = dCfg.damage or dCfg.baseDamage or dCfg.base_damage or dCfg.maxDamage or (dCfg.Stats and (dCfg.Stats.damage or dCfg.Stats.baseDamage)) or 0
-                         if struckPart and struckPart.Name == "Head" then
-                             local hsMultiplier = dCfg.headshotMultiplier or 1.75
-                             damage = damage * hsMultiplier
-                         end
+                        damage_config = framework:getmetadata(k) or framework:getutility(k);
+                        if not damage_config and modules.Name["WeaponMetadata"] then
+                            damage_config = modules.Name["WeaponMetadata"][k];
+                        end;
+                        if damage_config then break; end;
+                    end;
+                    if damage_config then
+                        damage = damage_config.damage or damage_config.base_damage or damage_config.base_damage or damage_config.maxDamage or (damage_config.Stats and (damage_config.Stats.damage or damage_config.Stats.base_damage)) or 0
+                        if struckPart and struckPart.Name == "Head" then
+                            local headshot_multiplier = damage_config.headshotMultiplier or 1.75;
+                            damage = damage * headshot_multiplier;
+                        end
                     else
-                         damage = tool:GetAttribute("Damage") or tool:GetAttribute("BaseDamage")
-                         local multiplier = tool:GetAttribute("HeadshotMultiplier") or 1.5
-                         if not damage or damage == 0 then
-                             local config = tool:FindFirstChild("Configuration") or tool:FindFirstChild("Settings")
-                             if config then
-                                 local dVal = config:FindFirstChild("Damage") or config:FindFirstChild("BaseDamage") or config:FindFirstChild("MaxDamage")
-                                 if dVal and dVal:IsA("ValueBase") then damage = dVal.Value end
-                                 local mVal = config:FindFirstChild("HeadshotMultiplier")
-                                 if mVal and mVal:IsA("ValueBase") then multiplier = mVal.Value end
-                             end
-                         end
-                         damage = damage or 0
-                         if struckPart and struckPart.Name == "Head" then damage = damage * multiplier end
-                    end
-                end
-                OnHit(player, struckPart, damage, "Ranged")
-            end
-        end
-    end)
-end
-local Camera = workspace.CurrentCamera
-    framework:BindToRenderStep(LPH_JIT_MAX(function()
-        local char = localplayer.Character
-        if not char then return end
-        local tool = char:FindFirstChildOfClass("Tool")
-        if not tool then return end
-        if HitDetection and not HitDetection.__monitoredTools then HitDetection.__monitoredTools = {} end
-        if HitDetection.__monitoredTools[tool] then return end
-        HitDetection.__monitoredTools[tool] = true
-        local wrapper = nil
-        if modules.Name["RangedWeaponClient"] then wrapper = modules.Name["RangedWeaponClient"].getObj(tool) end
-        if not wrapper and modules.Name["UtilityClient"] and modules.Name["UtilityClient"].getObj then wrapper = modules.Name["UtilityClient"].getObj(tool) end
-        if wrapper then
-            if wrapper._mainCaster then
-                 HitDetection:ConnectToCaster(wrapper._mainCaster)
-            elseif wrapper._caster then HitDetection:ConnectToCaster(wrapper._caster) end
-        end
-    end))
-    HitDetection.Active = true
+                        damage = tool:GetAttribute("Damage") or tool:GetAttribute("BaseDamage")
+                        local multiplier = tool:GetAttribute("HeadshotMultiplier") or 1.5
+                        if not damage or damage == 0 then
+                            local config = tool:FindFirstChild("Configuration") or tool:FindFirstChild("Settings")
+                            if config then
+                                local dam_value = config:FindFirstChild("Damage") or config:FindFirstChild("BaseDamage") or config:FindFirstChild("MaxDamage")
+                                if dam_value and dam_value:IsA("ValueBase") then damage = dam_value.Value end
+                                local multiplier_value = config:FindFirstChild("HeadshotMultiplier")
+                                if multiplier_value and multiplier_value:IsA("ValueBase") then
+                                    multiplier = multiplier_value.Value;
+                                end;
+                            end;
+                        end;
+                        damage = damage or 0;
+                        if struckPart and struckPart.Name == "Head" then
+                            damage = damage * multiplier;
+                        end;
+                    end;
+                end;
+                OnHit(player, struckPart, damage, "Ranged");
+            end;
+        end;
+    end);
+end;
+
+local Camera = workspace.CurrentCamera;
+framework:BindToRenderStep(LPH_JIT_MAX(function()
+    local char = localplayer.Character;
+    if not char then return; end;
+    local tool = char:FindFirstChildOfClass("Tool");
+    if not tool then return; end;
+    if hit_detection and not hit_detection.__monitoredTools then hit_detection.__monitoredTools = {}; end;
+    if hit_detection.__monitoredTools[tool] then return; end;
+    hit_detection.__monitoredTools[tool] = true;
+    local wrapper = nil;
+    if modules.Name["RangedWeaponClient"] then wrapper = modules.Name["RangedWeaponClient"].getObj(tool);
+    end;
+    if not wrapper and modules.Name["UtilityClient"] and modules.Name["UtilityClient"].getObj then
+        wrapper = modules.Name["UtilityClient"].getObj(tool);
+    end;
+    if wrapper then
+        if wrapper._mainCaster then
+            hit_detection:ConnectToCaster(wrapper._mainCaster);
+        elseif wrapper._caster then
+            hit_detection:ConnectToCaster(wrapper._caster);
+        end;
+    end;
+end));
+
+hit_detection.Active = true;
+
 do
-    local SA_Logic = { Cache = {}, ChanceCache = {}, current_target = nil, OldSimulate = nil, OldCalculateFire = nil }
-do
-	setthreadidentity(2)
-	local ActiveCast = require(game:GetService("ReplicatedStorage").Shared.Vendor.FastCast.ActiveCast)
-	setthreadidentity(7)
-	local cache = {}
-	local chanceCache = {}
-	local oldCf = cframe_new()
-	local oldCfCheck = false
-	local currentSilentAimTarget = nil
-	local OldSimulateCast = getupvalue(ActiveCast.new, 6)
-	local OldCalculateFire = modules.Name["RangedWeaponHandler"].calculateFireDirection
-	function newSimulate(...)
-		local args = { ... }
-		local caster = args[1]
-		local terminated = false
+	setthreadidentity(2);
+	local ActiveCast = require(game:GetService("ReplicatedStorage").Shared.Vendor.FastCast.ActiveCast);
+	setthreadidentity(7);
+
+	local cache = {};
+	local chance_cache = {};
+	local silentaim_target = nil;
+	local old_simulate_cast = getupvalue(ActiveCast.new, 6);
+	local old_calculate_fire = modules.Name["RangedWeaponHandler"].calculateFireDirection;
+
+	function new_simulate(...)
+		local args = {... };
+		local caster = args[1];
+		local terminated = false;
 		LPH_JIT_MAX(function()
-			local weapon, metadata = framework:get_ranged()
-			local Chance = framework:Chance(Classes.HitChance.Value)
-			if not Chance then table.insert(chanceCache, caster) end
+			local weapon, metadata = framework:get_ranged();
+			local Chance = framework:Chance(Classes.HitChance.Value);
+			if not Chance then
+                table.insert(chance_cache, caster);
+            end;
+
 			if Toggles.avoidprojectiles.Value and caster and caster.UserData and caster.UserData.tool ~= weapon then
-				local rootPart = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-				if not rootPart then return end
-				local pos = caster:GetPosition()
-				if not pos then return end
-				local projectileSpeed = metadata._itemConfig.speed
-				if not projectileSpeed or projectileSpeed <= 0 then return end
-				local distance = (rootPart.Position - pos).Magnitude
-				local stats = game:GetService("Stats")
-				local pingValue = stats.Network.ServerStatsItem["Data Ping"]:GetValue()
-				local pingSeconds = pingValue / 1000
-				local casterVelocity = Vector3.zero
-				if caster.GetVelocity then casterVelocity = caster:GetVelocity() end
-				local predictedPos = pos + (casterVelocity * pingSeconds)
-				local predictedDistance = (rootPart.Position - predictedPos).Magnitude
-				local predictedTravelTime = predictedDistance / projectileSpeed
-				local safetyBuffer = 0.05
-				local adjustedTime = predictedTravelTime - pingSeconds - safetyBuffer
-				if adjustedTime <= 0.15 then
+				local root_part = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart");
+				if not root_part then return; end;
+				local pos = caster:GetPosition();
+				if not pos then return; end;
+				local projectile_speed = metadata._itemConfig.speed;
+				if not projectile_speed or projectile_speed <= 0 then return; end;
+				local distance = (root_part.Position - pos).Magnitude;
+				local stats = game:GetService("Stats");
+				local ping_value = stats.Network.ServerStatsItem["Data Ping"]:GetValue();
+				local ping_seconds = ping_value / 1000;
+				local caster_velocity = Vector3.zero;
+				if caster.GetVelocity then
+                    caster_velocity = caster:GetVelocity();
+                end;
+				local predicted_pos = pos + (caster_velocity * ping_seconds);
+				local predicted_distance = (root_part.Position - predicted_pos).Magnitude;
+				local predicted_travel_time = predicted_distance / projectile_speed;
+				local saftey_bugger = 0.05;
+				local adjusted_time = predicted_travel_time - ping_seconds - saftey_bugger;
+				if adjusted_time <= 0.15 then
 					setrunning("AvoidProjectiles", true)
-					task.delay(0.5, function() setrunning("AvoidProjectiles", false) end) end end
-			if
-				not table.find(chanceCache, caster) and Chance and caster and caster.UserData and caster.StateInfo and caster.UserData.tool == weapon and (Classes.SilentAim.Value or getgenv().settings.ragebot) and weapon and metadata
-			then
-				local Player = framework:closest_characters_origin(caster:GetPosition(), 19)
+					task.delay(0.5, function()
+                        setrunning("AvoidProjectiles", false);
+                    end);
+                end;
+            end;
+
+			if not table.find(chance_cache, caster) and Chance and caster and caster.UserData and caster.StateInfo and caster.UserData.tool == weapon and (Classes.SilentAim.Value or settings.ragebot) and weapon and metadata then
+				local Player = framework:closest_characters_origin(caster:GetPosition(), 19);
 				if Classes.ClosestType.Value == "Only Redirect To Target" then
-					Player = nil
+					Player = nil;
 					local Characters = framework:closest_characters_to_origin(caster:GetPosition(), 19)
-					if table.find(Characters, currentSilentAimTarget) then Player = currentSilentAimTarget end
-				end
-				local MouseClosest = framework:closest_to_mouse(Classes.FOVSize.Value)
+					if table.find(Characters, silentaim_target) then
+                        Player = silentaim_target;
+                    end;
+				end;
+
+				local mouse_closest = framework:closest_to_mouse(Classes.FOVSize.Value);
+
 				if Player then
-					local Head = Player:FindFirstChild("Head")
-					local Character = LocalPlayer.Character
-					local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
-					if getgenv().settings.ragebot and Head and HumanoidRootPart then
+					local Head = Player:FindFirstChild("Head");
+					local Character = localplayer.Character;
+					local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart");
+					if settings.ragebot and Head and HumanoidRootPart then
 						if Toggles.ShowLine.Value then
-							local part = Instance.new("Part")
-							part.Anchored = true
-							part.CanCollide = false
-							part.Material = Enum.Material.Neon
-							part.Color = Options.LineColor.Value
-							part.Size = vector3_new(0.1, 0.1, (Head.Position - HumanoidRootPart.Position).Magnitude)
-							part.CFrame = cframe_new(HumanoidRootPart.Position, Head.Position) * cframe_new(0, 0, -part.Size.Z / 2)
-							part.Transparency = 0
-							part.Parent = workspace
+							local part = Instance.new("Part");
+							part.Anchored = true;
+							part.CanCollide = false;
+							part.Material = Enum.Material.Neon;
+							part.Color = Options.LineColor.Value;
+							part.Size = vector3_new(0.1, 0.1, (Head.Position - HumanoidRootPart.Position).Magnitude);
+							part.CFrame = cframe_new(HumanoidRootPart.Position, Head.Position) * cframe_new(0, 0, -part.Size.Z / 2);
+							part.Transparency = 0;
+							part.Parent = workspace;
 							task_spawn(LPH_JIT_MAX(function()
-								local fadeTime = 2
+								local fade_time = 2;
 								local steps = 30
 								for i = 1, steps do
-									part.Transparency = i / steps
-									task.wait(fadeTime / steps)
-								end
-								part:Destroy()
+									part.Transparency = i / steps;
+									task.wait(fade_time / steps);
+								end;
+								part:Destroy();
 							end));
-						end
+						end;
 						if caster.Caster and caster.Caster.RayHit then
-							local fakeResult = {
+							local fake_result = {
 								Instance = Head,
 								Position = Head.Position,
 								Normal = Vector3.yAxis,
 								Material = Enum.Material.SmoothPlastic,
 								Distance = 1,
 							}
-							local fakeVelocity = (Head.Position - caster:GetPosition()).Unit * 3000
+							local fake_velocity = (Head.Position - caster:GetPosition()).Unit * 3000
 							caster.Caster.RayHit:Fire(
 								caster,
-								fakeResult,
-								fakeVelocity,
+								fake_result,
+								fake_velocity,
 								caster.RayInfo and caster.RayInfo.CosmeticBulletObject
-							)
-						end
-						caster:Terminate()
-						terminated = true
-						return
-					end
-				end
+							);
+						end;
+						caster:Terminate();
+						terminated = true;
+						return;
+					end;
+				end;
+
 				if Classes.SilentAim.Value then
 					if Classes.ClosestType.Value == "Closest To Mouse" then
-						if MouseClosest then
-							local PlayerChar = MouseClosest.Character
-							if PlayerChar then
-								local HitPart = PlayerChar:FindFirstChild( Classes.SilentHitPart.Value == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Classes.SilentHitPart.Value )
-								if
-									HitPart and (HitPart.Position - caster:GetPosition()).Magnitude
-										<= Classes.SilentAimRange.Value
-								then
-									local target_position = HitPart.Position
-									local origin = caster:GetPosition()
-									local direction = (target_position - origin)
-									local distance = direction.Magnitude
-									local speed = 3000
-									local Vel = direction.Unit * speed
-									caster:SetVelocity(Vel)
-									caster.RayInfo.Direction = Vel.Unit
-								end
-							end
-						end
-					elseif
-						Classes.ClosestType.Value == "Closest To Arrow" or Classes.ClosestType.Value == "Only Redirect To Target"
-					then
+						if mouse_closest then
+							local player_character = mouse_closest.Character;
+							if player_character then
+								local HitPart = player_character:FindFirstChild( Classes.SilentHitPart.Value == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Classes.SilentHitPart.Value);
+								if HitPart and (HitPart.Position - caster:GetPosition()).Magnitude <= Classes.SilentAimRange.Value then
+									local target_position = HitPart.Position;
+									local origin = caster:GetPosition();
+									local direction = (target_position - origin);
+									local distance = direction.Magnitude;
+									local speed = 3000;
+									local Vel = direction.Unit * speed;
+									caster:SetVelocity(Vel);
+									caster.RayInfo.Direction = Vel.Unit;
+								end;
+							end;
+						end;
+					elseif Classes.ClosestType.Value == "Closest To Arrow" or Classes.ClosestType.Value == "Only Redirect To Target" then
 						if Player then
 							local HitPart = Player:FindFirstChild( Classes.SilentHitPart.Value == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Classes.SilentHitPart.Value )
-							if
-								HitPart and (HitPart.Position - caster:GetPosition()).Magnitude
-									<= Classes.SilentAimRange.Value
-							then
-								local target_position = HitPart.Position
-								local Vel = (target_position - caster:GetPosition()).Unit * 3000
-								caster:SetVelocity(Vel)
-							end
-						end
-					end
-				end
-			end
-		end)
-		if terminated then return end
-		if caster and caster.UserData and caster.StateInfo then return OldSimulateCast(...) end
-	end
-	function newCalculateFire(...)
-		local args = {...}
+							if HitPart and (HitPart.Position - caster:GetPosition()).Magnitude <= Classes.SilentAimRange.Value then
+								local target_position = HitPart.Position;
+								local Vel = (target_position - caster:GetPosition()).Unit * 3000;
+								caster:SetVelocity(Vel);
+							end;
+						end;
+					end;
+				end;
+			end;
+		end);
+
+		if terminated then 
+            return; 
+        end;
+
+		if caster and caster.UserData and caster.StateInfo then
+            return old_simulate_cast(...);
+        end;
+	end;
+
+	function new_calculate_fire(...)
+		local args = {...};
 		local target = framework:closest_to_mouse(Options.FOVSize.Value)
-		if getgenv().settings.stick and stick_target then target = stick_target end
-		local ranged, metadata = framework:get_ranged()
-		if
-			Classes.SilentAim.Value and target and ranged and metadata and framework:Chance(Classes.HitChance.Value) and not framework:in_menu(target)
-		then
-			local hit_part = target.Character:FindFirstChild(Classes.SilentHitPart.Value)
-			local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
+		if settings.stick and stick_target then 
+            target = stick_target;
+        end;
+		local ranged, metadata = framework:get_ranged();
+		if Classes.SilentAim.Value and target and ranged and metadata and framework:Chance(Classes.HitChance.Value) and not framework:in_menu(target) then
+			local hit_part = target.Character:FindFirstChild(Classes.SilentHitPart.Value);
+			local humanoid = target.Character:FindFirstChildOfClass("Humanoid");
 			if hit_part and humanoid then
-				local cheatedOrigin = metadata:getCheatedBackOriginIfInObject( metadata._mainCasterBehavior.RaycastParams )
-				if cheatedOrigin then
-					currentSilentAimTarget = target.Character
-					local projectileSpeed = metadata._itemConfig.speed
-					local projectileGravity = metadata._itemConfig.gravity or vector3_new(0, 0, 0)
-					local aim_position = PredictTargetPosition(cheatedOrigin, { Position = hit_part.Position, Velocity = (Classes.Resolver.Value and humanoid.MoveDirection or hit_part.Velocity), }, projectileSpeed, localplayer:GetNetworkPing() * 1000, projectileGravity)
-					args[1] = CFrame.lookAt(vector3_new(), (aim_position - cheatedOrigin).Unit)
-					local oldParams = metadata._mainCasterBehavior.RaycastParams
-					local newParams = RaycastParams.new()
-					newParams.FilterType = Enum.RaycastFilterType.Blacklist
-					newParams.IgnoreWater = oldParams.IgnoreWater
-					local ignoreList = {}
-					if oldParams.FilterDescendantsInstances then for _, v in ipairs(oldParams.FilterDescendantsInstances) do table.insert(ignoreList, v) end end
+				local cheated_origin = metadata:getCheatedBackOriginIfInObject( metadata._mainCasterBehavior.RaycastParams);
+				if cheated_origin then
+					silentaim_target = target.Character;
+					local projectile_speed = metadata._itemConfig.speed;
+					local projectile_gravity = metadata._itemConfig.gravity or vector3_new(0, 0, 0);
+					local aim_position = PredictTargetPosition(cheated_origin, {
+                        Position = hit_part.Position,
+                        Velocity = (Classes.Resolver.Value and humanoid.MoveDirection or hit_part.Velocity),
+                    },
+                    projectile_speed, localplayer:GetNetworkPing() * 1000, projectile_gravity);
+					args[1] = CFrame.lookAt(vector3_new(), (aim_position - cheated_origin).Unit);
+					local old_params = metadata._mainCasterBehavior.RaycastParams;
+					local new_params = RaycastParams.new();
+					new_params.FilterType = Enum.RaycastFilterType.Blacklist;
+					new_params.IgnoreWater = old_params.IgnoreWater;
+					local ignore_list = {};
+					if old_params.FilterDescendantsInstances then
+                        for _, v in ipairs(old_params.FilterDescendantsInstances) do
+                            table.insert(ignore_list, v);
+                        end;
+                    end;
 					for _, plr in pairs(game.Players:GetPlayers()) do
-						local plrChar = plr.Character
-						if plrChar and plrChar ~= target.Character then table.insert(ignoreList, plrChar) end
-					end
-					if not table.find(ignoreList, workspace.Terrain) then table.insert(ignoreList, workspace.Terrain) end
-					newParams.FilterDescendantsInstances = ignoreList
-					metadata._mainCasterBehavior.RaycastParams = newParams
-					task.defer(function() metadata._mainCasterBehavior.RaycastParams = oldParams end) end end
-		end
-		return OldCalculateFire(unpack(args))
-	end
+						local player_character = plr.Character;
+						if player_character and player_character ~= target.Character then table.insert(ignore_list, player_character);
+                        end;
+					end;
+					if not table.find(ignore_list, workspace.Terrain) then
+                        table.insert(ignore_list, workspace.Terrain);
+                    end;
+					new_params.FilterDescendantsInstances = ignore_list;
+					metadata._mainCasterBehavior.RaycastParams = new_params
+					task.defer(function()
+                        metadata._mainCasterBehavior.RaycastParams = old_params;
+                    end);
+                end;
+            end;
+		end;
+		return old_calculate_fire(unpack(args));
+	end;
+
 	setupvalue(ActiveCast.new, 6, newcclosure(function(...) 
-        return newSimulate(...) 
-    end))
-	modules.Name["RangedWeaponHandler"].calculateFireDirection = newCalculateFire
-    local VisualizerFolder = Instance.new("Folder", game.Workspace.Terrain)
-    VisualizerFolder.Name = "FastCastVisualizationObjects"
-    VisualizerFolder.ChildAdded:Connect(function(child)
-        task.wait()
-        local Debris = game:GetService("Debris")
-        Debris:AddItem(child, 0.7)
-    end)
+        return new_simulate(...);
+    end));
+
+	modules.Name["RangedWeaponHandler"].calculateFireDirection = new_calculate_fire;
+
+    local visualizer_folder = Instance.new("Folder", game.Workspace.Terrain);
+    visualizer_folder.Name = "FastCastVisualizationObjects"
+    visualizer_folder.ChildAdded:Connect(function(child)
+        task.wait();
+        local Debris = game:GetService("Debris");
+        Debris:AddItem(child, 0.7);
+    end);
+
 	local activeragebot = true;
 	task_spawn(LPH_JIT_MAX(function()
 		while task.wait() do
 			if not activeragebot then
-				break
-			end
+				break;
+			end;
 
-			if not getgenv().settings.ragebot then
-				task.wait(0.2)
-				continue
-			end
+			if not settings.ragebot then
+				task.wait(0.2);
+				continue;
+			end;
 
-			local Character = localplayer.Character
+			local Character = localplayer.Character;
 			if not Character then
-				continue
-			end
+				continue;
+			end;
 
-			local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+			local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart");
 			if not HumanoidRootPart then
-				continue
-			end
+				continue;
+			end;
 
-			local ranged, metadata = framework:get_ranged()
+			local ranged, metadata = framework:get_ranged();
 			if not ranged or not metadata then
-				continue
-			end
+				continue;
+			end;
 
-			local player = LockedTarget or framework:get_closest_2(Classes.RagebotDist.Value)
+			local player = locked_target or framework:get_closest_2(Classes.RagebotDist.Value);
 
-			if LockedTarget and not next(LockedTarget) then
-				LockedTarget = nil
-				continue
-			end
+			if locked_target and not next(locked_target) then
+				locked_target = nil;
+				continue;
+			end;
 
 			if not player or not next(player) then
-				continue
-			end
+				continue;
+			end;
+
+            local target_player = players:FindFirstChild(next(player))
+            if target_player and (should_skip_by_whitelist(target_player, "ragebot")) then
+                locked_target = nil;
+                continue;
+            end;
 
 			if metadata.canShootBulletssss == nil then
-				metadata.canShootBulletssss = true
-			end
+				metadata.canShootBulletssss = true;
+			end;
 
 			if not metadata.canShootBulletssss then
 				if metadata._itemConfig.maxAmmo == 1 then
-					metadata.canShootBulletssss = true
+					metadata.canShootBulletssss = true;
 				else
-					continue
-				end
-			end
+					continue;
+				end;
+			end;
 
 			if metadata._clientAmmoVO.Value <= 0 then
 				continue;
 			end;
 
 			if not metadata._mainCasterBehavior or not metadata._mainCaster then
-				continue
-			end
+				continue;
+			end;
 
-			local target_player = players:FindFirstChild(next(player))
+			local target_player = players:FindFirstChild(next(player));
 			if not target_player or not target_player.Character then
-				continue
-			end
+				continue;
+			end;
 
-			local targetHumanoid = target_player.Character:FindFirstChild("Humanoid")
-			if not targetHumanoid or targetHumanoid.Health == 0 then
-				LockedTarget = nil
-				continue
-			end
+			local target_humanoid = target_player.Character:FindFirstChild("Humanoid");
+			if not target_humanoid or target_humanoid.Health == 0 then
+				locked_target = nil;
+                metadata.canShootBulletssss = true;
+				continue;
+			end;
 
 			if framework:in_menu(target_player) then
-				LockedTarget = nil
-				continue
-			end
+				locked_target = nil;
+                metadata.canShootBulletssss = true;
+				continue;
+			end;
 
-			local Head = target_player.Character:FindFirstChild("Head")
+			local Head = target_player.Character:FindFirstChild("Head");
 			if not Head or target_player.Character:FindFirstChildOfClass("ForceField") then
-				LockedTarget = nil
-				continue
-			end
+				locked_target = nil;
+                metadata.canShootBulletssss = true;
+				continue;
+			end;
 
-			metadata.canShootBulletssss = false
-			LockedTarget = player
+			metadata.canShootBulletssss = false;
+			locked_target = player
 
 			metadata._mainCasterBehavior.RaycastParams.FilterDescendantsInstances = {
-				metadata._mainCasterBehavior.RaycastParams.FilterDescendantsInstances,
-				PlayerCharacters,
-				Map,
-				Workspace.Terrain,
-			}
+				metadata._mainCasterBehavior.RaycastParams.FilterDescendantsInstances;
+				PlayerCharacters;
+				Map;
+				Workspace.Terrain;
+			};
 
-			local origin = metadata:getCheatedBackOriginIfInObject(metadata._mainCasterBehavior.RaycastParams)
-			local projectileSpeed = metadata._itemConfig.speed or 200
-			local projectileGravity = metadata._itemConfig.gravity or vector3_new(0, 0, 0)
+			local origin = metadata:getCheatedBackOriginIfInObject(metadata._mainCasterBehavior.RaycastParams);
+			local projectile_speed = metadata._itemConfig.speed or 200;
+			local projectile_gravity = metadata._itemConfig.gravity or vector3_new(0, 0, 0);
 
-			local finalPos = PredictTargetPosition(
-				origin,
-				{ Position = Head.Position, Velocity = Head.Velocity },
-				projectileSpeed,
+			local final_posiiton = PredictTargetPosition(
+				origin, { 
+                    Position = Head.Position;
+                    Velocity = Head.Velocity;
+                },
+				projectile_speed,
 				localplayer:GetNetworkPing() * 1000,
-				projectileGravity
-			)
+				projectile_gravity
+			);
 
-			local CF = cframe_new(vector3_new(), (finalPos - origin).Unit)
-			local dir = OldCalculateFire(CF, 0, 0, 5000)
+			local CF = cframe_new(vector3_new(), (final_posiiton - origin).Unit);
+			local dir = old_calculate_fire(CF, 0, 0, 5000);
+            local EffectsJunk = workspace:WaitForChild("EffectsJunk");
 
-			local fakeBehavior = {
-				RaycastParams = metadata._mainCasterBehavior.RaycastParams,
-				Acceleration = vector3_new(),
-				MaxDistance = 5000,
-				HighFidelityBehavior = 1,
-				HighFidelitySegmentSize = 0.5,
-				CosmeticBulletContainer = EffectsJunk,
-				AutoIgnoreContainer = true,
-			}
+			local fake_behaviour = {
+				RaycastParams = metadata._mainCasterBehavior.RaycastParams;
+				Acceleration = vector3_new();
+				MaxDistance = 5000;
+				HighFidelityBehavior = 1;
+				HighFidelitySegmentSize = 0.5;
+				CosmeticBulletContainer = EffectsJunk;
+				AutoIgnoreContainer = true;
+            };
 
-			local template = metadata._cosmeticProjectileTemplate
-			if typeof(fakeBehavior) == "Instance" then
-				fakeBehavior.CosmeticBulletProvider = nil
-				fakeBehavior.CosmeticBulletTemplate = template
+			local template = metadata._cosmeticProjectileTemplate;
+			if typeof(fake_behaviour) == "Instance" then
+				fake_behaviour.CosmeticBulletProvider = nil;
+				fake_behaviour.CosmeticBulletTemplate = template;
 			else
-				fakeBehavior.CosmeticBulletProvider = template
-				fakeBehavior.CosmeticBulletTemplate = nil
-			end
+				fake_behaviour.CosmeticBulletProvider = template;
+				fake_behaviour.CosmeticBulletTemplate = nil;
+			end;
 
-			local cast = metadata._mainCaster:Fire(origin, dir, projectileSpeed, fakeBehavior)
-			metadata._cheatId = metadata._cheatId and metadata._cheatId + 1 or 1
+			local cast = metadata._mainCaster:Fire(origin, dir, projectile_speed, fake_behaviour);
+			metadata._cheatId = metadata._cheatId and metadata._cheatId + 1 or 1;
+
 			cast.UserData = {
-				["player"] = LocalPlayer,
-				["tool"] = ranged,
-				["shotId"] = tostring(metadata._cheatId),
-				["origin"] = origin,
-				["chargePercentage"] = metadata._chargeProgressVO.Value,
-			}
+				["player"] = localplayer;
+				["tool"] = ranged;
+				["shotId"] = tostring(metadata._cheatId);
+				["origin"] = origin;
+				["chargePercentage"] = metadata._chargeProgressVO.Value;
+			};
 
 			network:FireServer("RangedFire", ranged, origin, {
-				[tostring(metadata._cheatId)] = dir.Unit,
+				[tostring(metadata._cheatId)] = dir.Unit;
 			}, {
-				[tostring(metadata._cheatId)] = dir,
+				[tostring(metadata._cheatId)] = dir;
 			}, {
-				[1] = tostring(metadata._cheatId),
-			}, nil, Camera.CFrame, Workspace:GetServerTimeNow(), metadata._chargeProgressVO.Value)
-			metadata._clientAmmoVO.Value = metadata._clientAmmoVO.Value - 1
+				[1] = tostring(metadata._cheatId);
+			}, nil, workspace.CurrentCamera.CFrame, workspace:GetServerTimeNow(), metadata._chargeProgressVO.Value);
+			metadata._clientAmmoVO.Value = metadata._clientAmmoVO.Value - 1;
 
-			local distance = (origin - Head.Position).Magnitude
-			local timeToHit = distance / projectileSpeed
+			local distance = (origin - Head.Position).Magnitude;
+			local time_to_hit = distance / projectile_speed;
 
 			if not (ranged.Name == "Longbow" or ranged.Name == "Crossbow" or ranged.Name == "Heavy Bow") then
-				task.delay(timeToHit + 0.08, function()
+				task.delay(time_to_hit + 0.08, function()
 					if cast.UserData and cast.StateInfo and cast.StateInfo.UpdateConnection then
 						if Toggles.ShowLine.Value then
-							local part = Instance.new("Part")
-							part.Anchored = true
-							part.CanCollide = false
-							part.Material = Enum.Material.Neon
-							part.Color = Options.linecolor.Value
-							part.Size = vector3_new(0.1, 0.1, (Head.Position - HumanoidRootPart.Position).Magnitude)
-							part.CFrame = cframe_new(HumanoidRootPart.Position, Head.Position)
-								* cframe_new(0, 0, -part.Size.Z / 2)
-							part.Transparency = 0
-							part.Parent = workspace
+							local part = Instance.new("Part");
+							part.Anchored = true;
+							part.CanCollide = false;
+							part.Material = Enum.Material.Neon;
+							part.Color = Options.linecolor.Value;
+							part.Size = vector3_new(0.1, 0.1, (Head.Position - HumanoidRootPart.Position).Magnitude);
+							part.CFrame = cframe_new(HumanoidRootPart.Position, Head.Position) * cframe_new(0, 0, -part.Size.Z / 2);
+							part.Transparency = 0;
+							part.Parent = workspace;
 							task_spawn(LPH_JIT_MAX(function()
-								local fadeTime = 2
-								local steps = 30
+								local fade_time = 2;
+								local steps = 30;
 								for i = 1, steps do
-									part.Transparency = i / steps
-									task.wait(fadeTime / steps)
-								end
-								part:Destroy()
+									part.Transparency = i / steps;
+									task.wait(fade_time / steps);
+								end;
+								part:Destroy();
 							end));
-						end
+						end;
 						metadata._mainCaster.RayHit:Fire(cast, {
-							Distance = 1,
-							Instance = Head,
-							Material = Enum.Material.SmoothPlastic,
-							Position = Head.Position,
-							Normal = Vector3.yAxis,
-						}, nil, cast.RayInfo.CosmeticBulletObject)
-						cast:Terminate()
-					end
-				end)
-			end
+							Distance = 1;
+							Instance = Head;
+							Material = Enum.Material.SmoothPlastic;
+							Position = Head.Position;
+							Normal = Vector3.yAxis;
+						}, nil, cast.RayInfo.CosmeticBulletObject);
+						cast:Terminate();
+					end;
+				end);
+			end;
 
 			if metadata._clientAmmoVO.Value ~= 0 then
 				local cooldown = metadata._itemConfig.cooldown;
@@ -7744,33 +9323,39 @@ do
 				end;
 				task.wait(cooldown);
 			end;
-
 			metadata.canShootBulletssss = true;
 		end
 	end));
-end
-end
+end;
+
 local snipertext = "";
 misc3 = misc_tab:AddTab("sniper");
 local status = misc3:AddLabel("status: idle")
-misc3:AddInput("sniper", { Placeholder = "enter username or userid";
+
+misc3:AddInput("sniper", {
+    Placeholder = "enter username or userid";
     Default = "";
-    ClearTextOnFocus = false;
+    Finished = false;
     Callback = function(Text)
         snipertext = Text;
-    end; });
-misc3:AddButton({ Text = "snipe player";
+    end;
+});
+
+misc3:AddButton({
+    Text = "snipe player";
     Func = function()
         local input = snipertext;
         if not input or input == "" then
             status:SetText("status: no input (0x00)");
             return;
         end;
-        local userId = tonumber(input);
-        if not userId then
-            local success, result = pcall(function() return game:GetService("Players"):GetUserIdFromNameAsync(input); end);
+        local user_id = tonumber(input);
+        if not user_id then
+            local success, result = pcall(function()
+                return game:GetService("Players"):GetUserIdFromNameAsync(input);
+            end);
             if success then
-                userId = result;
+                user_id = result;
             else
                 status:SetText("status: invalid username");
                 return;
@@ -7778,74 +9363,106 @@ misc3:AddButton({ Text = "snipe player";
         end;
         status:SetText("status: searching");
         spawn(function()
-            local Success, InServer, _, PlaceId, JobId = network:InvokeServer("GetPlayerPlaceInstanceInfo", userId);
+            local Success, InServer, _, PlaceId, JobId = network:InvokeServer("GetPlayerPlaceInstanceInfo", user_id);
             if JobId then
-                local serverInfo;
+                local server_info;
                 local HttpService = game:GetService("HttpService");
-                local ok, res = pcall(function() return HttpService:JSONDecode(HttpService:GetAsync("https://games.roblox.com/v1/games/"  .. PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")); end);
+                local ok, res = pcall(function()
+                    return HttpService:JSONDecode(HttpService:GetAsync("https://games.roblox.com/v1/games/"  .. PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"));
+                end);
                 if ok and res and res.data then
                     for _, v in pairs(res.data) do
                         if v.id == JobId then
-                            serverInfo = v;
+                            server_info = v;
                             break;
                         end;
                     end;
                 end;
                 local msg = "status: user found, teleporting:";
-                if serverInfo then
-                    local players = serverInfo.playing or "?";
-                    local maxPlayers = serverInfo.maxPlayers or "?";
-                    local region = serverInfo.region or "unknown";
+                if server_info then
+                    local players = server_info.playing or "?";
+                    local maxPlayers = server_info.maxPlayers or "?";
+                    local region = server_info.region or "unknown";
                     msg ="status: user found | " .. players .. "/" .. maxPlayers .. " | region: " .. region;
                 end;
                 status:SetText(msg);
                 wait(1);
-                game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceId, JobId, game.Players.LocalPlayer, "", "=");
+                teleportservice:TeleportToPlaceInstance(PlaceId, JobId, game.Players.LocalPlayer, "", "=");
             else
                 wait(0.8);
                 status:SetText("status: target not playing cw");
             end;
         end);
-    end; });
-settings:AddLabel("menu bind"):AddKeyPicker("menubind", {Default = "RightAlt", NoUI = true, Text = "toggle ui"});
+    end;
+});
+
+settings_tab:AddLabel("menu bind"):AddKeyPicker("menubind", {
+    Default = "RightAlt";
+    NoUI = true;
+    Text = "toggle ui";
+});
+
 library.ToggleKeybind = Options.menubind;
-settings:AddToggle('WatermarkEnabled', { Text = 'watermark', Default = false, Callback = function(Value)
-        library:SetWatermarkVisibility(Value)
-    end });
-local function UpdateKeybindUI(option, mode)
-    if not option.Keybind then return end
-    if mode == 'all' then option.Keybind.NoUI = false end
-end
-local function UpdateKeybinds(mode)
-    if not library.KeybindFrame then return end
+
+settings_tab:AddToggle('WatermarkEnabled', {
+    Text = 'watermark';
+    Default = false;
+    Callback = function(Value)
+        library:SetWatermarkVisibility(Value);
+    end;
+});
+
+local function update_keybind_ui(option, mode)
+    if not option.Keybind then return; end;
+    if mode == 'all' then
+        option.Keybind.NoUI = false;
+    end;
+end;
+
+local function update_keybinds(mode)
+    if not library.KeybindFrame then return; end;
     if mode == 'none' then
-        library.KeybindFrame.Visible = false
-        return
-    end
-    library.KeybindFrame.Visible = true
-    for _, option in pairs(Options) do UpdateKeybindUI(option, mode) end
-end
-settings:AddToggle('keybindmode', { Text = 'keybind mode', Default = false, Callback = function(Value)
+        library.KeybindFrame.Visible = false;
+        return;
+    end;
+    library.KeybindFrame.Visible = true;
+    for _, option in pairs(Options) do
+        update_keybind_ui(option, mode);
+    end;
+end;
+
+settings_tab:AddToggle('keybindmode', {
+    Text = 'keybind mode';
+    Default = false;
+    Callback = function(Value)
         if not Value then
-            library.KeybindFrame.Visible = false
+            library.KeybindFrame.Visible = false;
         else
-            UpdateKeybinds(CurrentKeybindMode)
-        end
-    end })
-settings:AddDropdown('keybindoptions', { Text = 'keybind options', Default = 'all', Values = {'all', 'none'}, Callback = function(Value)
-        CurrentKeybindMode = Value
-        UpdateKeybinds(Value)
-    end })
+            update_keybinds(current_keybind_mode);
+        end;
+    end;
+});
+
+settings_tab:AddDropdown('keybindoptions', {
+    Text = 'keybind options';
+    Default = 'all';
+    Values = {'all', 'none'};
+    Callback = function(Value)
+        current_keybind_mode = Value;
+        update_keybinds(Value);
+    end;
+});
+
 do
-    local FrameTimer = tick();
-    local FrameCounter = 0;
+    local frame_timer = tick();
+    local frame_counter = 0;
     local FPS = 60;
     runservice.RenderStepped:Connect(LPH_JIT_MAX(function()
-        FrameCounter = FrameCounter + 1;
-        if (tick() - FrameTimer) >= 1 then
-            FPS = FrameCounter;
-            FrameTimer = tick();
-            FrameCounter = 0;
+        frame_counter = frame_counter + 1;
+        if (tick() - frame_timer) >= 1 then
+            FPS = frame_counter;
+            frame_timer = tick();
+            frame_counter = 0;
         end;
         if Toggles.WatermarkEnabled and Toggles.WatermarkEnabled.Value then
             local ping = math_floor(localplayer:GetNetworkPing() * 1000);
@@ -7853,195 +9470,229 @@ do
         end;
     end));
 end;
+
 library.Watermark.AnchorPoint = vector2_new(1, 1)
 library.Watermark.Position = UDim2.new(1, -20, 0.05, 0)
-thememanager:SetLibrary(library);
-thememanager:SetFolder("serenium");
-savemanager:SetLibrary(library);
-savemanager:SetFolder("serenium/configs");
-savemanager:BuildConfigSection(tabs.settings);
-savemanager:LoadAutoloadConfig();
-local function CreateCharacterVisuals()
-    local charHighlight = Instance.new("Highlight")
-    charHighlight.Name = "CharacterVisualsHighlight"
-    charHighlight.FillTransparency = 1
-    charHighlight.OutlineTransparency = 0
-    local originalData = { Parts = {}, Decals = {}, Meshes = {}, Accessories = {}, Char = nil }
-    local trailGhosts = {}
-    local lastSettings = {}
-    local appliedToChar = nil
-    local charConnections = {}
-    local function ClearConnections()
-        for _, v in pairs(charConnections) do if v and v.Disconnect then v:Disconnect() end end
-        charConnections = {}
-    end
-    local function ClearOriginalData()
-        originalData.Parts = {}
-        originalData.Decals = {}
-        originalData.Meshes = {}
-        originalData.Accessories = {}
-        originalData.Char = nil
-    end
-    local function StoreOriginalData(char)
-        if originalData.Char == char then return end
-        ClearOriginalData()
-        originalData.Char = char
+
+local function create_character_vis()
+    local char_highlight = Instance.new("Highlight");
+    char_highlight.Name = "CharacterVisualsHighlight";
+    char_highlight.FillTransparency = 1;
+    char_highlight.OutlineTransparency = 0;
+    local original_data = {Parts = {}, Decals = {}, Meshes = {}, Accessories = {}, Char = nil; };
+    local trail_ghosts = {};
+    local last_settings = {};
+    local applied_to_character = nil;
+    local character_connection = {};
+
+    local function clear_connections()
+        for _, v in pairs(character_connection) do
+            if v and v.Disconnect then
+                v:Disconnect();
+            end;
+        end;
+        character_connection = {};
+    end;
+
+    local function clear_original_data()
+        original_data.Parts = {};
+        original_data.Decals = {};
+        original_data.Meshes = {};
+        original_data.Accessories = {};
+        original_data.Char = nil;
+    end;
+
+    local function store_original_data(char)
+        if original_data.Char == char then return; end;
+        clear_original_data();
+        original_data.Char = char;
         for _, v in ipairs(char:GetDescendants()) do
             if v:IsA("BasePart") then
-                local isHRP = (v.Name == "HumanoidRootPart")
-                local isHitbox = v.Name:lower():find("hitbox")
-                if isHRP or isHitbox then continue end
-                originalData.Parts[v] = { Material = v.Material, Color = v.Color, Transparency = v.Transparency }
-                if v:IsA("MeshPart") then originalData.Parts[v].TextureID = v.TextureID end
-                local sm = v:FindFirstChildOfClass("SpecialMesh")
-                if sm then originalData.Meshes[sm] = { TextureId = sm.TextureId, MeshId = sm.MeshId } end
+                local is_root = (v.Name == "HumanoidRootPart");
+                local is_hitbox = v.Name:lower():find("hitbox");
+                if is_root or is_hitbox then continue; end;
+                original_data.Parts[v] = {Material = v.Material, Color = v.Color, Transparency = v.Transparency };
+                if v:IsA("MeshPart") then
+                    original_data.Parts[v].TextureID = v.TextureID;
+                end;
+                local sm = v:FindFirstChildOfClass("SpecialMesh");
+                if sm then 
+                    original_data.Meshes[sm] = {TextureId = sm.TextureId, MeshId = sm.MeshId; };
+                end;
             elseif v:IsA("Decal") or v:IsA("Texture") then
-                originalData.Decals[v] = { Texture = v.Texture, Transparency = v.Transparency }
-            elseif v:IsA("Accessory") then table.insert(originalData.Accessories, v) end
-        end
-    end
-    local function ApplyVisuals()
-        local char = localplayer.Character
-        if not char or not next(originalData.Parts) then return end
-        local isRainbow = Toggles.RainbowCharacter and Toggles.RainbowCharacter.Value
-        local customColor = Toggles.CustomMaterialColor and Toggles.CustomMaterialColor.Value
-        local mat = Classes.CharacterMaterial and Classes.CharacterMaterial.Value
-        local matColor = Classes.CharacterMaterialColor and Classes.CharacterMaterialColor.Value
-        local transparency = Classes.CharacterTransparency and Classes.CharacterTransparency.Value or 0
-        local removeAcc = Toggles.RemoveAccessories and Toggles.RemoveAccessories.Value
-        local outlineGlow = Classes.OutlineGlow and Classes.OutlineGlow.Value
-        local glowColor = Classes.OutlineGlowColor and Classes.OutlineGlowColor.Value
-        local isForceField = (mat == "ForceField")
-        local is_neon = (mat == "Neon")
-        for part, data in pairs(originalData.Parts) do
-            if not part or not part.Parent then continue end
+                original_data.Decals[v] = {Texture = v.Texture, Transparency = v.Transparency; };
+            elseif v:IsA("Accessory") then
+                table.insert(original_data.Accessories, v);
+            end;
+        end;
+    end;
+
+    local function apply_visuals()
+        local char = localplayer.Character;
+        if not char or not next(original_data.Parts) then return; end;
+        local is_rainbow = Toggles.RainbowCharacter and Toggles.RainbowCharacter.Value;
+        local custom_color = Toggles.CustomMaterialColor and Toggles.CustomMaterialColor.Value;
+        local mat = Classes.CharacterMaterial and Classes.CharacterMaterial.Value;
+        local material_color = Classes.CharacterMaterialColor and Classes.CharacterMaterialColor.Value;
+        local transparency = Classes.CharacterTransparency and Classes.CharacterTransparency.Value or 0;
+        local remove_accessories = Toggles.RemoveAccessories and Toggles.RemoveAccessories.Value;
+        local outline_glow = Classes.OutlineGlow and Classes.OutlineGlow.Value;
+        local glow_color = Classes.OutlineGlowColor and Classes.OutlineGlowColor.Value;
+        local is_forcefield = (mat == "ForceField");
+        local is_neon = (mat == "Neon");
+        for part, data in pairs(original_data.Parts) do
+            if not part or not part.Parent then continue; end;
             if mat == "ForceField" then
-                part.Material = Enum.Material.ForceField
+                part.Material = Enum.Material.ForceField;
             elseif mat == "Neon" then
-                part.Material = Enum.Material.Neon
+                part.Material = Enum.Material.Neon;
             elseif mat == "Plastic" then
-                part.Material = Enum.Material.Plastic
+                part.Material = Enum.Material.Plastic;
             else
-                part.Material = data.Material
-            end
-            if not isRainbow then
-                if customColor or isForceField or is_neon then
-                    part.Color = matColor
+                part.Material = data.Material;
+            end;
+            if not is_rainbow then
+                if custom_color or is_forcefield or is_neon then
+                    part.Color = material_color;
                 else
-                    part.Color = data.Color
-                end
-            end
+                    part.Color = data.Color;
+                end;
+            end;
             if transparency > 0 and data.Transparency < 0.95 then
-                part.Transparency = transparency
+                part.Transparency = transparency;
             else
-                part.Transparency = data.Transparency
-            end
+                part.Transparency = data.Transparency;
+            end;
             if part:IsA("MeshPart") then
-                local isHead = (part.Name == "Head")
-                if (isRainbow or isForceField) and not isHead then
-                    part.TextureID = ""
+                local is_head = (part.Name == "Head")
+                if (is_rainbow or is_forcefield) and not is_head then
+                    part.TextureID = "";
                 else
-                    part.TextureID = data.TextureID or ""
-                end
-            end
-        end
-        for mesh, data in pairs(originalData.Meshes) do
-            if not mesh or not mesh.Parent then continue end
-            local isHead = (mesh.Parent.Name == "Head")
-            if (isRainbow or isForceField) and not isHead then
-                mesh.TextureId = ""
+                    part.TextureID = data.TextureID or "";
+                end;
+            end;
+        end;
+
+        for mesh, data in pairs(original_data.Meshes) do
+            if not mesh or not mesh.Parent then continue; end;
+            local is_head = (mesh.Parent.Name == "Head");
+            if (is_rainbow or is_forcefield) and not is_head then
+                mesh.TextureId = "";
             else
-                mesh.TextureId = data.TextureId
-            end
-        end
-        for decal, data in pairs(originalData.Decals) do
-            if not decal or not decal.Parent then continue end
-            local isFace = decal.Name:lower():find("face") or (decal.Parent and decal.Parent.Name == "Head")
-            if (isRainbow or isForceField) and not isFace then
+                mesh.TextureId = data.TextureId;
+            end;
+        end;
+        for decal, data in pairs(original_data.Decals) do
+            if not decal or not decal.Parent then continue; end;
+            local is_face = decal.Name:lower():find("face") or (decal.Parent and decal.Parent.Name == "Head");
+            if (is_rainbow or is_forcefield) and not is_face then
                 decal.Texture = ""
             else
-                decal.Texture = data.Texture
-            end
-            if transparency > 0 and not isFace then
-                decal.Transparency = math.max(data.Transparency, transparency)
+                decal.Texture = data.Texture;
+            end;
+            if transparency > 0 and not is_face then
+                decal.Transparency = math.max(data.Transparency, transparency);
             else
-                decal.Transparency = data.Transparency
-            end
-        end
-        if removeAcc then
-            for _, acc in ipairs(originalData.Accessories) do
+                decal.Transparency = data.Transparency;
+            end;
+        end;
+
+        if remove_accessories then
+            for _, acc in ipairs(original_data.Accessories) do
                 if acc and acc:IsA("Accessory") and acc.Parent == char then
-                    local isFace = acc.Name:lower():find("face") or acc.Name:lower():find("facial") or acc.Name:lower():find("head")
-                    if not isFace then acc.Parent = nil end
-                end
-            end
+                    local is_face = acc.Name:lower():find("face") or acc.Name:lower():find("facial") or acc.Name:lower():find("head");
+                    if not is_face then
+                        acc.Parent = nil;
+                    end;
+                end;
+            end;
+
             for _, v in ipairs(char:GetChildren()) do
                 if v:IsA("Accessory") then
-                    local isFace = v.Name:lower():find("face") or v.Name:lower():find("facial") or v.Name:lower():find("head")
-                    if not isFace then
-                        if not table.find(originalData.Accessories, v) then table.insert(originalData.Accessories, v) end
-                        v.Parent = nil
-                    end
-                end
-            end
+                    local is_face = v.Name:lower():find("face") or v.Name:lower():find("facial") or v.Name:lower():find("head")
+                    if not is_face then
+                        if not table.find(original_data.Accessories, v) then
+                            table.insert(original_data.Accessories, v);
+                        end;
+                        v.Parent = nil;
+                    end;
+                end;
+            end;
         else
-            for _, acc in ipairs(originalData.Accessories) do if acc and acc:IsA("Accessory") and acc.Parent ~= char then acc.Parent = char end end
-        end
-        if outlineGlow then
-            charHighlight.Parent = char
-            charHighlight.OutlineColor = isRainbow and getgenv().serenium_global_rainbow_color or glowColor
+            for _, acc in ipairs(original_data.Accessories) do
+                if acc and acc:IsA("Accessory") and acc.Parent ~= char then
+                    acc.Parent = char;
+                end;
+            end;
+        end;
+        if outline_glow then
+            char_highlight.Parent = char;
+            char_highlight.OutlineColor = is_rainbow and serenium_global_rainbow_color or glow_color;
         else
-            charHighlight.Parent = nil
-        end
-    end
-    local visualsdirtyflag = false;
-    local function markdirty() visualsdirtyflag = true; end;
+            char_highlight.Parent = nil;
+        end;
+    end;
+
+    local visuals_dirtyflag = false;
+
+    local function mark_dirty()
+        visuals_dirtyflag = true;
+    end;
+
     local rainbowstepper = 0;
     local lastnochar = 0;
     local lastcharcheck = 0;
+
     runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
         local now2 = tick();
         local char = localplayer.Character;
         if not char or not char:FindFirstChild("HumanoidRootPart") then
             if now2 - lastnochar < 0.2 then return; end;
             lastnochar = now2;
-            charHighlight.Parent = nil;
-            appliedToChar = nil;
-            for i = 1, #trailGhosts do trailGhosts[i]:Destroy(); end;
-            trailGhosts = {};
-            ClearOriginalData();
-            ClearConnections();
+            char_highlight.Parent = nil;
+            applied_to_character = nil;
+            for i = 1, #trail_ghosts do
+                trail_ghosts[i]:Destroy();
+            end;
+            trail_ghosts = {};
+            clear_original_data();
+            clear_connections();
             return;
         end;
         lastcharcheck = now2;
-        if originalData.Char ~= char then
+        if original_data.Char ~= char then
             local appearanceready = false;
             local children = char:GetChildren();
             for i = 1, #children do
                 local v = children[i];
                 if v:IsA("Accessory") then appearanceready = true; break;
                 elseif v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
-                    if v.Color ~= Color3.fromRGB(163, 162, 165) then appearanceready = true; break; end;
+                    if v.Color ~= Color3.fromRGB(163, 162, 165) then
+                        appearanceready = true;
+                        break;
+                    end;
                 end;
             end;
+
             if appearanceready then
-                ClearConnections();
-                StoreOriginalData(char);
-                table.insert(charConnections, char.ChildAdded:Connect(function(child)
+                clear_connections();
+                store_original_data(char);
+                table.insert(character_connection, char.ChildAdded:Connect(function(child)
                     if child:IsA("Accessory") then
                         task.wait();
                         local removeacc = Toggles.RemoveAccessories and Toggles.RemoveAccessories.Value;
                         local isface = child.Name:lower():find("face") or child.Name:lower():find("facial") or child.Name:lower():find("head");
-                        if not table.find(originalData.Accessories, child) then table.insert(originalData.Accessories, child); end;
+                        if not table.find(original_data.Accessories, child) then table.insert(original_data.Accessories, child); end;
                         if removeacc and not isface then child.Parent = nil; end;
                     end;
                 end));
-                appliedToChar = nil;
-                visualsdirtyflag = true;
+                applied_to_character = nil;
+                visuals_dirtyflag = true;
             else
                 return;
             end;
         end;
+
         local israinbow = Toggles.RainbowCharacter and Toggles.RainbowCharacter.Value;
         local newmat = Classes.CharacterMaterial and Classes.CharacterMaterial.Value;
         local newcolor = Classes.CharacterMaterialColor and Classes.CharacterMaterialColor.Value;
@@ -8050,114 +9701,144 @@ local function CreateCharacterVisuals()
         local newremoveacc = Toggles.RemoveAccessories and Toggles.RemoveAccessories.Value;
         local newglow = Classes.OutlineGlow and Classes.OutlineGlow.Value;
         local newglowcolor = Classes.OutlineGlowColor and Classes.OutlineGlowColor.Value;
-        if appliedToChar ~= char or lastSettings.Material ~= newmat or lastSettings.Color ~= newcolor or lastSettings.Transparency ~= newtrans or lastSettings.Rainbow ~= israinbow or lastSettings.CustomColor ~= newcustom or lastSettings.RemoveAcc ~= newremoveacc or lastSettings.OutlineGlow ~= newglow or lastSettings.OutlineColor ~= newglowcolor then
-            lastSettings.Material = newmat;
-            lastSettings.Color = newcolor;
-            lastSettings.Transparency = newtrans;
-            lastSettings.Rainbow = israinbow;
-            lastSettings.CustomColor = newcustom;
-            lastSettings.RemoveAcc = newremoveacc;
-            lastSettings.OutlineGlow = newglow;
-            lastSettings.OutlineColor = newglowcolor;
-            appliedToChar = char;
-            ApplyVisuals();
+
+        if applied_to_character ~= char or last_settings.Material ~= newmat or last_settings.Color ~= newcolor or last_settings.Transparency ~= newtrans or last_settings.Rainbow ~= israinbow or last_settings.CustomColor ~= newcustom or last_settings.RemoveAcc ~= newremoveacc or last_settings.OutlineGlow ~= newglow or last_settings.OutlineColor ~= newglowcolor then
+            last_settings.Material = newmat;
+            last_settings.Color = newcolor;
+            last_settings.Transparency = newtrans;
+            last_settings.Rainbow = israinbow;
+            last_settings.CustomColor = newcustom;
+            last_settings.RemoveAcc = newremoveacc;
+            last_settings.OutlineGlow = newglow;
+            last_settings.OutlineColor = newglowcolor;
+            applied_to_character = char;
+            apply_visuals();
         end;
+
         if israinbow then
             rainbowstepper = rainbowstepper + dt;
             if rainbowstepper >= 0.033 then
                 rainbowstepper = 0;
-                local rc = getgenv().serenium_global_rainbow_color;
-                for part in pairs(originalData.Parts) do if part and part.Parent and part:IsA("BasePart") then part.Color = rc; end; end;
-                if charHighlight.Parent then charHighlight.OutlineColor = rc; end;
+                local rc = serenium_global_rainbow_color;
+                for part in pairs(original_data.Parts) do
+                    if part and part.Parent and part:IsA("BasePart") then
+                        part.Color = rc;
+                    end;
+                end;
+                if char_highlight.Parent then
+                    char_highlight.OutlineColor = rc;
+                end;
             end;
         end;
     end));
-end
-task_spawn(CreateCharacterVisuals)
-local function CreateMoreVisuals()
-    local fovCircle = drawing_new("Circle")
-    fovCircle.Thickness = 1
-    fovCircle.NumSides = 100
-    fovCircle.Visible = false
-    local fovCircleOutline = drawing_new("Circle")
-    fovCircleOutline.Thickness = 1
-    fovCircleOutline.NumSides = 100
-    fovCircleOutline.Visible = false
-    local chOut1 = drawing_new("Line")
-    local chOut2 = drawing_new("Line")
-    local chOut3 = drawing_new("Line")
-    local chOut4 = drawing_new("Line")
-    local chLine1 = drawing_new("Line")
-    local chLine2 = drawing_new("Line")
-    local chLine3 = drawing_new("Line")
-    local chLine4 = drawing_new("Line")
-    local weaponHighlight = Instance.new("Highlight")
-    weaponHighlight.Name = "WeaponCham"
-    local lastCrosshairPos = userinputservice:GetMouseLocation()
-    local currentRotation = 0
-    local lastTool = nil
-    local lastChamSettings = { Material = nil, Color = nil, Highlight = nil, HighlightColor = nil }
+end;
+
+task_spawn(create_character_vis);
+
+local function create_visuals()
+    local fov_circle = drawing_new("Circle");
+    fov_circle.Thickness = 1;
+    fov_circle.NumSides = 100;
+    fov_circle.Visible = false;
+    local fov_circle_outline = drawing_new("Circle");
+    fov_circle_outline.Thickness = 1;
+    fov_circle_outline.NumSides = 100;
+    fov_circle_outline.Visible = false;
+    local ch_out1 = drawing_new("Line");
+    local ch_out2 = drawing_new("Line");
+    local ch_out3 = drawing_new("Line");
+    local ch_out4 = drawing_new("Line");
+    local ch_line1 = drawing_new("Line");
+    local ch_line2 = drawing_new("Line");
+    local ch_line3 = drawing_new("Line");
+    local ch_line4 = drawing_new("Line");
+    local weapon_highlight = Instance.new("Highlight");
+    weapon_highlight.Name = "WeaponCham";
+    local last_crosshair_position = userinputservice:GetMouseLocation();
+    local current_rotation = 0;
+    local last_tool = nil;
+    local last_cham_settings = {
+        Material = nil;
+        Color = nil;
+        Highlight = nil;
+        HighlightColor = nil;
+    };
+
     runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
         if Classes.CrosshairEnabled and Classes.CrosshairEnabled.Value then
-            local mouseLoc = userinputservice:GetMouseLocation()
-            local smooth_amount = math.max(1, Classes.CrosshairSmoothing.Value)
-            lastCrosshairPos = lastCrosshairPos + (mouseLoc - lastCrosshairPos) / smooth_amount
-            local center = vector2_new(math.round(lastCrosshairPos.X), math.round(lastCrosshairPos.Y))
-            local size = Classes.CrosshairSize.Value
-            local gap = Classes.CrosshairGap.Value
-            local thick = Classes.CrosshairThickness.Value
-            local color = Classes.CrosshairColor.Value
+            local mouse_location = userinputservice:GetMouseLocation();
+            local smooth_amount = math.max(1, Classes.CrosshairSmoothing.Value);
+            last_crosshair_position = last_crosshair_position + (mouse_location - last_crosshair_position) / smooth_amount;
+            local center = vector2_new(math.round(last_crosshair_position.X), math.round(last_crosshair_position.Y));
+            local size = Classes.CrosshairSize.Value;
+            local gap = Classes.CrosshairGap.Value;
+            local thick = Classes.CrosshairThickness.Value;
+            local color = Classes.CrosshairColor.Value;
             if Classes.CrosshairSpin.Value then
-                currentRotation = (currentRotation + (Classes.CrosshairSpinSpeed.Value * dt)) % (math.pi * 2)
+                current_rotation = (current_rotation + (Classes.CrosshairSpinSpeed.Value * dt)) % (math.pi * 2);
             else
-                currentRotation = 0
-            end
+                current_rotation = 0;
+            end;
+
             local function get_rotated(offset)
-                local cos = math_cos(currentRotation)
-                local sin = math_sin(currentRotation)
-                return vector2_new( (offset.X * cos) - (offset.Y * sin), (offset.X * sin) + (offset.Y * cos) )
-            end
+                local cos = math_cos(current_rotation);
+                local sin = math_sin(current_rotation);
+                return vector2_new( (offset.X * cos) - (offset.Y * sin), (offset.X * sin) + (offset.Y * cos));
+            end;
+
             local function update_line(line, outline, from_off, to_off)
-                local fRot = get_rotated(from_off)
-                local tRot = get_rotated(to_off)
-                local f = vector2_new(math.round((center + fRot).X), math.round((center + fRot).Y))
-                local t = vector2_new(math.round((center + tRot).X), math.round((center + tRot).Y))
+                local f_rotation = get_rotated(from_off);
+                local t_rotation = get_rotated(to_off);
+                local f = vector2_new(math.round((center + f_rotation).X), math.round((center + f_rotation).Y));
+                local t = vector2_new(math.round((center + t_rotation).X), math.round((center + t_rotation).Y));
                 if Classes.CrosshairOutline and Classes.CrosshairOutline.Value then
-                    local dir = (tRot - fRot)
-                    local len = dir.Magnitude
+                    local dir = (t_rotation - f_rotation);
+                    local len = dir.Magnitude;
                     if len > 0 then
-                        local norm = dir / len
-                        outline.From = vector2_new(math.round((f - norm).X), math.round((f - norm).Y))
-                        outline.To = vector2_new(math.round((t + norm).X), math.round((t + norm).Y))
+                        local norm = dir / len;
+                        outline.From = vector2_new(math.round((f - norm).X), math.round((f - norm).Y));
+                        outline.To = vector2_new(math.round((t + norm).X), math.round((t + norm).Y));
                     else
-                        outline.From = f
-                        outline.To = t
+                        outline.From = f;
+                        outline.To = t;
                     end
-                    outline.Thickness = thick + 1.5
-                    outline.Color = Color3.new(0, 0, 0)
-                    outline.ZIndex = 0.15
-                    outline.Visible = true
+                    outline.Thickness = thick + 1.5;
+                    outline.Color = Color3.new(0, 0, 0);
+                    outline.ZIndex = 0.15;
+                    outline.Visible = true;
                 else
-                    outline.Visible = false
+                    outline.Visible = false;
                 end
-                line.From = f
-                line.To = t
-                line.Thickness = thick
-                line.Color = color
-                line.ZIndex = 1
+                line.From = f;
+                line.To = t;
+                line.Thickness = thick;
+                line.Color = color;
+                line.ZIndex = 1;
                 line.Visible = true
             end
-            update_line(chLine1, chOut1, vector2_new(0, gap), vector2_new(0, gap + size))
-            update_line(chLine2, chOut2, vector2_new(0, -gap), vector2_new(0, -(gap + size)))
-            update_line(chLine3, chOut3, vector2_new(gap, 0), vector2_new(gap + size, 0))
-            update_line(chLine4, chOut4, vector2_new(-gap, 0), vector2_new(-(gap + size), 0))
+            update_line(ch_line1, ch_out1, vector2_new(0, gap), vector2_new(0, gap + size));
+            update_line(ch_line2, ch_out2, vector2_new(0, -gap), vector2_new(0, -(gap + size)));
+            update_line(ch_line3, ch_out3, vector2_new(gap, 0), vector2_new(gap + size, 0));
+            update_line(ch_line4, ch_out4, vector2_new(-gap, 0), vector2_new(-(gap + size), 0));
         else
-            chLine1.Visible = false; chLine2.Visible = false; chLine3.Visible = false; chLine4.Visible = false
-            chOut1.Visible = false; chOut2.Visible = false; chOut3.Visible = false; chOut4.Visible = false
-        end
+            ch_line1.Visible = false;
+            ch_line2.Visible = false;
+            ch_line3.Visible = false;
+            ch_line4.Visible = false;
+            ch_out1.Visible = false;
+            ch_out2.Visible = false;
+            ch_out3.Visible = false;
+            ch_out4.Visible = false;
+        end;
     end));
-end
-task_spawn(CreateMoreVisuals)
-end
-InitializeCombat()
+end;
+
+task_spawn(create_visuals);
+
+thememanager:SetLibrary(library);
+thememanager:SetFolder("serenium");
 thememanager:ApplyToTab(tabs.settings);
+savemanager:SetLibrary(library);
+savemanager:SetFolder("serenium/configs");
+savemanager:BuildConfigSection(tabs.settings);
+savemanager:LoadAutoloadConfig();
