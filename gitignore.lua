@@ -31,16 +31,16 @@ for _, void in pairs(workspace:GetDescendants()) do
         void.CanTouch = false;
 		void:GetPropertyChangedSignal("CanTouch"):Connect(function() 
             if (void.CanTouch ~= false) then 
-                void.CanTouch = false;
-            end;
+                void.CanTouch = false; 
+            end; 
         end);
 	end;
 end;
 
 workspace:GetPropertyChangedSignal("FallenPartsDestroyHeight"):Connect(function() 
     if (workspace.FallenPartsDestroyHeight ~= -math.huge) then 
-        workspace.FallenPartsDestroyHeight = -math.huge;
-    end;
+        workspace.FallenPartsDestroyHeight = -math.huge; 
+    end; 
 end);
 
 if (not LPH_OBFUSCATED) then
@@ -427,23 +427,20 @@ do
 			local success, result = pcall(spoof.callback, clientcframe);
 			if success and result and typeofcache(result) == "CFrame" then
 				isspoofing = true;
-				local target;
-				if spoof.direction then
-					local _, _, _, r00, r01, r02, r10, r11, r12, r20, r21, r22 = result:GetComponents();
-					local pos = clientcframe.Position;
-					target = cframe_new(pos.X, pos.Y, pos.Z, r00, r01, r02, r10, r11, r12, r20, r21, r22);
-				else
-					target = result;
-				end;
+				local target = result;
 				for _, v in ipairs(activespoofs) do
-					if v ~= spoof and v.direction and v.ignore_priority then
-						local ok, rot = pcall(v.callback, clientcframe);
-						if ok and rot and typeofcache(rot) == "CFrame" then
-							local _, _, _, r00, r01, r02, r10, r11, r12, r20, r21, r22 = rot:GetComponents();
-							local pos = target.Position;
-							target = cframe_new(pos.X, pos.Y, pos.Z, r00, r01, r02, r10, r11, r12, r20, r21, r22);
+					if v ~= spoof and v.ignore_priority then
+						local ok, res = pcall(v.callback, clientcframe);
+						if ok and res and typeofcache(res) == "CFrame" then
+							target = target * res;
 						end;
 					end;
+				end;
+				
+				if spoof.direction then
+					local _, _, _, r00, r01, r02, r10, r11, r12, r20, r21, r22 = target:GetComponents();
+					local pos = clientcframe.Position + target.Position;
+					target = cframe_new(pos.X, pos.Y, pos.Z, r00, r01, r02, r10, r11, r12, r20, r21, r22);
 				end;
 				primarypart.CFrame = target;
 				renderstepped:Wait();
@@ -720,6 +717,19 @@ do
         local y = Options.desync_y and math.rad(Options.desync_y.Value) or 0;
         local z = Options.desync_z and math.rad(Options.desync_z.Value) or 0;
         
+        local ox = Options.desync_off_x and Options.desync_off_x.Value or 0;
+        local oy = Options.desync_off_y and Options.desync_off_y.Value or 0;
+        local oz = Options.desync_off_z and Options.desync_off_z.Value or 0;
+
+        local off_speed = Options.desync_off_speed and Options.desync_off_speed.Value or 0;
+        if off_speed > 0 then
+            local t = os.clock() * (off_speed * 1.5);
+            ox = math.sin(t * 0.7) * ox;
+            oy = math.cos(t * 0.9) * oy;
+            oz = math.sin(t * 1.2) * oz;
+        end;
+
+
         if Toggles.desync_random_rotation and Toggles.desync_random_rotation.Value then
             local speed = Options.desync_random_speed and Options.desync_random_speed.Value or 5;
             local t = os.clock() * (speed * 0.5);
@@ -733,7 +743,7 @@ do
             local _, real_y, _ = cf:ToEulerAnglesYXZ();
             y = real_y;
         end;
-        return cframe_angles(x, y, z);
+        return cframe_new(ox, oy, oz) * cframe_angles(x, y, z);
     end), 0, true, true);
 
     local noclip_parts = {};
@@ -4985,6 +4995,43 @@ desync_random_dep:AddSlider("desync_random_speed", {
     Text = "speed";
     Default = 5;
     Min = 1;
+    Max = 30;
+    Rounding = 1;
+    Compact = true;
+    Suffix = "x";
+});
+
+desync_dep:AddSlider("desync_off_x", {
+    Text = "angle";
+    Default = 0;
+    Min = -15;
+    Max = 15;
+    Rounding = 1;
+    Compact = true;
+});
+
+desync_dep:AddSlider("desync_off_y", {
+    Text = "yaw";
+    Default = 0;
+    Min = -4;
+    Max = 4;
+    Rounding = 1;
+    Compact = true;
+});
+
+desync_dep:AddSlider("desync_off_z", {
+    Text = "pitch";
+    Default = 0;
+    Min = -15;
+    Max = 15;
+    Rounding = 1;
+    Compact = true;
+});
+
+desync_dep:AddSlider("desync_off_speed", {
+    Text = "offset speed";
+    Default = 0;
+    Min = 0;
     Max = 30;
     Rounding = 1;
     Compact = true;
