@@ -96,7 +96,7 @@ local character = localplayer.Character or localplayer.CharacterAdded:Wait();
 local humanoidrootpart = character:WaitForChild("HumanoidRootPart");
 local humanoid = character:WaitForChild("Humanoid");
 local camera = workspace.CurrentCamera;
-
+local fly_cframe = nil;
 local whitelist = {};
 local viewing;
 
@@ -115,7 +115,6 @@ local anti_parry_void = false;
 local ap_unequipped = false;
 local OnTp = false;
 local Active = true;
-local fly_cframe = nil;
 
 local vector3_new = Vector3.new;
 local cframe_new = CFrame.new;
@@ -218,6 +217,7 @@ local settings = {
     is_voiding = false;
     last_void_tick = 0;
     avoid_walls = false;
+
 };
 
 local teleport = function(CFrame) 
@@ -3577,10 +3577,7 @@ do
         local is_baiting = extra["bait parry"];
         local avoid_walls = extra["avoid walls"];
 
-		local local_weapon = framework:get_weapon();
-        local i_parried = table.find(ParryingCharacters, Character);
-        local they_parried = table.find(ParryingCharacters, target_character);
-        if local_weapon and i_parried and they_parried then
+        if table.find(ParryingCharacters, target_character) or table.find(ParryingCharacters, Character) then
             settings.last_parry_tick = os.clock();
         end;
 
