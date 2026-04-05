@@ -115,6 +115,7 @@ local anti_parry_void = false;
 local ap_unequipped = false;
 local OnTp = false;
 local Active = true;
+local fly_cframe = nil;
 
 local vector3_new = Vector3.new;
 local cframe_new = CFrame.new;
@@ -209,6 +210,14 @@ local settings = {
     selecteddevice = "pc";
     multiplier = 0.15;
     base = 0;
+    strafe_void_spam = false;
+    strafe_void_in = 0;
+    strafe_void_out = 0;
+    strafe_extra = {};
+    last_parry_tick = 0;
+    is_voiding = false;
+    last_void_tick = 0;
+    avoid_walls = false;
 };
 
 local teleport = function(CFrame) 
@@ -613,7 +622,6 @@ do
 end;
 
 do
-    local fly_cframe = nil;
     local space_down = false;
 	local c_down = false;
     local spinrad = math.rad(spinspeed);
@@ -666,7 +674,12 @@ do
 	end);
 
     runservice.Heartbeat:Connect(LPH_JIT_MAX(function(delta_time)
-        if settings.voidenabled then
+        local strafe_active = settings.tpenemy;
+        local extra = settings.strafe_extra or {};
+        local forg = (os.clock() - (settings.last_parry_tick or 0) < 3);
+        local is_baiting = extra["bait parry"];
+
+        if settings.voidenabled or (strafe_active and (settings.strafe_void_spam or (is_baiting and not forg))) then
             local hum = localplayer.Character and localplayer.Character:FindFirstChild("Humanoid");
             if hum then
                 hum:ChangeState(Enum.HumanoidStateType.Freefall);
@@ -728,8 +741,6 @@ do
             oy = math.cos(t * 0.9) * oy;
             oz = math.sin(t * 1.2) * oz;
         end;
-
-
         if Toggles.desync_random_rotation and Toggles.desync_random_rotation.Value then
             local speed = Options.desync_random_speed and Options.desync_random_speed.Value or 5;
             local t = os.clock() * (speed * 0.5);
@@ -743,6 +754,23 @@ do
             local _, real_y, _ = cf:ToEulerAnglesYXZ();
             y = real_y;
         end;
+        if Toggles.desync_avoid_walls and Toggles.desync_avoid_walls.Value then
+            local ray_origin = cf.Position;
+            local ray_direction = vector3_new(ox, oy, oz);
+            if ray_direction.Magnitude > 0.01 then
+                local ray_params = RaycastParams.new();
+                ray_params.FilterType = Enum.RaycastFilterType.Exclude;
+                ray_params.FilterDescendantsInstances = {character, camera};
+                local ray_result = workspace:Raycast(ray_origin, ray_direction, ray_params);
+                if ray_result then
+                    local hit_pos = ray_result.Position;
+                    local new_pos = hit_pos + ray_result.Normal * 0.5;
+                    local new_offset = new_pos - ray_origin;
+                    ox, oy, oz = new_offset.X, new_offset.Y, new_offset.Z;
+                end;
+            end;
+        end;
+
         return cframe_new(ox, oy, oz) * cframe_angles(x, y, z);
     end), 0, true, true);
 
@@ -2937,6 +2965,55 @@ do
         Rounding = 1;
         Compact = true;
     });
+
+    strafe_dep:AddDropdown("strafe_extra", {
+        Values = {"bait parry", "avoid walls"};
+        Default = 0;
+        Multi = true;
+        Text = "settings";
+        Callback = function(Value)
+            settings.strafe_extra = Value;
+        end;
+    });
+
+    strafe_dep:AddToggle("strafe_void_spam", {
+        Text = "void spam";
+        Default = false;
+        Callback = function(Value)
+            settings.strafe_void_spam = Value;
+        end;
+    });
+
+    local strafe_void_dep = strafe_dep:AddDependencyBox();
+
+    strafe_void_dep:SetupDependencies({
+        {Toggles.tpenemy, true; };
+        {Toggles.strafe_void_spam, true; };
+    });
+
+    strafe_void_dep:AddSlider("strafe_void_in", {
+        Text = "void in";
+        Default = 0;
+        Min = 0;
+        Max = 1;
+        Rounding = 1;
+        Compact = true;
+        Callback = function(Value)
+            settings.strafe_void_in = Value;
+        end;
+    });
+
+    strafe_void_dep:AddSlider("strafe_void_out", {
+        Text = "void out";
+        Default = 0;
+        Min = 0;
+        Max = 1;
+        Rounding = 1;
+        Compact = true;
+        Callback = function(Value)
+            settings.strafe_void_out = Value;
+        end;
+    });
 end;
 
 main:AddToggle("spectateneemy", {
@@ -3495,6 +3572,52 @@ do
         local target_root = target_character:FindFirstChild("HumanoidRootPart");
         if not target_root then return; end;
         if not settings.tpenemy then return; end;
+
+        local extra = settings.strafe_extra or {};
+        local is_baiting = extra["bait parry"];
+        local avoid_walls = extra["avoid walls"];
+
+		local local_weapon = framework:get_weapon();
+        local i_parried = table.find(ParryingCharacters, Character);
+        local they_parried = table.find(ParryingCharacters, target_character);
+        if local_weapon and i_parried and they_parried then
+            settings.last_parry_tick = os.clock();
+        end;
+
+        local in_forgiveness = (os.clock() - (settings.last_parry_tick or 0) < 3);
+        if settings.strafe_void_spam or (is_baiting and not in_forgiveness) then
+            local now = os.clock();
+            local vin = settings.strafe_void_in or 0;
+            local vout = settings.strafe_void_out or 0;
+            
+            if is_baiting and not in_forgiveness then
+                vin = settings.bait_random_vin or 0.25;
+                vout = settings.bait_random_vout or 0.25;
+            else
+            if vin == 0 then vin = 0.01; end;
+            if vout == 0 then vout = 0.01; end;
+            end;
+            if settings.is_voiding then
+                if now - (settings.last_void_tick or 0) >= vout then
+                    settings.is_voiding = false;
+                    settings.last_void_tick = now;
+                    if is_baiting then
+                        settings.bait_random_vout = math_random(25, 50) / 100;
+                    end;
+                end;
+            else
+                if now - (settings.last_void_tick or 0) >= vin then
+                    settings.is_voiding = true;
+                    settings.last_void_tick = now;
+                    if is_baiting then
+                        settings.bait_random_vin = math_random(25, 50) / 100;
+                    end;
+                end;
+            end;
+            if settings.is_voiding then
+                return cframe_new(target_root.Position.X + math_random(-5, 5), math_random(-1000, 0), target_root.Position.Z + math_random(-5, 5));
+            end;
+        end;
 		local predicted_cframe = target_root.CFrame;
 		if (Toggles.strafe_prediction and Toggles.strafe_prediction.Value) then
 			local vel = target_root.AssemblyLinearVelocity;
@@ -3510,19 +3633,31 @@ do
 			end;
 			return cframe_new(pos, pos + predicted_cframe.LookVector);
 		end;
+        local pos;
 		if (Toggles.strafe_random_toggle and Toggles.strafe_random_toggle.Value) then
 			local range = Options.random_range and Options.random_range.Value or 5;
 			local nx = math.noise(random_t, 1.7) * range * 2;
 			local ny = math.noise(random_t, 3.1) * range * 2;
 			local nz = math.noise(random_t, 5.3) * range * 2;
-			local pos = predicted_cframe.Position + vector3_new(nx, ny, nz);
-			return apply_look(pos);
+			pos = predicted_cframe.Position + vector3_new(nx, ny, nz);
 		else
 			local rx = Options.orbit_radius_x and Options.orbit_radius_x.Value or 5;
 			local ry = Options.orbit_height_y and Options.orbit_height_y.Value or 0;
-			local pos = predicted_cframe.Position + vector3_new(math_cos(angle) * rx, ry, math_sin(angle) * rx);
-			return apply_look(pos);
+			pos = predicted_cframe.Position + vector3_new(math_cos(angle) * rx, ry, math_sin(angle) * rx);
 		end;
+
+        if avoid_walls then
+            local ray_params = RaycastParams.new();
+            ray_params.FilterType = Enum.RaycastFilterType.Exclude;
+            ray_params.FilterDescendantsInstances = {PlayerCharacters, character, workspace:FindFirstChild("Ignore"), workspace:FindFirstChild("EffectsJunk")};
+            
+            local result = workspace:Raycast(predicted_cframe.Position, pos - predicted_cframe.Position, ray_params);
+            if result then
+                pos = result.Position + result.Normal * 1.5;
+            end;
+        end;
+
+        return apply_look(pos);
     end), 1);
 
     function is_teleport_valid(player)
@@ -3832,6 +3967,8 @@ do
                 Classes.APAngle.Value = value;
             end;
         });
+
+
 
         parrysection2:AddSlider("Threshold", {
             Text = "marker threshold";
@@ -4427,6 +4564,10 @@ do
                 settings.voidenabled = state;
                 if not settings.void_spam then
                     setrunning("voidhidelogic", state);
+                else
+                    if not state then
+                        setrunning("voidhidelogic", false);
+                    end;
                 end;
             end);
         end;
@@ -4439,6 +4580,10 @@ do
                 settings.voidenabled = state;
                 if not settings.void_spam then
                     setrunning("voidhidelogic", state);
+                else
+                    if not state then
+                        setrunning("voidhidelogic", false);
+                    end;
                 end;
             end);
         end;
@@ -4518,6 +4663,9 @@ do
                     task.wait();
                 end;
                 if not (settings.void_spam and settings.voidenabled) then
+                    if not settings.voidenabled then
+                        setrunning("voidhidelogic", false);
+                    end;
                     continue;
                 end;
                 setrunning("voidhidelogic", false);
@@ -4947,6 +5095,11 @@ desync_dep:SetupDependencies({
     {Toggles.desync, true }
 });
 
+desync_dep:AddToggle("desync_avoid_walls", {
+    Text = "avoid walls";
+    Default = false;
+});
+
 desync_dep:AddToggle("desync_look", {
     Text = "look";
     Default = false;
@@ -5006,16 +5159,16 @@ desync_dep:AddSlider("desync_off_x", {
     Default = 0;
     Min = -15;
     Max = 15;
-    Rounding = 1;
+    Rounding = 0;
     Compact = true;
 });
 
 desync_dep:AddSlider("desync_off_y", {
     Text = "yaw";
     Default = 0;
-    Min = -4;
-    Max = 4;
-    Rounding = 1;
+    Min = -5;
+    Max = 5;
+    Rounding = 0;
     Compact = true;
 });
 
@@ -5024,7 +5177,7 @@ desync_dep:AddSlider("desync_off_z", {
     Default = 0;
     Min = -15;
     Max = 15;
-    Rounding = 1;
+    Rounding = 0;
     Compact = true;
 });
 
@@ -5543,9 +5696,7 @@ end), 2);
 
 if not safe_mode then
     misc1:AddButton("attempt fling", function()
-        local s, e = pcall(function()
-            local target = SelectedPlayer
-        end);
+        local target = SelectedPlayer
         if not target then return; end;
         if framework:in_menu(target) then
             library:Notify(SelectedPlayer.Name .. "is in lobby", 3);
@@ -7392,17 +7543,27 @@ local function esp1()
             Utility.AddConnection(Map.ChildRemoved, function(v) ESP.RemoveUtility(v) end)
         end
         if EffectsJunk then
-            for i, v in pairs(EffectsJunk:GetChildren()) do checkUtil(v) end
+            for i, v in pairs(EffectsJunk:GetChildren()) do
+                checkUtil(v);
+            end;
+            
             Utility.AddConnection(EffectsJunk.ChildAdded, checkUtil)
-            Utility.AddConnection(EffectsJunk.ChildRemoved, function(v) ESP.RemoveUtility(v) end)
-        end
+
+            Utility.AddConnection(EffectsJunk.ChildRemoved, function(v)
+                ESP.RemoveUtility(v);
+            end);
+        end;
 
         runservice.RenderStepped:Connect(LPH_JIT_MAX(function()
             for t, ti in ESP.Targets do
-                if ti and ti.Update then ti.Update(); end;
+                if ti and ti.Update then
+                    ti.Update();
+                end;
             end;
             for t, ti in ESP.Utilities do
-                if ti and ti.Update then ti.Update(); end;
+                if ti and ti.Update then
+                    ti.Update();
+                end;
             end;
         end));
     end;
@@ -8959,7 +9120,7 @@ do
 		local args = {... };
 		local caster = args[1];
 		local terminated = false;
-		LPH_JIT_MAX(function()
+		newcclosure(function()
 			local weapon, metadata = framework:get_ranged();
 			local Chance = framework:Chance(Classes.HitChance.Value);
 			if not Chance then
