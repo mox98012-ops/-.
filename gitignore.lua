@@ -75,6 +75,14 @@ local modules, framework;
 do
     setstackhidden(1, true);
 
+    for _, v in pairs(getnilinstances()) do
+        if (v:IsA("Script") or v:IsA("LocalScript") or v:IsA("ModuleScript")) and v.Name == "" then
+            pcall(function()
+                v:Destroy();
+            end);
+        end;
+    end;
+    
     local hooked_functions = {};
     local detected_field, kill_environment, adonis_event;
 
