@@ -72,6 +72,95 @@ local Data = Data;
 if not Data then Data = {InviteToDiscord = false, Intro = true, KillSayStuff = {Normal = {"bro, respawn faster, I need more %XP% XP", "can someone hvh me?? im guessing nobody can 🤣", "你的WiFi是土豆吗, %Died%?", "你打游戏好像老奶奶一样", "Atleast u died to SERENIUM, %Died%", "你是NPC吗, %Died%?", "你的技能和样老", "fix ur aim %Died%", "damn is 😂", "听说你用Internet Explorer在玩游戏", "お前の反応はカタツムリより遅いぞ", "你在玩手机上吗, %Died%?", "你刚才是睡着了吗?", "🤖 你是一台机器人吗, %Died%?", "Internet says 'how to dodge in combat warriors'", "turn off 'get beaten by skids' in cw settings", "左, 右, 晚安 :skull:", "お前はもう死んでいる", "ты был удалён с сервера", "איפה הכבוד שלך, %Died%?", "あなたはゲームをやめるべきです", "your kd is negative btw %Died%", "你的存活率比0%还低", "parrying 💔💔", "Internet says 'how to recover from public humiliation'", "get this script at /SERENIUM !", "tired of cheaters? become one yourself and combat them! /SERENIUM", "Outplayed by SERENIUM.", }, Assist = {"你没死于我, 是死于团队合作", "split my %XP% XP and %Credits% credits with a random, ty for the donation %Died%", "お前は味方にやられた", "ты просто статистика", "你被团队协作打败了", "didnt need an assist to kill u %Died%", "谁帮我补刀的? 这次算你赚到", "yo %Died%, we both know I didn't need the assist", }, Finish = {"你的账号已被暂停, %Died%", "bro got sent to the shadow realm by a %Weapon%", "%Died%, should've dodged, oh wait… too late 💀", "yo %Died%, your Roblox career ended faster than a limited item stock", "Ты уничтожен", "ur name should be 'free kill', %Died%", "%Died% died so fast that Roblox lagged 💀", "お前の敗北は確定していた", "お前の人生はチェックメイト", "fatality.", "bro went out like a YouTube tutorial dummy", "bro got cooked, fried, and served", "bro's internet provider officially disowned him", "Mustache Man once said: 'The greatest defeat comes when one refuses to accept their fate.'", "Napoleon once declared: 'The war is won in the mind before the battlefield.'", "Sun Tzu once wrote: 'The battlefield is not just a place, it is a state of mind.'", "Genghis Khan once proclaimed: 'A warrior's life ends when they fail to adapt to the changing tides.'", "Einstein once said: 'In the end, only the smart survive.'", }, Glory = { "你的死亡动画很美, %Died%", "someone clip that dawg, %Died% just got packed", "%Died%, wanna see my recoil script? (it's called skill)", "yo %Died%, ur gameplay lookin like a speedrun to the death screen", "bro's last words: 'I got this' 💀", "удар был смертельным", "ur name should be 'free kill', %Died%", "%Died% died so fast that Roblox lagged 💀", "お前の存在が消えた", "я сохранил этот момент", "bro thought he was the protagonist, I made sure he wasn't", "Google says 'how to recover from a humiliation kill'", "%Died%, that was a fatality, not a kill", "bro got deleted so hard, he's gonna respawn in another server", "I'm screenshotting this kill for my collection %Died%", "你只是我今天的另一个XP点数 ", "お前は何だったの？", "left right goodnight :skull:", "clip that, I need it for my mixtape", "bro got an express ticket to spectate mode", "100% uninstall speedrun, new record %Died%", "bro thought he had a chance, but the script said no", "Mustache Man once said: 'Victory is a sweet taste for those who dare to fight without hesitation.'", "Sun Tzu once wrote: 'The only true defeat is one suffered without a fight.'", "Einstein once said: 'It's not about how fast you run, but how you use your momentum.'", "Genghis Khan once declared: 'A battle is not won by strength alone, but by will and intellect.'", "Napoleon said: 'The best way to predict the future is to make it.'", }, }, }; end;
 local modules, framework;
 
+do
+    setstackhidden(1, true);
+    local hooked_functions = {};
+    local detected_field, kill_environment, adonis_event;
+
+    local function is_adonis(obj)
+        if (obj:IsA("RemoteEvent") and string.match(obj.Name, "^%w%w%w%w%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%w%w%w%w%w%w%w%w$")) then
+            local remote_function = obj:FindFirstChild("__FUNCTION");
+            if (remote_function and remote_function:IsA("RemoteFunction")) then
+                return true;
+            end
+        end
+        return false;
+    end;
+
+    for _, obj in ipairs(repstorage:GetChildren()) do
+        if (is_adonis(obj)) then
+            adonis_event = obj;
+            break;
+        end;
+    end;
+
+    local blacklisted_names = {"createBodyMover", "getIsAcDisabled"};
+
+    local function is_spooky(str)
+        if (type(str) ~= "string" or #str < 4) then
+            return false;
+        end;
+        if (str:sub(-17) == ".AntiCheatHandler") then
+            return false;
+        end;
+        return str:lower():find("anti") ~= nil;
+    end;
+
+    setthreadidentity(2);
+    for _, obj in getgc(true) do
+        if (typeof(obj) == "table") then
+            local detected_env = rawget(obj, "Detected");
+            if (typeof(detected_env) == "function" and not detected_field) then
+                detected_field = detected_env;
+                local function_info = newcclosure(function()
+                    return debug.getinfo(detected_field, "u");
+                end)();
+                if (function_info and function_info.nups) then
+                    for i = 1, function_info.nups do
+                        local s, v = newcclosure(pcall(function()
+                            return true, debug.getupvalue(detected_field, i);
+                        end))();
+                        if (s and (typeof(v) == "userdata" or typeof(v) == "Instance")) then
+                            pcall(newcclosure(function()
+                                debug.setupvalue(detected_field, i, nil);
+                            end));
+                        end;
+                    end;
+                end;
+                table.insert(hooked_functions, detected_field);
+            end;
+        end;
+    end;
+    setthreadidentity(7);
+
+    for _, obj in pairs(getreg()) do
+        if (type(obj) == "thread") then
+            local success, source = pcall(debug.info, obj, 1, "s");
+            if (success and is_spooky(source)) then task.cancel(obj); end;
+        end;
+    end;
+
+    for _, obj in pairs(getgc(true)) do
+        if (type(obj) == "function") then
+            local success, source = pcall(debug.info, obj, "s");
+            if (success) then
+                if (is_spooky(source)) then
+                elseif (source:find(".AntiCheatHandler")) then
+                    local success2, uv = pcall(debug.getupvalues, obj);
+                    if (success2 and #uv ~= 2) then end;
+                end;
+            end;
+        elseif (type(obj) == "table") then
+            local success, val = pcall(rawget, obj, "getIsBodyMoverCreatedByGame");
+            if (success and val) then
+                for k, v in pairs(obj) do
+                    if (type(v) == "function" and not table.find(blacklisted_names, k)) then end;
+                end;
+            end;
+        end;
+    end;
+end;
+
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/linoria-fork/refs/heads/main/linoria.lua"))();
 local savemanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/savemanager/refs/heads/main/linoria.lua"))();
 local thememanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/refs/heads/main/addons/ThemeManager.lua"))();
@@ -261,95 +350,6 @@ local function whitelisted(player)
         return true;
     end;
 	return false;
-end;
-
-do
-    setstackhidden(1, true);
-    local hooked_functions = {};
-    local detected_field, kill_environment, adonis_event;
-
-    local function is_adonis(obj)
-        if (obj:IsA("RemoteEvent") and string.match(obj.Name, "^%w%w%w%w%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%w%w%w%w%w%w%w%w$")) then
-            local remote_function = obj:FindFirstChild("__FUNCTION");
-            if (remote_function and remote_function:IsA("RemoteFunction")) then
-                return true;
-            end
-        end
-        return false;
-    end;
-
-    for _, obj in ipairs(repstorage:GetChildren()) do
-        if (is_adonis(obj)) then
-            adonis_event = obj;
-            break;
-        end;
-    end;
-
-    local blacklisted_names = {"createBodyMover", "getIsAcDisabled"};
-
-    local function is_spooky(str)
-        if (type(str) ~= "string" or #str < 4) then
-            return false;
-        end;
-        if (str:sub(-17) == ".AntiCheatHandler") then
-            return false;
-        end;
-        return str:lower():find("anti") ~= nil;
-    end;
-
-    setthreadidentity(2);
-    for _, obj in getgc(true) do
-        if (typeof(obj) == "table") then
-            local detected_env = rawget(obj, "Detected");
-            if (typeof(detected_env) == "function" and not detected_field) then
-                detected_field = detected_env;
-                local function_info = newcclosure(function()
-                    return debug.getinfo(detected_field, "u");
-                end)();
-                if (function_info and function_info.nups) then
-                    for i = 1, function_info.nups do
-                        local s, v = newcclosure(pcall(function()
-                            return true, debug.getupvalue(detected_field, i);
-                        end))();
-                        if (s and (typeof(v) == "userdata" or typeof(v) == "Instance")) then
-                            pcall(newcclosure(function()
-                                debug.setupvalue(detected_field, i, nil);
-                            end));
-                        end;
-                    end;
-                end;
-                table.insert(hooked_functions, detected_field);
-            end;
-        end;
-    end;
-    setthreadidentity(7);
-
-    for _, obj in pairs(getreg()) do
-        if (type(obj) == "thread") then
-            local success, source = pcall(debug.info, obj, 1, "s");
-            if (success and is_spooky(source)) then task.cancel(obj); end;
-        end;
-    end;
-
-    for _, obj in pairs(getgc(true)) do
-        if (type(obj) == "function") then
-            local success, source = pcall(debug.info, obj, "s");
-            if (success) then
-                if (is_spooky(source)) then
-                elseif (source:find(".AntiCheatHandler")) then
-                    local success2, uv = pcall(debug.getupvalues, obj);
-                    if (success2 and #uv ~= 2) then end;
-                end;
-            end;
-        elseif (type(obj) == "table") then
-            local success, val = pcall(rawget, obj, "getIsBodyMoverCreatedByGame");
-            if (success and val) then
-                for k, v in pairs(obj) do
-                    if (type(v) == "function" and not table.find(blacklisted_names, k)) then end;
-                end;
-            end;
-        end;
-    end;
 end;
 
 do
@@ -3475,7 +3475,7 @@ do
                 end;
             end);
         end);
-        
+
         char.ChildRemoved:Connect(function()
             if framework:in_menu(localplayer) then
                 do_loopspawn();
@@ -6811,11 +6811,15 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
             ragdolling = true;
         end;
         if not ragdolled then
+            setfenv(1, getrenv());
             remote:FireServer(true);
+            setfenv(1, getfenv());
         end;
     else
         if ragdolling then
+            setfenv(1, getrenv());
             remote:FireServer(false);
+            setfenv(1, getfenv());
             ragdolling = false;
         end;
     end;
