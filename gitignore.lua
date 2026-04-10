@@ -1,3 +1,4 @@
+
 if (getgenv().nil_solutions) then
     return;
 end;
@@ -5,25 +6,41 @@ getgenv().nil_solutions = true;
 
 if (not game:IsLoaded()) then game.Loaded:Wait(); end;
 
-repeat
-    success, err = pcall(function() 
-        game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId); 
-    end);
-    task.wait();
-until success;
-
-if success then 
-    info = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId);
-end;
-
-if (info.Creator.CreatorType ~= "Group" or info.Creator.CreatorTargetId ~= 5192826) then 
+if (game.GameId ~= 1390601379) then
     return; 
 end;
 
-repeat task.wait() until game:GetService("Players").LocalPlayer;
-game:GetService("Players").LocalPlayer:WaitForChild("DataLoaded");
-game:GetService("ReplicatedStorage"):WaitForChild("ClientInitFinished");
-game:GetService("ReplicatedStorage"):WaitForChild("ServerInitFinished");
+local userinputservice = cloneref(game:GetService("UserInputService"));
+local collectionservice = game:GetService("CollectionService");
+local teleportservice = game:GetService("TeleportService");
+local repstorage = game:GetService("ReplicatedStorage");
+local tweenservice = game:GetService("TweenService");
+local httpservice = game:GetService("HttpService");
+local runservice = game:GetService("RunService");
+local workspace = game:GetService("Workspace");
+local players = game:GetService("Players");
+
+local localplayer = players.LocalPlayer or players:GetPropertyChangedSignal("LocalPlayer"):Wait() and players.LocalPlayer;
+
+local character = localplayer.Character or localplayer.CharacterAdded:Wait();
+local humanoidrootpart = character:WaitForChild("HumanoidRootPart");
+local humanoid = character:WaitForChild("Humanoid");
+local camera = workspace.CurrentCamera;
+
+local vector3_new = Vector3.new;
+local cframe_new = CFrame.new;
+local cframe_angles = CFrame.Angles;
+local drawing_new = Drawing.new;
+local math_random = math.random;
+local math_sin = math.sin;
+local math_cos = math.cos;
+local math_floor = math.floor;
+local vector2_new = Vector2.new;
+local task_spawn = task.spawn;
+
+localplayer:WaitForChild("DataLoaded");
+repstorage:WaitForChild("ClientInitFinished");
+repstorage:WaitForChild("ServerInitFinished");
 
 workspace.FallenPartsDestroyHeight = -math.huge;
 for _, void in pairs(workspace:GetDescendants()) do
@@ -81,21 +98,6 @@ settings_tab = tabs.settings:AddLeftGroupbox("settings");
 gunmods = tabs.ranged:AddLeftGroupbox("gun mods");
 espsection = tabs.visuals:AddLeftGroupbox("esp");
 
-local userinputservice = cloneref(game:GetService("UserInputService"));
-local collectionservice = game:GetService("CollectionService");
-local teleportservice = game:GetService("TeleportService");
-local repstorage = game:GetService("ReplicatedStorage");
-local tweenservice = game:GetService("TweenService");
-local httpservice = game:GetService("HttpService");
-local runservice = game:GetService("RunService");
-local workspace = game:GetService("Workspace");
-local players = game:GetService("Players");
-
-local localplayer = players.LocalPlayer;
-local character = localplayer.Character or localplayer.CharacterAdded:Wait();
-local humanoidrootpart = character:WaitForChild("HumanoidRootPart");
-local humanoid = character:WaitForChild("Humanoid");
-local camera = workspace.CurrentCamera;
 local fly_cframe = nil;
 local whitelist = {};
 local viewing;
@@ -106,7 +108,6 @@ end;
 
 PlayerCharacters = player_characters();
 local ParryingCharacters = {};
-library.IgnoreWhileTyping = true;
 
 local spinspeed = 10;
 local spineabled = false;
@@ -115,17 +116,6 @@ local anti_parry_void = false;
 local ap_unequipped = false;
 local OnTp = false;
 local Active = true;
-
-local vector3_new = Vector3.new;
-local cframe_new = CFrame.new;
-local cframe_angles = CFrame.Angles;
-local drawing_new = Drawing.new;
-local math_random = math.random;
-local math_sin = math.sin;
-local math_cos = math.cos;
-local math_floor = math.floor;
-local vector2_new = Vector2.new;
-local task_spawn = task.spawn;
 
 local Ignored = {};
 
@@ -217,7 +207,6 @@ local settings = {
     is_voiding = false;
     last_void_tick = 0;
     avoid_walls = false;
-
 };
 
 local teleport = function(CFrame) 
@@ -252,7 +241,9 @@ local function should_skip_by_whitelist(player, skip_type)
         return true;
     end;
     if modes["clan"] then
-        local ok, clan_data = pcall(function() return framework:get_clan_data(); end);
+        local ok, clan_data = pcall(function()
+            return framework:get_clan_data();
+        end);
         if ok and clan_data and clan_data.members then
             local my_member = clan_data.members[tostring(localplayer.UserId)];
             if my_member and clan_data.members[tostring(player.UserId)] then
@@ -273,7 +264,7 @@ local function whitelisted(player)
 end;
 
 do
-    repstorage.Packages:Destroy();
+    setstackhidden(1, true);
     local hooked_functions = {};
     local detected_field, kill_environment, adonis_event;
 
@@ -321,7 +312,9 @@ do
                             return true, debug.getupvalue(detected_field, i);
                         end))();
                         if (s and (typeof(v) == "userdata" or typeof(v) == "Instance")) then
-                            pcall(newcclosure(function() debug.setupvalue(detected_field, i, nil); end));
+                            pcall(newcclosure(function()
+                                debug.setupvalue(detected_field, i, nil);
+                            end));
                         end;
                     end;
                 end;
@@ -360,6 +353,7 @@ do
 end;
 
 do
+    local frame_spoofed = false;
 	local typeofcache = typeof;
 	local tickcache = tick;
 	local renderstepped = runservice.RenderStepped;
@@ -380,12 +374,12 @@ do
 	local mt = getrawmetatable(game);
 	local originalindex = mt.__index;
 	setreadonly(mt, false);
-	mt.__index = newcclosure(function(self, property)
+	mt.__index = LPH_JIT_MAX(newcclosure(function(self, property)
 		if (not checkcaller() and self == primarypart and property == "CFrame" and isspoofing) then
 			return clientcframe;
 		end;
 		return originalindex(self, property);
-	end);
+	end));
 	setreadonly(mt, true);
 	local looptypes = {
 		heartbeat = runservice.Heartbeat,
@@ -435,6 +429,7 @@ do
 			clientcframe = primarypart.CFrame;
 			local success, result = pcall(spoof.callback, clientcframe);
 			if success and result and typeofcache(result) == "CFrame" then
+                frame_spoofed = true;
 				isspoofing = true;
 				local target = result;
 				for _, v in ipairs(activespoofs) do
@@ -445,7 +440,6 @@ do
 						end;
 					end;
 				end;
-				
 				if spoof.direction then
 					local _, _, _, r00, r01, r02, r10, r11, r12, r20, r21, r22 = target:GetComponents();
 					local pos = clientcframe.Position + target.Position;
@@ -455,7 +449,10 @@ do
 				renderstepped:Wait();
 				primarypart.CFrame = clientcframe;
 				isspoofing = false;
-				if cframecallback then cframecallback(target); end;
+				if cframecallback then
+                    cframecallback(target);
+                end;
+                frame_spoofed = false;
 			elseif not success then
 				warn("callback error . .. spoof.name .. : " .. tostring(result));
 			end;
@@ -524,12 +521,16 @@ do
 				local removedcurrent = false;
 				for i, v in ipairs(activespoofs) do
 					if v.name == logicname then
-						if v == currentactive then removedcurrent = true; end;
+						if v == currentactive then
+                            removedcurrent = true;
+                        end;
 						table.remove(activespoofs, i);
 						break;
 					end;
 				end;
-				if removedcurrent then evaluatecurrent(); end;
+				if removedcurrent then
+                    evaluatecurrent();
+                end;
 				refreshconnection();
 			end;
 		end;
@@ -539,7 +540,7 @@ do
 			persistentloops[logicname].paused = false;
 			persistentloops[logicname].getter = booleanref;
 			if not persistentloops[logicname].connection then
-				persistentloops[logicname].connection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
+				persistentloops[logicname].connection = runservice.Heartbeat:Connect(LPH_JIT(function()
 					local loop = persistentloops[logicname];
 					if not loop.paused then
 						local desired;
@@ -610,12 +611,12 @@ do
 		end;
 	end;
 	retrieve_position = function(callback)
-		if (typeof(callback) ~= "function") then
+		if typeof(callback) ~= "function" then
 			warn("invalid callback for retrieve_position");
 			return;
 		end;
 		cframecallback = LPH_JIT_MAX(function(cf)
-			local is_spoofing = #activespoofs > 0 and currentactive ~= nil and currentactive.name ~= "exclude";
+			local is_spoofing = frame_spoofed and currentactive and currentactive.name ~= "exclude";
 			callback(cf, is_spoofing);
 		end);
 	end;
@@ -626,7 +627,7 @@ do
 	local c_down = false;
     local spinrad = math.rad(spinspeed);
 
-    serverposition("heartbeat", "exclude", LPH_JIT_MAX(function(cf)
+    serverposition("heartbeat", "exclude", LPH_JIT(function(cf)
         return cf;
     end), -9999999);
     setrunning("exclude", true);
@@ -650,7 +651,7 @@ do
         return cframe_new(x, y, z);
     end;
 
-    serverposition("heartbeat", "voidhidelogic", LPH_JIT_MAX(function(cf)
+    serverposition("heartbeat", "voidhidelogic", LPH_JIT(function(cf)
         return target_cframe(cf);
     end), 3);
 
@@ -673,7 +674,7 @@ do
         end;
 	end);
 
-    runservice.Heartbeat:Connect(LPH_JIT_MAX(function(delta_time)
+    runservice.Heartbeat:Connect(LPH_JIT(function(delta_time)
         local strafe_active = settings.tpenemy;
         local extra = settings.strafe_extra or {};
         local forg = (os.clock() - (settings.last_parry_tick or 0) < 3);
@@ -725,7 +726,7 @@ do
         end;
     end;
     
-    serverposition("heartbeat", "body_direction", LPH_JIT_MAX(function(cf)
+    serverposition("heartbeat", "body_direction", LPH_JIT(function(cf)
         local x = Options.desync_x and math.rad(Options.desync_x.Value) or 0;
         local y = Options.desync_y and math.rad(Options.desync_y.Value) or 0;
         local z = Options.desync_z and math.rad(Options.desync_z.Value) or 0;
@@ -737,17 +738,17 @@ do
         local off_speed = 30;
         if off_speed > 0 then
             local t = os.clock() * (off_speed * 1.5);
-            ox = math.sin(t * 0.7) * ox;
-            oy = math.cos(t * 0.9) * oy;
-            oz = math.sin(t * 1.2) * oz;
+            ox = math_sin(t * 0.7) * ox;
+            oy = math_cos(t * 0.9) * oy;
+            oz = math_sin(t * 1.2) * oz;
         end;
         if Toggles.desync_random_rotation and Toggles.desync_random_rotation.Value then
             local speed = Options.desync_random_speed and Options.desync_random_speed.Value or 5;
             local t = os.clock() * (speed * 0.5);
             
-            x = (t * 1.3) + math.sin(t * 0.5);
-            y = (-t * 1.7) + math.cos(t * 0.8);
-            z = (t * 2.1) + math.sin(t * 1.1);
+            x = (t * 1.3) + math_sin(t * 0.5);
+            y = (-t * 1.7) + math_cos(t * 0.8);
+            z = (t * 2.1) + math_sin(t * 1.1);
         end;
 
         if (Toggles.desync_look and Toggles.desync_look.Value) then
@@ -793,7 +794,7 @@ do
     localplayer.CharacterAdded:Connect(noclip);
     
     local noclip_tick = 0;
-    runservice.Stepped:Connect(LPH_JIT_MAX(function()
+    runservice.Stepped:Connect(LPH_JIT(function()
         if not settings.noclipenabled then return; end;
         local now = tick();
         if now - noclip_tick < 0.05 then return; end;
@@ -887,7 +888,7 @@ hitdetection_impl.create_log = function(text)
     set_position(target_x - 30);
     table.insert(hitdetection_impl.Labels, {nil_label, label_dot, label_solutions, label_rest});
     hitdetection_impl.yo_offset = hitdetection_impl.yo_offset + 22;
-    task_spawn(LPH_JIT_MAX(function()
+    task_spawn(LPH_JIT(function()
         local slide_steps = 10;
         for i = 1, slide_steps do
             local progress = i / slide_steps;
@@ -943,7 +944,7 @@ hitdetection_impl.play_sound = function(soundName, volume)
     end);
 end;
 
-hitdetection_impl.CreateEffect = LPH_JIT_MAX(function(effect_type, part, color, damage)
+hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, damage)
     if not part or not part.Position or part.Name == "hitbox" then return; end;
     local main_color = color or Color3.new(1, 1, 1)
     if effect_type == "Clone (Forcefield)" or effect_type == "Clone (Neon)" then
@@ -1097,7 +1098,7 @@ hitdetection_impl.CreateEffect = LPH_JIT_MAX(function(effect_type, part, color, 
         end;
         local label1 = create_label()
         local label2 = create_label()
-        task_spawn(LPH_JIT_MAX(function()
+        task_spawn(LPH_JIT(function()
             local start_time = tick();
             local duration = 0.8;
             while tick() - start_time < duration do
@@ -1140,7 +1141,7 @@ hitdetection_impl.CreateEffect = LPH_JIT_MAX(function(effect_type, part, color, 
 end);
 
 local last_hits = {};
-local OnHit = LPH_JIT_MAX(function(target_player, hit_part, damage, hit_type)
+local OnHit = LPH_JIT(function(target_player, hit_part, damage, hit_type)
     if not target_player then return; end;
     if not Toggles or not Toggles.HitDetectionEnabled or not Toggles.HitDetectionEnabled.Value then return; end;
     local selected_type = Options.HitDetectionType and Options.HitDetectionType.Value or "Both";
@@ -1161,7 +1162,7 @@ local OnHit = LPH_JIT_MAX(function(target_player, hit_part, damage, hit_type)
             local color = Options.HitEffectColor and Options.HitEffectColor.Value or Color3.new(1,1,1);
             for effect_type, enabled in pairs(Options.HitEffects.Value) do
                 if enabled then
-                    task_spawn(LPH_JIT_MAX(function()
+                    task_spawn(LPH_JIT(function()
                         if hit_part and hit_part.Parent then
                             hitdetection_impl.CreateEffect(effect_type, hit_part, color, damage);
                         end;
@@ -1220,6 +1221,7 @@ setthreadidentity(8);
 for i, v in modules.Name["UtilityIds"] do 
     utilityids[i:lower()] = v;
 end;
+
 for i, v in modules.Name["WeaponIds"] do 
     weaponids[i:lower()] = v;
 end;
@@ -1238,35 +1240,68 @@ local modify = {};
 local signal = modules.Name["Signal"];
 local onfireserver = network.FireServer;
 local old_fireserver;
+local hooks = {};
+local modify = {};
 
 local function handle(self, Name, ...)
 	local Args = { ... };
+
 	if modify[Name] then
-		local can_hook = modify[Name].Check(Name, unpack(Args))
+		local can_hook = modify[Name].Check(Name, unpack(Args));
 		if can_hook then
 			if typeof(can_hook) == "table" then
-				table.foreach(can_hook, function(i, v)
+				for i, v in pairs(can_hook) do
 					Args[i] = v;
-				end);
+				end;
 			else
 				if can_hook == "Blocked" then
 					return;
 				end;
-				for i, v in modify[Name].Args do
+				for i, v in pairs(modify[Name].Args) do
 					Args[i] = v;
 				end;
 			end;
 		end;
 	end;
-	if hooks[Name] then 
-		return pcall(hooks[Name], old_fireserver, self, Name, unpack(Args));
+
+	local hook = hooks[Name] or hooks["*"];
+	if hook then
+		return hook(old_fireserver, self, Name, unpack(Args));
 	end;
+
 	return old_fireserver(self, Name, unpack(Args));
 end;
 
 old_fireserver = hookfunction(network.FireServer, newcclosure(function(self, Name, ...)
 	return handle(self, Name, ...);
 end));
+
+local cache = { };
+for _, v in getgc() do
+    if (type(v) ~= "function") then
+        continue;
+    end;
+    local name = debug.info(v, "n");
+    if (name ~= "FireServer" and name ~= "InvokeServerWithTimeout") then
+        continue;
+    end;
+    local source = debug.info(v, "s");
+    if (source and source:find(".Vendor.Network")) then
+        cache[name] = v;
+    end;
+end;
+
+if (not cache.FireServer or not cache.InvokeServerWithTimeout) then
+    return warn("game updated (1)");
+end;
+
+local fire_server = function(...)
+    cache.FireServer(network, ...);
+end;
+
+local invoke_server = function(...)
+    return cache.InvokeServerWithTimeout(network, nil, ...);
+end;
 
 function framework:addhook(Name, Function) 
     hooks[Name] = Function;
@@ -1282,14 +1317,6 @@ end;
 
 function framework:removeargmodifier(Name, ToModify) 
     table.remove(Modify, table.find(Modify, Name));
-end;
-
-function framework:fireserver(Name, ...) 
-    network:FireServer(Name, ...);
-end;
-
-function framework:invokeserver(Name, ...) 
-    network:InvokeServer(Name, ...);
 end;
 
 function framework:hookclient(Table, Name, new_function)
@@ -1414,6 +1441,7 @@ function framework:get_closest(Distance, Priority, check_function)
             ClosestPlayers[v.Name] = v.Character.Humanoid.Health;
         end;
     end;
+
     if Priority then
         local Sorted = {};
         for k, _ in pairs(ClosestPlayers) do
@@ -1425,7 +1453,7 @@ function framework:get_closest(Distance, Priority, check_function)
 end;
 
 function framework:get_closest_2(Distance, check_function)
-    local n = LPH_JIT_MAX(function(Player)
+    local n = LPH_JIT(function(Player)
 		if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("Humanoid") and Player.Character.Humanoid.Health > 0 and not Player.Character:GetAttribute("IsRagdolled") and not Player.Character:GetAttribute("Downed") and not Player.Character:FindFirstChildOfClass("ForceField") and not whitelisted(Player) and not should_skip_by_whitelist(Player, "ragebot") then
             return true; 
         end;
@@ -1450,7 +1478,6 @@ function framework:get_closest_2(Distance, check_function)
             inmenu = framework:in_menu(player);
         end);
 		if inmenu then continue; end;
-
 		local Magnitude = (humanoid_root.Position - self_position).Magnitude;
 		if Magnitude < Distance then
 			Distance = Magnitude;
@@ -1461,7 +1488,7 @@ function framework:get_closest_2(Distance, check_function)
 end;
 
 function framework:closest_to_mouse(Distance, Priority, check_function, max_distance_3d)
-	local n = LPH_JIT_MAX(function(Player)
+	local n = LPH_JIT(function(Player)
 		if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("Humanoid") and Player.Character.Humanoid.Health ~= 0 and not whitelisted(Player) and not should_skip_by_whitelist(Player, "silent aim") then
             return true;
         end;
@@ -1606,7 +1633,7 @@ function framework:GetMeleeFuncs(Table)
 	if not tool then
 		return {
             parry = function()
-            end
+            end;
         };
 	end;
 	for i, v in pairs(getconnections(tool.Equipped)) do
@@ -1674,7 +1701,7 @@ function framework:BindToRenderStep(to_bind, delay_time, priority)
     local name = httpservice:GenerateGUID(false)
     table.insert(active_rendersteps, name)
 	local isDelayed = false;
-	runservice:BindToRenderStep(name, (priority and priority or Enum.RenderPriority.First).Value, delay_time and LPH_JIT_MAX(function()
+	runservice:BindToRenderStep(name, (priority and priority or Enum.RenderPriority.First).Value, delay_time and LPH_JIT(function()
         if isDelayed then return; end;
         isDelayed = true;
 		task_spawn(to_bind);
@@ -1696,8 +1723,14 @@ end;
 function framework:in_menu(Player)
 	local is_menu = true;
 	local Player = Player or localplayer
-	if not Player.Character then return is_menu; end;
-	for i, v in pairs(Player.Character:GetChildren()) do if v:GetAttribute("ParryShieldId") then is_menu = false; end; end;
+	if not Player.Character then
+        return is_menu;
+    end;
+	for i, v in pairs(Player.Character:GetChildren()) do
+        if v:GetAttribute("ParryShieldId") then
+            is_menu = false;
+        end;
+    end;
 	return is_menu;
 end;
 
@@ -1823,13 +1856,17 @@ end;
 function modifyranged(name, val)
 	for _, v in pairs(rangedog) do
 		local m = framework:getmetadata(v.name) or framework:getutility(v.name);
-		if m then deepmodify(m, name, val); end;
+		if m then
+            deepmodify(m, name, val);
+        end;
 	end;
 end;
 
 local function revert(tbl, original, key)
 	if type(tbl) ~= "table" then return; end;
-	if original[key] ~= nil then tbl[key] = original[key]; end;
+	if original[key] ~= nil then
+        tbl[key] = original[key];
+    end;
 	for k, v in pairs(tbl) do
         if type(v) == "table" and type(original[k]) == "table" then
             revert(v, original[k], key);
@@ -1869,7 +1906,7 @@ do
     end;
     local function start_keepalive()
         stop_keepalive();
-        keepalive_connection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
+        keepalive_connection = runservice.Heartbeat:Connect(LPH_JIT(function()
             if stamina and settings.infstamina and stamenabled then
                 stamina:setStamina(stamina:getMaxStamina());
             else
@@ -1953,19 +1990,60 @@ local R6BodyParts = {
     "Random";
 };
 
+local hbe_size = vector3_new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize);
+local hitbox_blast_size = Config.HitboxSize;
+
+local function update_hitbox(v, wanted_trans, hitbox_color, hbe_size, expand)
+    if not v:IsDescendantOf(game) then return false; end;
+    if v.Parent then
+        local to_expand = v.Parent:FindFirstChild(Config.HBEPart);
+        if to_expand and v.Weld and v.Weld.Part0 ~= to_expand then
+            v.Weld.Part0 = to_expand;
+        end;
+    end;
+    if v.Transparency ~= wanted_trans then v.Transparency = wanted_trans; end;
+    if v.Color ~= hitbox_color then v.Color = hitbox_color; end;
+    local effective_size = expand and hbe_size or vector3_new(0, 0, 0);
+    if v.Size ~= effective_size then v.Size = effective_size; end;
+    v:SetAttribute("IsCharacterHitbox", expand);
+    if not expand then
+        if not v:HasTag("RANGED_CASTER_IGNORE_LIST") then
+            v:AddTag("RANGED_CASTER_IGNORE_LIST");
+        end;
+    else
+        if v:HasTag("RANGED_CASTER_IGNORE_LIST") then
+            v:RemoveTag("RANGED_CASTER_IGNORE_LIST");
+        end;
+    end;
+    return true;
+end;
+
+local function on_hitbox_added(v)
+    local expand = Config.HitboxExpand;
+    local wanted_trans = (expand and Config.ShowHitbox) and 0.7 or 1;
+    if Config.HitboxSize ~= hitbox_blast_size then
+        hbe_size = vector3_new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize);
+        hitbox_blast_size = Config.HitboxSize;
+    end;
+    update_hitbox(v, wanted_trans, Config.HitboxColor, hbe_size, expand);
+end;
+
 local function apply_hitbox(Character)
     if Character:FindFirstChild("hitbox") then return; end;
+    local expand = Config.HitboxExpand;
     local hitbox = Instance.new("Part");
-    hitbox.Size = vector3_new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize);
+    hitbox.Size = hbe_size;
     hitbox.CanCollide = false;
-    hitbox.Transparency = Config.ShowHitbox and 0.7 or 1;
-    hitbox.Name  = "hitbox";
-    hitbox.Color  = Config.HitboxColor;
-    hitbox:SetAttribute("IsCharacterHitbox", Config.HitboxExpand);
+    hitbox.Transparency = (expand and Config.ShowHitbox) and 0.7 or 1;
+    hitbox.Name = "hitbox";
+    hitbox.Color = Config.HitboxColor;
+    hitbox:SetAttribute("IsCharacterHitbox", expand);
     hitbox.Massless = true;
     hitbox.CastShadow = false;
     hitbox.Parent = Character;
-    hitbox:AddTag("RANGED_CASTER_IGNORE_LIST");
+    if not expand then
+        hitbox:AddTag("RANGED_CASTER_IGNORE_LIST");
+    end;
     local Weld = Instance.new("Weld");
     Weld.Part0 = Character:WaitForChild("HumanoidRootPart");
     Weld.Part1 = hitbox;
@@ -1973,7 +2051,27 @@ local function apply_hitbox(Character)
     table.insert(hitboxes, hitbox);
 end;
 
-task_spawn(LPH_JIT_MAX(function()
+local function apply_all_hitboxes()
+    local expand = Config.HitboxExpand;
+    local show_hitbox = Config.ShowHitbox;
+    local hitbox_color = Config.HitboxColor;
+    local hitbox_sizen = Config.HitboxSize;
+    local wanted_trans = (expand and show_hitbox) and 0.7 or 1;
+    if hitbox_sizen ~= hitbox_blast_size then
+        hbe_size = vector3_new(hitbox_sizen, hitbox_sizen, hitbox_sizen);
+        hitbox_blast_size = hitbox_sizen;
+    end;
+    local i = #hitboxes;
+    while i > 0 do
+        local v = hitboxes[i];
+        if not update_hitbox(v, wanted_trans, hitbox_color, hbe_size, expand) then
+            table.remove(hitboxes, i);
+        end;
+        i = i - 1;
+    end;
+end;
+
+task_spawn(LPH_JIT(function()
     task.wait(0.3);
     for _, v in PlayerCharacters:GetChildren() do
         if v ~= localplayer.Character then
@@ -1994,64 +2092,12 @@ players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(apply_hitbox);
 end);
 
-local hbe_size = vector3_new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize);
-local hitbox_blast_size = Config.HitboxSize;
-local hbtick = 0;
-
-runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
-    local now = tick();
-    if now - hbtick < 0.05 then return; end;
-    hbtick = now;
-    local expand = Config.HitboxExpand;
-    local show_hitbox = Config.ShowHitbox;
-    local hitbox_color = Config.HitboxColor;
-    local hitbox_sizen = Config.HitboxSize;
-    local wanted_trans = (expand and show_hitbox) and 0.7 or 1;
-    if hitbox_sizen ~= hitbox_blast_size then
-        hbe_size = vector3_new(hitbox_sizen, hitbox_sizen, hitbox_sizen);
-        hitbox_blast_size = hitbox_sizen;
-    end;
-    local hbpart = Config.HBEPart;
-    local i = #hitboxes;
-    while i > 0 do
-        local v = hitboxes[i];
-        if not v:IsDescendantOf(game) then
-            table.remove(hitboxes, i); i = i - 1;
-            continue;
-        end;
-        if v.Parent then
-            local to_exapnd = v.Parent:FindFirstChild(hbpart);
-            if to_exapnd and v.Weld and v.Weld.Part0 ~= to_exapnd then v.Weld.Part0 = to_exapnd; end;
-        end;
-        if v.Transparency ~= wanted_trans then
-            v.Transparency = wanted_trans;
-        end;
-        if v.Color ~= hitbox_color then
-            v.Color = hitbox_color;
-        end;
-        if v.Size ~= hbe_size then
-            v.Size = hbe_size;
-        end;
-        v:SetAttribute("IsCharacterHitbox", expand);
-        if not expand then
-            if not v:HasTag("RANGED_CASTER_IGNORE_LIST") then
-                v:AddTag("RANGED_CASTER_IGNORE_LIST");
-            end;
-        else
-            if v:HasTag("RANGED_CASTER_IGNORE_LIST") then
-                v:RemoveTag("RANGED_CASTER_IGNORE_LIST");
-            end;
-        end;
-        i = i - 1;
-    end;
-end));
-
 if modules.Name["RangedHitVisuals"] and modules.Name["RangedHitVisuals"].defaultHit then
     local old = modules.Name["RangedHitVisuals"].defaultHit;
-    modules.Name["RangedHitVisuals"].defaultHit = LPH_NO_UPVALUES(function(player, tool, cfg, hitpart, hit_cframe, normal, material, cosmetic)
+    modules.Name["RangedHitVisuals"].defaultHit = LPH_JIT_MAX(function(player, tool, cfg, hitpart, hit_cframe, normal, material, cosmetic)
         local new_hit_cframe = hit_cframe;
         if (Config.HitboxExpand and hitpart and hitpart.Name == "hitbox") then
-            local part = hitpart.Parent:FindFirstChild( Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart ) or hitpart.Parent:FindFirstChild("Torso");
+            local part = hitpart.Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart ) or hitpart.Parent:FindFirstChild("Torso");
             if part then
                 local metadata = framework:getmetadata(tool.Name);
                 if metadata and metadata.speed then
@@ -2065,7 +2111,7 @@ if modules.Name["RangedHitVisuals"] and modules.Name["RangedHitVisuals"].default
 end;
 
 if modules.Name["RangedWeaponClient"] and modules.Name["RangedWeaponClient"].updateIgnoreList then
-    modules.Name["RangedWeaponClient"].updateIgnoreList = LPH_NO_UPVALUES(function(ranged_data)
+    modules.Name["RangedWeaponClient"].updateIgnoreList = LPH_JIT_MAX(function(ranged_data)
         if tick() - (ranged_data._lastIgnoreListUpdateTick or 0) < 5 then return ranged_data._ignoreList end
         ranged_data._lastIgnoreListUpdateTick = tick()
         local character = ranged_data._character
@@ -2083,6 +2129,7 @@ end;
 local spin = Instance.new("Animation");
 spin.AnimationId = "rbxassetid://188632011";
 local Loaded = {};
+
 function framework:spinning()
 	if spineabled and not Loaded[humanoid] then
 		Loaded[humanoid] = humanoid:LoadAnimation(spin);
@@ -2140,7 +2187,7 @@ do
 		return oldfunc(...);
 	end);
 
-    framework:argmodify("MeleeDamage", {}, LPH_NO_UPVALUES(function(n,...)
+    framework:argmodify("MeleeDamage", {}, LPH_JIT_MAX(function(n,...)
         local args = {...};
         if AntiParry and args[2] and args[2].Parent and not framework:check(args[2].Parent) then
             local modes = Classes.AntiParryModes and Classes.AntiParryModes.Value or {silent = true;};
@@ -2160,7 +2207,7 @@ do
         return;
     end));
 
-    framework:argmodify("MeleeFinish", {}, LPH_NO_UPVALUES(function(n,...)
+    framework:argmodify("MeleeFinish", {}, LPH_JIT_MAX(function(n,...)
         local args = {...}
         if Config.HitboxExpand and args[2].Name == "hitbox" then
             local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
@@ -2171,7 +2218,7 @@ do
         return;
     end));
 
-    framework:argmodify("RangedHit",{}, LPH_NO_UPVALUES(function(n,...)
+    framework:argmodify("RangedHit",{}, LPH_JIT_MAX(function(n,...)
         local args = {...}
         if Config.HitboxExpand and args[2].Name == "hitbox" then
             local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso");
@@ -2189,7 +2236,7 @@ do
         return;
     end));
 
-    framework:argmodify("RangedExplode",{}, LPH_NO_UPVALUES(function(n,...)
+    framework:argmodify("RangedExplode",{}, LPH_JIT_MAX(function(n,...)
         local args = {...}
         if Config.HitboxExpand and args[2].Name == "hitbox" then
             local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
@@ -2202,61 +2249,40 @@ do
             end;
         end;
         if settings.always_head then
-            return {[2] = args[2].Parent:FindFirstChild("Head")};
+            return {
+                [2] = args[2].Parent:FindFirstChild("Head")
+            };
         end;
         return;
     end));
 
-	local can_fire_startfalldamage = true;
-
-	framework:argmodify("StartFallDamage", {}, function(n, ...)
-		if not checkcaller() and not can_fire_startfalldamage then
+	framework:argmodify("StartFallDamage", {}, LPH_JIT_MAX(function(n, ...)
+		if (not checkcaller() and settings.nfd) then
             return;
         end;
 		return;
-	end);
+	end));
 
-	framework:argmodify("TakeFallDamage", {}, function(n, ...)
-		if not checkcaller() and not can_fire_startfalldamage then
+	framework:argmodify("TakeFallDamage", {}, LPH_JIT_MAX(function(n, ...)
+		if (not checkcaller() and settings.nfd) then
             return;
         end;
 		return;
-	end);
+	end));
 
-	framework:argmodify("LogKick", {}, function(n, ...)
-		if not checkcaller() then
-            return;
-        end;
-		return;
-	end);
-
-	framework:argmodify("LogACTrigger", {}, function(n, ...)
-		if not checkcaller() then
-            return;
-        end;
-		return;
-	end);
-
-	framework:argmodify("GotHitRE", {}, function(n, ...)
-		if (not checkcaller() and settings.nut) then
-            return;
-        end;
-		return;
-	end);
-
-	hook("ClaymoreTrapPartClient", "new", function(oldfunc, ...)
+	hook("ClaymoreTrapPartClient", "new", LPH_JIT_MAX(function(oldfunc, ...)
 		if settings.nut then
             return;
         end;
 		return oldfunc(...);
-	end);
+	end));
 
-	hook("OpenBearTrapPartClient", "new", function(oldfunc, ...)
+	hook("OpenBearTrapPartClient", "new", LPH_JIT_MAX(function(oldfunc, ...)
 		if settings.nut then
             return;
         end;
 		return oldfunc(...);
-	end);
+	end));
 
 	hook("HealthHandler", "getRealHealth", function(oldfunc, ...)
 		if settings.nhe then
@@ -2323,7 +2349,8 @@ do
                     return;
                 end;
                 return old2(...);
-			end; };
+			end;
+        };
 		end;
 
 		if flashbomb and flashbomb.Callbacks then
@@ -2354,20 +2381,20 @@ do
 	local store = modules.Name["RoduxStore"].store;
 	local olddispatch = store.dispatch;
 
-	store.dispatch = LPH_JIT_MAX(function(table, sigma, ...)
+	store.dispatch = LPH_JIT(function(table, sigma, ...)
 		if typeof(sigma) == "table" then
 			if sigma.type == "PARRY_IS_PARRIED_CHANGE" or sigma.type == "PARRY_IS_KNEELED_CHANGE" then
 				parrystununtil = tick() + 0.35;
 				if settings.voidonparry and (tick() - (last_void_parry or 0) > 3) then
 					last_void_parry = tick();
-					task_spawn(LPH_JIT_MAX(function()
+					task_spawn(LPH_JIT(function()
 						pcall(function()
 							if Toggles.voidenabled.Value and Options.voidenabledkey:GetState() then
 								setrunning("voidhidelogic", true);
 							else
 								void_lock = true;
 								setrunning("voidhidelogic", true);
-								task_spawn(LPH_JIT_MAX(function()
+								task_spawn(LPH_JIT(function()
 									while void_lock do
 										setrunning("voidhidelogic", true);
 										task.wait();
@@ -2389,7 +2416,7 @@ do
 						local WSContainer = Walkspeed.getValueContainer();
 						local JPContainer = JumpPower.getJumpPowerValueContainer();
 						local ARContainer = AutoRotate.getAutoRotateToggleCounter();
-						task_spawn(LPH_JIT_MAX(function()
+						task_spawn(LPH_JIT(function()
 							task.wait(0.1);
 							modules.Name["CoreGuiHandlerClient"].toggleBackpack(true);
 							modules.Name["CoreGuiHandlerClient"].toggleResetButton(true);
@@ -2459,7 +2486,7 @@ local activeloops = {};
 local function updatefeature(togglename, keyname, setter)
     if activeloops[togglename] then return; end;
     activeloops[togglename] = true;
-    task_spawn(LPH_JIT_MAX(function()
+    task_spawn(LPH_JIT(function()
         while task.wait() do
             local toggleon = Toggles[togglename].Value;
             local keyon = Options[keyname]:GetState();
@@ -2492,7 +2519,7 @@ do
             if value then
                 aimbot_enabled = true;
                 locked_target = nil;
-                task_spawn(LPH_JIT_MAX(function()
+                task_spawn(LPH_JIT(function()
                     while aimbot_enabled do
                         runservice.RenderStepped:Wait();
                         local key_pressed = Options.AimbotKeybind:GetState();
@@ -2705,16 +2732,6 @@ do
         end;
     });
 
-    ragebotsection:AddButton("reset ragebot", function()
-        local ranged, metadata = framework:get_ranged();
-        if ranged and metadata then
-            metadata.canShootBulletssss = true;
-            library:Notify("ragebot reset", 2);
-        else
-            library:Notify("no ranged weapon equipped to reset", 2);
-        end;
-    end);
-
     local ragebot_children = ragebotsection:AddDependencyBox();
 
     ragebot_children:AddToggle("ShowRageBotTarget", {
@@ -2730,8 +2747,9 @@ do
     });
 
     ragebot_children:AddToggle("safe_mode_ragebot", {
-        Text = "<font color=\"#ff0000\">safe mode</font>",
-        Default = false, Tooltip = "0.4 min to avoid meow/40";
+        Text = "<font color=\"#ff0000\">safe mode</font>";
+        Default = false;
+        Tooltip = "0.4 min to avoid meow/40";
     });
 
     local safe_mode_slider = ragebot_children:AddDependencyBox();
@@ -2743,7 +2761,7 @@ do
         Max = 3;
         Rounding = 1;
         Compact = true;
-        ooltip = "adds on to the cooldown";
+        Tooltip = "adds on to the cooldown";
     })
     ragebot_children:AddSlider("RagebotDist", {
         Text = "ragebot distance";
@@ -2842,8 +2860,6 @@ do
         Default = false;
     });
 
-
-
     strafe_tab:AddToggle("tpenemy", {
         Text = "strafe enemy";
         Default = false;
@@ -2862,8 +2878,6 @@ do
             end);
         end;
     });
-
-
 
     local strafe_dep = strafe_tab:AddDependencyBox();
 
@@ -2891,7 +2905,7 @@ do
     orbit_dep:AddSlider("orbit_radius_x", {
         Text = "range";
         Default = 5;
-        Min = 1;
+        Min = 0;
         Max = 20;
         Rounding = 0;
         Compact = true;
@@ -3038,7 +3052,6 @@ main:AddToggle("spectateneemy", {
 main:AddToggle("RageAutoParry", {
     Text = "rage auto parry";
     Default = false;
-    Tooltip = "Bypasses all restrictions (range, angle, chance)";
     Callback = function(value)
         Classes.RageAutoParry.Value = value;
     end;
@@ -3108,10 +3121,13 @@ do
         return false;
     end;
 
-    local process_part = LPH_JIT_MAX(function(part)
+    local process_part = LPH_JIT(function(part)
         if not settings.nut then return; end;
         if processed[part] then return; end;
-        if not part:IsA("BasePart") then processed[part] = true; return end;
+        if not part:IsA("BasePart") then
+            processed[part] = true;
+            return;
+        end;
         processed[part] = true;
         if not should_disable(part) then return; end;
         part.CanCollide = false;
@@ -3232,7 +3248,11 @@ do
 				local Animator = Humanoid:FindFirstChild("Animator");
 				if Animator then
 					local PlayingAnimations = Animator:GetPlayingAnimationTracks();
-					for i, v in pairs(PlayingAnimations) do if v.Animation.Name:match("Parry") then return false; end; end;
+					for i, v in pairs(PlayingAnimations) do
+                        if v.Animation.Name:match("Parry") then
+                            return false;
+                        end;
+                    end;
 				end;
 			end;
 			for i, v in pairs(Character:GetChildren()) do 
@@ -3275,7 +3295,7 @@ do
 	local cachedkametadata = nil;
 	local kaweapontick = 0;
 
-	framework:BindToRenderStep(LPH_JIT_MAX(function()
+	framework:BindToRenderStep(LPH_JIT(function()
 		if not settings.killaura or KADebounce then return; end;
 		if not check_ping_status() then return; end;
 		local mychar = localplayer.Character;
@@ -3314,10 +3334,10 @@ do
 			local my_hrp = my_character and my_character:FindFirstChild("HumanoidRootPart");
 			if not my_hrp then KADebounce = false; return; end;
 			local slash_index = math_random(1, #itemConfig.slashMetadata);
-			network:FireServer("MeleeSwing", weapon, slash_index);
+			fire_server("MeleeSwing", weapon, slash_index);
 			metadata._lastSlashTick = now;
 			local issingle = Classes.KillAuraType.Value == "single person";
-			task.defer(LPH_JIT_MAX(function()
+			task.defer(LPH_JIT(function()
 				local ok, err = pcall(function()
 					for i, hitbox in pairs(hitboxes) do
 						for player, data in pairs(closest) do
@@ -3328,12 +3348,12 @@ do
 							if not session or session:getState().parry.isParrying then continue; end;
 							local hitpart = gethitpart(character);
 							if not hitpart then continue; end;
-							network:FireServer("MeleeDamage",
+							fire_server("MeleeDamage",
                                 weapon,
                                 hitpart,
                                 i,
                                 hitpart.Position,
-                                hitpart.CFrame:ToObjectSpace(CFrame.new(hitpart.Position)),
+                                hitpart.CFrame:ToObjectSpace(cframe_new(hitpart.Position)),
                                 my_hrp.CFrame.LookVector,
                                 Vector3.zero,
                                 Vector3.yAxis,
@@ -3356,11 +3376,11 @@ do
 				if success and response ~= "Timed out" and response ~= "Wait failed" and response ~= "Signal creation failed" then
 					for i, v in metadata.meleeHitboxes do
 						v.HitboxStopTime = 1;
-						for targetPlayer, data in pairs(closest) do
-							if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("Head") or data.Health == 0 or not framework:Check(targetPlayer.Character) then continue; end;
-							if table.find(whitelist, targetPlayer.Name) then continue; end;
-							local character = targetPlayer.Character;
-							local session_data = framework:GetSessionData(targetPlayer);
+						for target_player, data in pairs(closest) do
+							if not target_player or not target_player.Character or not target_player.Character:FindFirstChild("Head") or data.Health == 0 or not framework:Check(target_player.Character) then continue; end;
+							if table.find(whitelist, target_player.Name) then continue; end;
+							local character = target_player.Character;
+							local session_data = framework:GetSessionData(target_player);
 							if session_data and not session_data:getState().parry.isParrying then
 								local head = character:FindFirstChild("Head");
 								local targetHum = character:FindFirstChildOfClass("Humanoid");
@@ -3372,7 +3392,7 @@ do
 										local mult = itemConfig.headshotMultiplier or 1.75
 										final_damage = final_damage * mult
 									end
-									OnHit(targetPlayer, head, final_damage, "Melee")
+									OnHit(target_player, head, final_damage, "Melee")
 								end;
 								if Classes.KillAuraType.Value == "single person" then break; end;
 							end;
@@ -3385,7 +3405,7 @@ do
 	end));
 end;
 
-framework:BindToRenderStep(LPH_JIT_MAX(function()
+framework:BindToRenderStep(LPH_JIT(function()
 	if not settings.autoequip and not settings.BeartrapEnemy and not settings.AutoAttachC4 and not settings.AutoDetonateC4 then return; end;
 	if not weapon and settings.autoequip then
 		local Character = localplayer.Character;
@@ -3408,7 +3428,7 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
 				if settings.BeartrapEnemy and CurrentTool and CurrentTool.Name == "Bear Trap" then
                     local target_root = TargetPlayer.Character:FindFirstChild("HumanoidRootPart")
 					if target_root then
-                        network:InvokeServer("PlaceBearTrap", CurrentTool, target_root.CFrame * cframe_new(0, -1, 0) );
+                        invoke_server("PlaceBearTrap", CurrentTool, target_root.CFrame * cframe_new(0, -1, 0) );
                     end;
 				end;
 				if settings.AutoAttachC4 and CurrentTool and CurrentTool.Name == "C4" then
@@ -3417,62 +3437,114 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
 						local Distance = (HumanoidRootPart.Position - Head.Position).Magnitude;
 						if Distance <= 15 then
 							local final_posiiton = Head.Position + (Head.Velocity * (Distance / 100));
-							pcall(function() network:InvokeServer("ReplicateThrowable", CurrentTool, final_posiiton, final_posiiton); end);
+							pcall(function()
+                                invoke_server("ReplicateThrowable", CurrentTool, final_posiiton, final_posiiton);
+                            end);
 						end;
 					end;
 				end;
 			end;
 		end;
 		if settings.AutoDetonateC4 and CurrentTool and CurrentTool.Name == "C4" then
-			pcall(function() network:FireServer("DetonateC4", CurrentTool); end);
+			pcall(function()
+                fire_server("DetonateC4", CurrentTool);
+            end);
 		end;
 	end;
 end));
 
 do
-    local fast_res = 0
-    local last_loopspawn = 0
-    local last_autorevive = 0
     local fastrespawn_delay = 0.5
     local loopspawn_delay = 1
-    local autorev_delay = 0.5
     local datahandler = modules.Name["DataHandler"];
+    local store = nil;
+    local revive_conn = nil;
 
-    runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
-        local now = tick();
-        local s = settings;
-        if s.fastrespawn and humanoid.Health == 0 then
-            if now - fast_res >= fastrespawn_delay then
-                fast_res = now;
-                network:FireServer("StartFastRespawn");
-                network:InvokeServer("CompleteFastRespawn");
-            end;
-        end;
-        if s.loopspawn and framework:in_menu(localplayer) then
-            if now - last_loopspawn >= loopspawn_delay then
-                last_loopspawn = now;
-                network:InvokeServer("SpawnCharacter");
-            end;
-        end;
-        if s.ar then
-            local store =  datahandler.getSessionDataRoduxStoreForPlayer(localplayer);
-            if store and store:getState().down.isDowned then
-                if now - last_autorevive >= autorev_delay then
-                    last_autorevive = now;
-                    network:FireServer("SelfReviveStart");
-                    network:FireServer("SelfRevive");
+    do_loopspawn = function()
+        if not settings.loopspawn then return; end;
+        if not framework:in_menu(localplayer) then return; end;
+        invoke_server("SpawnCharacter");
+    end;
+
+    bind_loopspawn = function(char)
+        if not char then return; end;
+        char.ChildAdded:Connect(function(child)
+            child:GetAttributeChangedSignal("ParryShieldId"):Connect(function()
+                if child:GetAttribute("ParryShieldId") == nil then
+                    do_loopspawn();
                 end;
+            end);
+        end);
+        
+        char.ChildRemoved:Connect(function()
+            if framework:in_menu(localplayer) then
+                do_loopspawn();
             end;
+        end);
+        for _, child in ipairs(char:GetChildren()) do
+            child:GetAttributeChangedSignal("ParryShieldId"):Connect(function()
+                if child:GetAttribute("ParryShieldId") == nil then
+                    do_loopspawn();
+                end;
+            end);
         end;
-        if s.fakeswing and not Debounce then
-            local weapon, metadata = framework:get_weapon();
-            if weapon and metadata then
-                Debounce = true;
-                metadata.animations.slashes[math_random(1, #metadata.animations.slashes)]:Play();
-                task.delay(0.5, function() Debounce = false; end);
+        if framework:in_menu(localplayer) then
+            do_loopspawn();
+        end;
+    end;
+
+	bind_autorevive = function()
+		store = datahandler.getSessionDataRoduxStoreForPlayer(localplayer);
+		if not store then return; end;
+		if revive_conn then
+			revive_conn:disconnect();
+			revive_conn = nil;
+		end;
+		revive_conn = store.changed:connect(function(newState)
+			if not settings.ar then return; end;
+			if newState.down and newState.down.isDowned then
+				fire_server("SelfReviveStart");
+				fire_server("SelfRevive");
+			end;
+		end);
+	end;
+    
+    do_fakeswing = function()
+        if Debounce then return; end;
+        local weapon, metadata = framework:get_weapon();
+        if weapon and metadata then
+            Debounce = true;
+            metadata.animations.slashes[math_random(1, #metadata.animations.slashes)]:Play();
+            task.delay(0.5, function()
+                Debounce = false;
+            end);
+        end;
+    end;
+
+    bind_fastrespawn = function(char)
+        local hum = char:WaitForChild("Humanoid");
+        hum.Died:Connect(function()
+            while settings.fastrespawn and hum.Health == 0 do
+                fire_server("StartFastRespawn");
+                invoke_server("CompleteFastRespawn");
+                task.wait(fastrespawn_delay);
             end;
-        end;
-    end));
+        end);
+    end;
+    localplayer.CharacterAdded:Connect(function(char)
+        humanoid = char:WaitForChild("Humanoid");
+        bind_fastrespawn(char);
+        bind_autorevive();
+        bind_loopspawn(char);
+        task.wait(loopspawn_delay);
+        do_loopspawn();
+    end);
+
+    if localplayer.Character then
+        bind_fastrespawn(localplayer.Character);
+        bind_autorevive();
+        bind_loopspawn(localplayer.Character);
+    end;
 
     local stompthrottle = 0;
     local glorythrottle = 0;
@@ -3482,7 +3554,7 @@ do
     local cachedglorytool = nil;
     local glorytoolttick = 0;
 
-    framework:BindToRenderStep(LPH_JIT_MAX(function()
+    framework:BindToRenderStep(LPH_JIT(function()
         local s = settings;
         if not s.autostompshove and not s.autoglory and s.loopkillall then return; end;
         local now = tick();
@@ -3518,7 +3590,13 @@ do
                                         setthreadidentity(2);
                                         metadata:slash();
                                         setthreadidentity(8);
-                                        v.OnHit:Fire(thead, thum, {Distance = 1, Instance = thead, Material = Enum.Material.SmoothPlastic, Position = thead.Position, Normal = Vector3.yAxis, }, thead.Position, thead.Position);
+                                        v.OnHit:Fire(thead, thum, {
+                                            Distance = 1,
+                                            Instance = thead,
+                                            Material = Enum.Material.SmoothPlastic,
+                                            Position = thead.Position,
+                                            Normal = Vector3.yAxis;
+                                        }, thead.Position, thead.Position);
                                     end;
                                 end;
                                 break;
@@ -3538,7 +3616,7 @@ do
                 if targetplayer and targetplayer.Character then
                     local thum = targetplayer.Character:FindFirstChild("Humanoid");
                     if thum and thum.Health <= 20 then
-                        network:FireServer("StartGloryKill", tool, targetplayer.Character, cframe_new(), vector3_new());
+                        fire_server("StartGloryKill", tool, targetplayer.Character, cframe_new(), vector3_new());
                     end;
                 end;
             end;
@@ -3549,18 +3627,10 @@ end;
 do
     local angle = 0;
     local random_t = 0;
-    local Connection;
     local StickTarget;
     current_target = nil;
 
-    Connection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
-        if not Active then return; end;
-        local speed_value = (Options.strafe_speed and Options.strafe_speed.Value) or tpspeed or 10;
-        angle = (angle + dt * speed_value) % (2 * math.pi);
-        random_t = random_t + dt * (speed_value * 0.75);
-    end));
-
-    serverposition("heartbeat", "combat_teleport", LPH_JIT_MAX(function(real_cframe)
+    serverposition("heartbeat", "combat_teleport", LPH_JIT(function(real_cframe)
         local Character = localplayer.Character;
         if not Character then return; end;
         local hrp = Character:FindFirstChild("HumanoidRootPart");
@@ -3599,7 +3669,7 @@ do
                     settings.is_voiding = false;
                     settings.last_void_tick = now;
                     if is_baiting then
-                        settings.bait_random_vout = math_random(25, 50) / 100;
+                        settings.bait_random_vout = math_random(30, 80) / 100;
                     end;
                 end;
             else
@@ -3607,7 +3677,7 @@ do
                     settings.is_voiding = true;
                     settings.last_void_tick = now;
                     if is_baiting then
-                        settings.bait_random_vin = math_random(25, 50) / 100;
+                        settings.bait_random_vin = math_random(25, 80) / 100;
                     end;
                 end;
             end;
@@ -3670,7 +3740,12 @@ do
         return true;
     end;
 
-    runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
+    runservice.Heartbeat:Connect(LPH_JIT(function(dt)
+		if Active then
+			local speed_value = (Options.strafe_speed and Options.strafe_speed.Value) or tpspeed or 10;
+			angle = (angle + dt * speed_value) % (2 * math.pi);
+			random_t = random_t + dt * (speed_value * 0.75);
+		end;
         local Character = localplayer.Character;
         if not Character then
             current_target = nil;
@@ -3739,11 +3814,11 @@ do
 end;
 
 local kill_phase = 0;
-serverposition("heartbeat", "initattemptkill", LPH_JIT_MAX(function(cf)
+serverposition("heartbeat", "initattemptkill", LPH_JIT(function(cf)
     if kill_phase == 1 then
         return cf + vector3_new(0, 1000, 0);
     elseif kill_phase == 2 then
-        network:FireServer("StartFallDamage");
+        fire_server("StartFallDamage");
         return cf + vector3_new(0, -1000, 0);
     end;
     return cf;
@@ -3755,9 +3830,9 @@ do
         local apdelay = math.round(Classes.APDelay.Value or 0);
         if apdelay > 0 then task.wait(apdelay); end;
         if Classes.APType.Value == "remote" then
-            network:FireServer("Parry");
+            fire_server("Parry");
         elseif Classes.APType.Value == "both" then
-            network:FireServer("Parry");
+            fire_server("Parry");
             keypress(0x46);
             keyrelease(0x46);
         else
@@ -3807,7 +3882,7 @@ do
 
     local slashes = {};
     local parries = {};
-    task_spawn(LPH_JIT_MAX(function()
+    task_spawn(LPH_JIT(function()
         task.wait(0.5);
         for _, obj in pairs(getgc(true)) do
             if type(obj) == "table" and rawget(obj, "slashMetadata") and rawget(obj, "parryMetadata") ~= nil then
@@ -3965,8 +4040,6 @@ do
             end;
         });
 
-
-
         parrysection2:AddSlider("Threshold", {
             Text = "marker threshold";
             Default = 0.3;
@@ -3996,16 +4069,16 @@ do
         });
 
         antiparry_box:AddDropdown("AntiParryModes", {
-        Text = "modes";
-        Default = "silent";
+            Text = "modes";
+            Default = "silent";
             Values = {"unequip", "void", "silent"};
             Multi = true;
         });
     end;
 
     parrysection:AddToggle("fakeswing", {
-    Text = "fake swing";
-    Default = false;
+        Text = "fake swing";
+        Default = false;
         Callback = function(v)
             settings.fakeswing = v;
         end;
@@ -4028,21 +4101,21 @@ do
         if gp then return; end;
         if settings.swingsound and (i.KeyCode == Options.swingsoundkey.Value or i.UserInputType == Options.swingsoundkey.Value) then
             local weapon = framework:get_weapon();
-            if weapon then network:FireServer("MeleeSwing", weapon, math_random(1, 3)); end;
+            if weapon then fire_server("MeleeSwing", weapon, math_random(1, 3)); end;
         end;
     end);
 
     parrysection:AddToggle("AutoEquip", {
-    Text = "auto equip";
-    Default = false;
+        Text = "auto equip";
+        Default = false;
         Callback = function(v)
             settings.autoequip = v;
         end;
     });
 
     parrysection:AddToggle("VoidOnParry", {
-    Text = "void on parry stun";
-    Default = false;
+        Text = "void on parry stun";
+        Default = false;
         Callback = function(v)
             settings.voidonparry = v;
         end;
@@ -4093,7 +4166,9 @@ do
             local weapon, metadata = framework:get_weapon();
             if not weapon or not metadata then return; end;
             local parry_count = is_rage and 3 or 1;
-            for _ = 1, parry_count do task_spawn(Parry, metadata); end;
+            for _ = 1, parry_count do
+                task_spawn(Parry, metadata);
+            end;
         end;
 
         if Classes.APDelay.Value > 0 then
@@ -4136,7 +4211,9 @@ do
         modules.Name["SoundHandler"].playSound = function(...)
             local args = {...};
             local sound = args[1];
-            if not sound or not play_sound_old then return play_sound_old and play_sound_old(...) or nil; end;
+            if not sound or not play_sound_old then
+                return play_sound_old and play_sound_old(...) or nil;
+            end;
             if typeof(sound) == "table" then
                 pcall(function()
                     local is_rage = Classes.RageAutoParry and Classes.RageAutoParry.Value;
@@ -4198,9 +4275,11 @@ do
                         if parry_shield and parry_shield:GetAttribute("ParryShieldId") and character then
                             table.insert(ParryingCharacters, character);
                             if modules.Name["ParryConstants"] and modules.Name["ParryConstants"].PARRY_DURATION_IN_SECONDS then
-                                task.delay(modules.Name["ParryConstants"].PARRY_DURATION_IN_SECONDS, function() 
+                                task.delay(modules.Name["ParryConstants"].PARRY_DURATION_IN_SECONDS, function()
 									local idx = table.find(ParryingCharacters, character);
-									if idx then table.remove(ParryingCharacters, idx); end;
+									if idx then
+                                        table.remove(ParryingCharacters, idx);
+                                    end;
 								end);
                             end;
                         end;
@@ -4210,7 +4289,7 @@ do
             return play_sound_old(...);
         end;
     end;
-    framework:BindToRenderStep(LPH_JIT_MAX(function()
+    framework:BindToRenderStep(LPH_JIT(function()
         if not Classes.AutoParry.Value then return; end;
         if Classes.APCheck.Value ~= "animations" then return; end;
         local character = localplayer.Character;
@@ -4245,12 +4324,16 @@ do
                         if head then
                             local bad_plr_direction = (bad_plr_pos - head.Position).Unit;
                             local to_check = head.CFrame.LookVector;
-                            if math.deg(math.acos(bad_plr_direction:Dot(to_check))) <= Classes.APAngle.Value then can_parry = true; end;
+                            if math.deg(math.acos(bad_plr_direction:Dot(to_check))) <= Classes.APAngle.Value then
+                                can_parry = true;
+                            end;
                         end;
                     else
                         can_parry = true;
                     end;
-                    if can_parry then task_spawn(Parry, metadata); end;
+                    if can_parry then
+                        task_spawn(Parry, metadata);
+                    end;
                 end;
             end;
         end;
@@ -4275,7 +4358,7 @@ do
             end;
             return false;
         end;
-        modules.Name["CharacterUtil"].getIsHittableCharacterPart = LPH_NO_UPVALUES(function(part, unused)
+        modules.Name["CharacterUtil"].getIsHittableCharacterPart = LPH_JIT_MAX(function(part, unused)
             if Classes.AntiParry.Value and part and part.Parent then
                 local character = part.Parent;
                 local player = players:GetPlayerFromCharacter(character);
@@ -4324,6 +4407,7 @@ do
         end);
     end;
 end;
+
 charactertab:AddToggle("fly", {
     Text = "fly";
     Default = false;
@@ -4364,9 +4448,8 @@ charactertab:AddToggle("velocity", {
 
 do
 	local applied = false;
-
 	charactertab:AddToggle("walkspeed", {
-    Text = "walkspeed";
+        Text = "walkspeed";
 	    Default = false;
 	    Callback = function(enabled)
 	        settings.walkspeedenabled = enabled;
@@ -4383,33 +4466,60 @@ do
 	    end;
     });
 
-	local jpconn;
+    local jpconn;
+    local pending = false;
+
+    local function bind_jumppower(hum)
+        if jpconn then
+            jpconn:Disconnect();
+            jpconn = nil;
+        end;
+
+        if not hum then return; end;
+
+        jpconn = hum:GetPropertyChangedSignal("JumpPower"):Connect(function()
+            if pending then return end;
+            pending = true;
+
+            task.delay(0.1, function()
+                pending = false;
+
+                local target = (jumppowerenabled and settings.jumppower) or 50;
+                if hum and hum.Parent and hum.JumpPower ~= target then
+                    hum.JumpPower = target;
+                end
+            end)
+        end);
+
+        hum.JumpPower = (jumppowerenabled and settings.jumppower) or 50;
+    end;
+
 	charactertab:AddToggle("jumppower", {
-    Text = "jump power";
-    Default = false;
-	    Callback = function(enabled)
-	        jumppowerenabled = enabled;
-	        if jpconn then
-	            jpconn:Disconnect();
-	            jpconn = nil;
-	        end;
-	        if enabled then
-	            jpconn = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
-                    if humanoid and settings.jumppower then humanoid.JumpPower = settings.jumppower;
-                    end;
-                end));
-	        else
-	            if humanoid then
-                    humanoid.JumpPower = 50;
-                end;
-	        end;
-	    end; 
-    });
+		Text = "jump power";
+		Default = false;
+		Callback = function(enabled)
+			jumppowerenabled = enabled;
+			if humanoid then
+				humanoid.JumpPower = enabled and settings.jumppower or 50;
+			end;
+		end;
+	});
+
+	localplayer.CharacterAdded:Connect(function(char)
+		humanoid = char:WaitForChild("Humanoid");
+		bind_jumppower(humanoid);
+	end);
+
+	if humanoid then
+		bind_jumppower(humanoid);
+	end;
 
     local noanim_connection = nil;
     local charanim_connection = nil;
     local function apply_no_anims(char)
-        if noanim_connection then noanim_connection:Disconnect(); end;
+        if noanim_connection then
+			noanim_connection:Disconnect();
+		end;
         local hum = char:WaitForChild("Humanoid");
         local animator = hum:FindFirstChildOfClass("Animator");
         if not animator then return; end;
@@ -4426,8 +4536,8 @@ do
     end;
 
     charactertab:AddToggle("NoAnimations", {
-    Text = "no animations";
-    Default = false;
+        Text = "no animations";
+        Default = false;
         Tooltip = "stops all character animations";
         Callback = function(Value)
             if Value then
@@ -4436,7 +4546,8 @@ do
                 end;
                 charanim_connection = localplayer.CharacterAdded:Connect(apply_no_anims);
             else
-                if noanim_connection then noanim_connection:Disconnect();
+                if noanim_connection then
+					noanim_connection:Disconnect();
                     noanim_connection = nil;
                 end;
                 if charanim_connection then
@@ -4448,21 +4559,23 @@ do
     });
 
     charactertab:AddToggle("spin", {
-    Text = "spin";
-    Default = false;
+        Text = "spin";
+        Default = false;
         Callback = function(Value)
             spineabled = Value;
         end;
     });
 
 	charactertab:AddToggle("infjump", {
-    Text = "infinite jump";
+        Text = "infinite jump";
 	    Default = false;
 	    Callback = function(Value)
 	        if Value then
 	            Con = userinputservice.InputBegan:Connect(function(i, gp)
 	                if gp then return; end;
-	                if i.KeyCode == Enum.KeyCode.Space and humanoid then humanoid:ChangeState(Enum.HumanoidStateType.Jumping); end;
+	                if i.KeyCode == Enum.KeyCode.Space and humanoid then
+                        humanoid:ChangeState(Enum.HumanoidStateType.Jumping);
+                    end;
 	            end);
 	        else
 	            if Con then
@@ -4478,8 +4591,8 @@ do
     max_speed2 = safe_mode and 65 or 1000;
 
 	charactertab:AddSlider("flyspeed", {
-    Text = "fly speed",
-    Default = 16,
+        Text = "fly speed",
+        Default = 16,
         Min = 16,
         Max = max_speed,
         Rounding = 0,
@@ -4490,7 +4603,7 @@ do
     });
 
 	charactertab:AddSlider("walkspeed2", {
-    Text = "walk speed";
+        Text = "walk speed";
     	Default = 16;
     	Min = 16;
     	Max = max_speed1;
@@ -4510,26 +4623,26 @@ do
     });
 
 	charactertab:AddSlider("jumppower2", {
-    Text = "jump power",
-    Default = 50,
-        Min = 50,
-        Max = 200,
-        Rounding = 0,
+        Text = "jump power";
+        Default = 50;
+        Min = 50;
+        Max = 200;
+        Rounding = 0;
         Compact = true;
         Callback = function(value)
-	        settings.jumppower = value;
-	        if jumppowerenabled and humanoid then
+			settings.jumppower = value;
+			if jumppowerenabled and humanoid then
 				humanoid.JumpPower = value;
 			end;
 		end;
     });
 
 	charactertab:AddSlider("speed", {
-    Text = "velocity speed",
-    Default = 16,
-        Min = 16,
-        Max = max_speed2,
-        Rounding = 0,
+        Text = "velocity speed";
+        Default = 16;
+        Min = 16;
+        Max = max_speed2;
+        Rounding = 0;
         Compact = true;
         Callback = function(Value)
 			settings.velocityspeed = Value;
@@ -4537,8 +4650,8 @@ do
     });
 
 	charactertab:AddSlider("spinspeed", {
-    Text = "spin speed";
-    Default = 10;
+        Text = "spin speed";
+        Default = 10;
         Min = 10;
         Max = 100;
         Rounding = 0;
@@ -4554,8 +4667,8 @@ do
     local protection = tabs.charactertab:AddLeftGroupbox("protection");
 
     protection:AddToggle("voidenabled", {
-    Text = "void";
-    Default = false;
+        Text = "void";
+        Default = false;
         Callback = function()
             updatefeature("voidenabled", "voidenabledkey", function(state)
                 settings.voidenabled = state;
@@ -4569,8 +4682,8 @@ do
             end);
         end;
     }):AddKeyPicker("voidenabledkey", {
-    Text = "void";
-    Default = "Y";
+        Text = "void";
+        Default = "Y";
         Mode = "Toggle";
         Callback = function()
             updatefeature("voidenabled", "voidenabledkey", function(state)
@@ -4593,8 +4706,8 @@ do
     });
 
     void_dep:AddToggle("follow_strafe_target", {
-    Text = "follow strafe target";
-    Default = false;
+        Text = "follow strafe target";
+        Default = false;
         Tooltip = "voids under strafe target";
         Callback = function(Value)
             settings.follow_strafe_target = Value
@@ -4602,8 +4715,8 @@ do
     });
 
     void_dep:AddToggle("void_spam", {
-    Text = "spam";
-    Default = false;
+        Text = "spam";
+        Default = false;
         Callback = function(Value)
             settings.void_spam = Value;
             if not Value then
@@ -4624,8 +4737,8 @@ do
     });
 
     void_spam_dep:AddSlider("void_in", {
-    Text = "void in";
-    Default = 0;
+        Text = "void in";
+        Default = 0;
         Min = 0;
         Max = 1;
         Rounding = 1;
@@ -4636,8 +4749,8 @@ do
     });
 
     void_spam_dep:AddSlider("void_out", {
-    Text = "void out";
-    Default = 0;
+        Text = "void out";
+        Default = 0;
         Min = 0;
         Max = 1;
         Rounding = 1;
@@ -4647,7 +4760,7 @@ do
         end;
     });
 
-    task_spawn(LPH_JIT_MAX(function()
+    task_spawn(LPH_JIT(function()
         while true do
             task.wait()
             if settings.void_spam and settings.voidenabled then
@@ -4688,16 +4801,16 @@ exploit:AddToggle("stamina", {
 local stamina_depbox = exploit:AddDependencyBox();
 
 stamina_depbox:AddToggle("infstamina", {
-    Text = "infinite stamina",
-    Default = false,
+    Text = "infinite stamina";
+    Default = false;
     Callback = function(Value)
-        settings.infstamina = Value
+        settings.infstamina = Value;
         stamina_sett_changed();
     end;
 });
 
 stamina_depbox:AddToggle("staminaregenstate", {
-    Text = "stamina regen rate",
+    Text = "stamina regen rate";
     Default = false;
     Callback = function(Value)
         stamregentoggle = Value
@@ -4738,20 +4851,22 @@ stamina_regen:AddSlider("staminaregenslider", {
     Rounding = 1;
     Compact = true;
     Callback = function(Value)
-        stamregenrate = Value
+        stamregenrate = Value;
         stamina_sett_changed();
     end;
 });
 
 stamina_depbox:SetupDependencies({
-    {Toggles.stamina, true }
-})
+    {Toggles.stamina, true; };
+});
+
 stamina_regen:SetupDependencies({
-    {Toggles.staminaregenstate, true }
-})
+    {Toggles.staminaregenstate, true; };
+});
+
 stamina_delay:SetupDependencies({
-    {Toggles.staminadelaystate, true }
-})
+    {Toggles.staminadelaystate, true; };
+});
 
 exploit:AddToggle("infair", {
     Text = "infinite air";
@@ -4805,7 +4920,7 @@ exploit:AddToggle("nodashcd", {
     end;
 });
 
-framework:BindToRenderStep(LPH_JIT_MAX(function()
+framework:BindToRenderStep(LPH_JIT(function()
 	framework:spinning();
     if not settings.ndcd then return; end;
     local sessionsdata = framework:GetSessionData();
@@ -4914,8 +5029,8 @@ do
         table.clear(collision_cache);
     end;
     exploit:AddToggle("antifling", {
-    Text = "anti fling",
-    Default = false,
+        Text = "anti fling";
+        Default = false;
         Callback = function(Value)
             settings.antifling = Value;
             stop_antifling();
@@ -4965,7 +5080,7 @@ exploit:AddToggle("nr", {
     Default = false;
     Callback = function(Value)
         if Value then
-            local ragdoll = modules.Name["RagdollableClient"].attemptToggleActualRagdollClient; modules.Name["RagdollableClient"].attemptToggleActualRagdollClient = LPH_JIT_MAX(function(...)
+            local ragdoll = modules.Name["RagdollableClient"].attemptToggleActualRagdollClient; modules.Name["RagdollableClient"].attemptToggleActualRagdollClient = LPH_JIT(function(...)
                 if Toggles.nr.Value then
                     return;
                 end;
@@ -5039,14 +5154,18 @@ do
         table.insert(anim_connections, animator.AnimationPlayed:Connect(on_track_played));
     end;
     exploit:AddToggle("speedyboi", {
-    Text = "fast animation";
-    Default = false;
+        Text = "fast animation";
+        Default = false;
         Tooltip = "use for instant finish";
         Callback = function(Value)
             cleanup_anim();
-            if charcon then charcon:Disconnect(); charcon = nil; end;
+            if charcon then charcon:Disconnect();
+                charcon = nil;
+            end;
             if Value then
-                if character then apply(character); end;
+                if character then
+                    apply(character);
+                end;
                 charcon = localplayer.CharacterAdded:Connect(apply);
             else
                 reset_speeds();
@@ -5108,7 +5227,8 @@ desync_dep:AddSlider("desync_x", {
     Min = -180;
     Max = 180;
     Rounding = 0;
-    Compact = true; Suffix = "°";
+    Compact = true;
+    Suffix = "°";
 });
 
 desync_dep:AddSlider("desync_y", {
@@ -5117,7 +5237,8 @@ desync_dep:AddSlider("desync_y", {
     Min = -180;
     Max = 180;
     Rounding = 0;
-    Compact = true; Suffix = "°";
+    Compact = true;
+    Suffix = "°";
 });
 
 desync_dep:AddSlider("desync_z", {
@@ -5126,7 +5247,8 @@ desync_dep:AddSlider("desync_z", {
     Min = -180;
     Max = 180;
     Rounding = 0;
-    Compact = true; Suffix = "°";
+    Compact = true;
+    Suffix = "°";
 });
 
 desync_dep:AddToggle("desync_random_rotation", {
@@ -5234,6 +5356,7 @@ othertabs:AddToggle("HitboxExpand", {
     Default = Config.HitboxExpand;
     Callback = function(value)
         Config.HitboxExpand = value;
+		apply_all_hitboxes();
     end;
 });
 
@@ -5242,6 +5365,7 @@ othertabs:AddToggle("ShowHitbox", {
     Default = Config.ShowHitbox;
     Callback = function(value)
         Config.ShowHitbox = value;
+        apply_all_hitboxes();
     end;
 });
 
@@ -5251,6 +5375,7 @@ othertabs:AddDropdown("HBEPart", {
     Values = R6BodyParts;
     Callback = function(value)
         Config.HBEPart = value;
+        apply_all_hitboxes();
     end;
 });
 
@@ -5264,6 +5389,7 @@ othertabs:AddSlider("HitboxSize", {
     Suffix = " studs";
     Callback = function(value)
         Config.HitboxSize = value;
+        apply_all_hitboxes();
     end;
 });
 
@@ -5273,7 +5399,7 @@ mmisc:AddToggle("svs", {
     Tooltip = "join vc servers without vc";
     Callback = function(Value)
         settings.vcenabled = Value;
-        network:FireServer("UpdateHasVc", true);
+        fire_server("UpdateHasVc", true);
     end;
 });
 
@@ -5296,7 +5422,7 @@ do
     };
     local groupservice = game:GetService("GroupService");
     local function is_group_mod(player, callback)
-        task_spawn(LPH_JIT_MAX(function()
+        task_spawn(LPH_JIT(function()
             local success, result = pcall(function()
                 return groupservice:GetGroupsAsync(player.UserId);
             end);
@@ -5355,7 +5481,7 @@ do
 end;
 
 misc:AddButton("get cat", function()
-    network:FireServer("ExecuteCommand", "getCat", {});
+    fire_server("ExecuteCommand", "getCat", {});
 end);
 
 misc:AddButton("unlock emotes", function()
@@ -5376,7 +5502,7 @@ misc:AddToggle("fno", {
     end;
 });
 
-misc:AddToggle("ip", {
+misc:AddToggle("include_position", {
     Text = "include position";
 	Default = false;
 	Callback = function(v)
@@ -5402,9 +5528,11 @@ misc:AddToggle("ip", {
 		if v and settings.fno then
 			if deathconnection then return; end;
 			deathconnection = localplayer.CharacterAdded:Connect(connect);
-			if character then connect(character); end;
+			if character then
+                connect(character);
+            end;
 			if positionconnection then positionconnection:Disconnect(); end;
-			positionconnection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
+			positionconnection = runservice.Heartbeat:Connect(LPH_JIT(function()
 				if ignorerespawn then return; end;
 				if not character then return; end;
 				if not humanoidrootpart or not humanoidrootpart:IsDescendantOf(workspace) then return; end;
@@ -5487,7 +5615,7 @@ crates:AddDropdown("crates", {
     Default = SelectedCrateName;
     Multi = false;
     Callback = function(v)
-        SelectedCrateName = v
+        SelectedCrateName = v;
     end;
 });
 
@@ -5508,11 +5636,11 @@ crates:AddButton({
 	Func = function()
 		local caseid = displayid[SelectedCrateName];
 		if caseid then
-			local success, response = network:InvokeServer("PurchaseCase", caseid, selectedamount);
+			local success, response = invoke_server("PurchaseCase", caseid, selectedamount);
 			if success then
 				setthreadidentity(2);
 				modules.Name["ToastNotificationActionsClient"].add( "success", `Opened {tostring(selectedamount)} case(s) of {SelectedCrateName}`, 2 )(modules.Name["RoduxStore"].store);
-				modules.Name["SoundHandler"].playSound({soundObject = ReplicatedStorage.Shared.Assets.Sounds.Success, parent = Workspace.Sounds, });
+				modules.Name["SoundHandler"].playSound({soundObject = repstorage.Shared.Assets.Sounds.Success, parent = Workspace.Sounds, });
 				setthreadidentity(7);
 			else
 				setthreadidentity(2);
@@ -5529,7 +5657,7 @@ crates:AddButton({
 
 crates:AddDropdown("spoofervalues", {
     Text = "device spoofer";
-	Values = {"pc", "phone", "tablet", "xbox" };
+	Values = {"pc", "phone", "tablet", "xbox"};
 	Default = settings.selecteddevice;
 	Multi = false;
 	Callback = function(v)
@@ -5558,6 +5686,9 @@ miscauto:AddToggle("ar", {
     Default = false;
     Callback = function(Value)
         settings.ar = Value;
+        if Value then
+			bind_autorevive();
+		end;
     end;
 });
 
@@ -5566,6 +5697,9 @@ miscauto:AddToggle("loopspawn", {
     Default = false;
     Callback = function(Value)
         settings.loopspawn = Value;
+        if Value then
+            do_loopspawn();
+        end;
     end;
 });
 
@@ -5599,7 +5733,9 @@ function bestmatch(Input)
         if plr ~= localplayer then
             local namematch = plr.Name:lower():find(Input);
             local displaymatch = plr.DisplayName:lower():find(Input);
-            if namematch or displaymatch then return plr; end;
+            if namematch or displaymatch then
+                return plr;
+            end;
         end;
     end;
     return nil;
@@ -5649,12 +5785,16 @@ misc1:AddDropdown("PlayerDropdown", {
             SelectedPlayer = game.Players:FindFirstChild(Value);
             if SelectedPlayer then
                 currenttarget:SetText("current target: " .. SelectedPlayer.DisplayName .. " (@" .. SelectedPlayer.Name .. ")");
-                if Options.playersearch then Options.playersearch:SetValue(SelectedPlayer.Name); end;
+                if Options.playersearch then
+                    Options.playersearch:SetValue(SelectedPlayer.Name);
+                end;
             end;
         else
             SelectedPlayer = nil;
             currenttarget:SetText("current target: none");
-            if Options.playersearch then Options.playersearch:SetValue(""); end;
+            if Options.playersearch then
+                Options.playersearch:SetValue("");
+            end;
         end;
     end;
 });
@@ -5671,7 +5811,9 @@ game.Players.PlayerRemoving:Connect(function(plr)
     if SelectedPlayer and SelectedPlayer == plr then
         SelectedPlayer = nil;
         currenttarget:SetText("current target: none");
-        if Options.PlayerSearch then Options.PlayerSearch:SetValue(""); end;
+        if Options.PlayerSearch then
+            Options.PlayerSearch:SetValue("");
+        end;
     end;
 end);
 
@@ -5687,70 +5829,9 @@ misc1:AddButton("teleport", function()
     end;
 end);
 
-serverposition("heartbeat", "AvoidProjectiles", LPH_JIT_MAX(function(cf)
+serverposition("heartbeat", "AvoidProjectiles", LPH_JIT(function(cf)
     return cf * cframe_new(0, 60, 0);
 end), 2);
-
-if not safe_mode then
-    misc1:AddButton("attempt fling", function()
-        local target = SelectedPlayer
-        if not target then return; end;
-        if framework:in_menu(target) then
-            library:Notify(SelectedPlayer.Name .. "is in lobby", 3);
-            return;
-        end;
-        local fling = true;
-        local hbconn, velconn;
-        local connections = {}
-        local function stop_flinging()
-            if not fling then return; end;
-            fling = false;
-            for _, conn in ipairs(connections) do if conn.Connected then conn:Disconnect(); end; end;
-            connections = {};
-            if humanoidrootpart and humanoidrootpart.Parent then
-                sethiddenproperty(humanoidrootpart, "PhysicsRepRootPart", humanoidrootpart)
-                humanoidrootpart.Velocity = Vector3.zero;
-                humanoidrootpart.RotVelocity = Vector3.zero;
-            end;
-        end;
-        local function getrootandhumanoid(player)
-            local char = player.Character;
-            if not char then return; end;
-            local hrp = char:FindFirstChild("HumanoidRootPart");
-            local hum = char:FindFirstChildOfClass("Humanoid");
-            if hrp and hum then return hrp, hum; end;
-        end;
-        local function fling()
-            local targethrp, targethumanoid = getrootandhumanoid(target)
-            if not targethrp or not targethumanoid or not humanoidrootpart then
-                stop_flinging();
-                return;
-            end;
-            table.insert(connections, targethumanoid.Died:Once(stop_flinging));
-            table.insert(connections, humanoid.Died:Once(stop_flinging));
-            table.insert(connections, target.CharacterAdded:Connect(stop_flinging));
-            table.insert(connections, localplayer.CharacterAdded:Connect(stop_flinging));
-            table.insert(connections, runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
-                if not fling then return; end;
-                local newhrp, _ = getrootandhumanoid(target);
-                if newhrp and humanoidrootpart and humanoidrootpart.Parent then
-                    sethiddenproperty(humanoidrootpart, "PhysicsRepRootPart", newhrp);
-                    humanoidrootpart.CFrame = newhrp.CFrame;
-                end;
-            end)));
-            table.insert(connections, runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
-                if not fling then return; end;
-                if humanoidrootpart and humanoidrootpart.Parent then
-                    local vel = humanoidrootpart.Velocity;
-                    humanoidrootpart.Velocity = vel * 10000 + vector3_new(0, 10000, 0);
-                    runservice.RenderStepped:Wait();
-                    humanoidrootpart.Velocity = vel + vector3_new(0, 0.1, 0);
-                end;
-            end)));
-        end;
-        fling();
-    end);
-end;
 
 misc1:AddButton("whitelist", function()
     local s, e = pcall(function()
@@ -5762,7 +5843,9 @@ misc1:AddButton("whitelist", function()
             library:Notify(playername .. " is already whitelisted", 4);
         end;
     end);
-    if e then library:Notify("select a target", 3); end;
+    if e then
+        library:Notify("select a target", 3);
+    end;
 end);
 
 misc1:AddButton("remove from whitelist", function()
@@ -5776,7 +5859,9 @@ misc1:AddButton("remove from whitelist", function()
             library:Notify(playername .. " is not whitelisted", 4);
         end;
     end);
-    if e then library:Notify("select a target", 3); end;
+    if e then
+        library:Notify("select a target", 3);
+    end;
 end);
 
 misc1:AddToggle("spectateto", {
@@ -5785,12 +5870,20 @@ misc1:AddToggle("spectateto", {
 	Callback = function(v)
 		if not v then
 			viewing = nil;
-			if view_died then view_died:Disconnect(); view_died = nil; end;
-			if view_changed then view_changed:Disconnect(); view_changed = nil; end;
+			if view_died then
+                view_died:Disconnect();
+                view_died = nil;
+            end;
+			if view_changed then
+                view_changed:Disconnect();
+                view_changed = nil;
+            end;
 			local my_character = localplayer.Character;
 			if my_character then
 				local hum = my_character:FindFirstChildOfClass("Humanoid");
-				if hum then workspace.CurrentCamera.CameraSubject = hum; end;
+				if hum then
+                    workspace.CurrentCamera.CameraSubject = hum;
+                end;
 			end
 		else
 			local target = SelectedPlayer;
@@ -5799,7 +5892,9 @@ misc1:AddToggle("spectateto", {
 			local function update_view()
 				if not viewing or not viewing.Character then return; end;
 				local hum = viewing.Character:FindFirstChildOfClass("Humanoid");
-				if hum then workspace.CurrentCamera.CameraSubject = hum; end;
+				if hum then
+                    workspace.CurrentCamera.CameraSubject = hum;
+                end;
 			end
 			update_view();
 			view_died = viewing.CharacterAdded:Connect(function(char)
@@ -5822,29 +5917,31 @@ do
     local cas = game:GetService("ContextActionService");
     local function on_space(action_name, input_state)
         if input_state == Enum.UserInputState.Begin then
-            network:InvokeServer("SpawnCharacter");
+            invoke_server("SpawnCharacter");
         end;
         return Enum.ContextActionResult.Sink;
     end;
     local function has_parry_shield(character)
         for _, v in character:GetChildren() do
             if v:GetAttribute("ParryShieldId") then 
-                return true ;
+                return true;
             end;
         end;
         return false;
     end;
-    local function update_bind(character)
-        if not character then
-            cas:UnbindAction("MenuSpaceOverride");
-            return;
-        end;
-        if has_parry_shield(character) then
-            cas:UnbindAction("MenuSpaceOverride");
-        else
-            cas:BindAction("MenuSpaceOverride", on_space, false, Enum.KeyCode.Space);
-        end;
-    end;
+	local function update_bind(character)
+		if not character then
+			cas:UnbindAction("MenuSpaceOverride");
+			return;
+		end;
+		local humanoid = character:FindFirstChildOfClass("Humanoid");
+		local alive = humanoid and humanoid.Health > 0;
+		if has_parry_shield(character) or not alive then
+			cas:UnbindAction("MenuSpaceOverride");
+		else
+			cas:BindAction("MenuSpaceOverride", on_space, false, Enum.KeyCode.Space);
+		end;
+	end;
     local child_connections = {};
     local function watch_character(character)
         for _, c in child_connections do 
@@ -5875,6 +5972,7 @@ do
         watch_character(localplayer.Character);
     end;
 end;
+
 network:BindEvents({
     KilledPlayer = function(statData)
 		local KillSayStuff = Data.KillSayStuff;
@@ -5946,75 +6044,19 @@ local CachedPlayers = {};
 local function UpdateCachedPlayers()
     CachedPlayers = {};
     local all = players:GetPlayers();
-    for i = 1, #all do local v = all[i]; if v ~= localplayer then CachedPlayers[#CachedPlayers + 1] = v; end; end;
+    for i = 1, #all do local v = all[i];
+        if v ~= localplayer then
+            CachedPlayers[#CachedPlayers + 1] = v;
+        end;
+    end;
 end;
 UpdateCachedPlayers();
-players.PlayerAdded:Connect(function() UpdateCachedPlayers(); end);
-players.PlayerRemoving:Connect(function() UpdateCachedPlayers(); end);
-local FlingThread;
-local CanFlingAll = false;
-setthreadidentity(8);
-if not safe_mode then
-    misc1:AddToggle("loopflingall", {
-    Text = "loop attempt fling all";
-    Default = false;
-        Callback = function(Value)
-            if not Value then
-                CanFlingAll = false;
-                if FlingThread then
-                    task.cancel(FlingThread);
-                    FlingThread = nil;
-                end;
-                return;
-            end;
-            if framework:in_menu(localplayer) then repeat task.wait() until not framework:in_menu(localplayer) end
-            task.wait(0.05)
-            CanFlingAll = true;
-            FlingThread = task_spawn(LPH_JIT_MAX(function()
-                while CanFlingAll do
-                    if framework:in_menu(localplayer) then repeat task.wait() until not framework:in_menu(localplayer) end
-                    if not CanFlingAll then break; end;
-                    local LocalRoot = localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart")
-                    if not LocalRoot then
-                        task.wait(0.1);
-                        continue;
-                    end;
-                    local playercount = 0;
-                    for i = 1, #CachedPlayers do
-                        if not CanFlingAll then break; end;
-                        local Player = CachedPlayers[i];
-                        if not Player or not Player.Parent then continue; end;
-                        if framework:in_menu(Player) then continue; end;
-                        if table.find(whitelist, Player.Name) then continue; end;
-                        local Char = Player.Character;
-                        local targetroot = Char and Char:FindFirstChild("HumanoidRootPart");
-                        if not targetroot then continue; end;
-                        local targetpos = targetroot.Position;
-                        if targetpos.Y > 280 then continue; end;
-                        if (targetpos * vector3_new(1, 0, 1)).Magnitude > 1200 then continue; end;
-                        playercount = playercount + 1;
-                        local movel = 0.1;
-                        local start = tick();
-                        while CanFlingAll and tick() - start < 0.15 do
-                            if not LocalRoot.Parent or not targetroot.Parent then break; end;
-                            if framework:in_menu(Player) then break; end;
-                            LocalRoot.CFrame = targetroot.CFrame;
-                            sethiddenproperty(LocalRoot, "PhysicsRepRootPart", targetroot);
-                            local vel = LocalRoot.Velocity;
-                            LocalRoot.Velocity = vel * 150000 + vector3_new(0, 150000, 0);
-                            runservice.RenderStepped:Wait();
-                            if not CanFlingAll then break; end;
-                            LocalRoot.Velocity = vel + vector3_new(0, movel, 0);
-                            movel = -movel;
-                            runservice.Heartbeat:Wait();
-                        end;
-                    end;
-                    if playercount == 0 then task.wait(0.5); end;
-                end;
-            end));
-        end;
-    });
-end;
+players.PlayerAdded:Connect(function()
+    UpdateCachedPlayers();
+end);
+players.PlayerRemoving:Connect(function()
+    UpdateCachedPlayers();
+end);
 
 auto:AddToggle("check_whitelist_global", {
     Text = "check whitelist";
@@ -6092,7 +6134,7 @@ auto:AddToggle('spam_bio_repair', {
                     child:Destroy();
                 end;
             end);
-            task_spawn(LPH_JIT_MAX(function()
+            task_spawn(LPH_JIT(function()
                 local stomp = {Torso = workspace; };
                 while Toggles.spam_bio_repair.Value do
                     modules.Name["VFXClient"].runAndReplicateEffect("HealthPen", {stomp, }, "jab");
@@ -6144,7 +6186,9 @@ local server_gb = tabs.misc:AddRightGroupbox("server");
 server_gb:AddButton({
     Text = "serverhop to highest";
     Func = function()
-        local ok, res = pcall(function() return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100")); end);
+        local ok, res = pcall(function()
+            return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100"));
+        end);
         if ok and res and res.data then
             for i, v in pairs(res.data) do
                 if v.playing < v.maxPlayers and v.id ~= game.JobId then
@@ -6163,9 +6207,11 @@ server_gb:AddButton({
 }):AddButton({
     Text = "serverhop to lowest";
     Func = function()
-       local ok, res = pcall(function() return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")); end);
-       if ok and res and res.data then
-           for i, v in pairs(res.data) do
+        local ok, res = pcall(function()
+            return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"));
+        end);
+        if ok and res and res.data then
+            for i, v in pairs(res.data) do
                if v.playing < v.maxPlayers and v.id ~= game.JobId then
                    if typeof(queue_on_teleport) == "function" then
                        queue_on_teleport(string.format([[
@@ -6184,7 +6230,9 @@ server_gb:AddButton({
 server_gb:AddButton({
     Text = "serverhop";
     Func = function()
-        local ok, res = pcall(function() return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100")); end);
+        local ok, res = pcall(function()
+            return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100"));
+        end);
         if ok and res and res.data then
             local target = res.data[math_random(1, #res.data)];
             if target and target.id ~= game.JobId then
@@ -6276,29 +6324,73 @@ crosshairsection:AddSlider("CrosshairSpinSpeed", {
     Rounding = 0;
     Compact = true;
 });
-
+local on_tool_equipped;
+local clean_weapon_chams;
+local apply_weapon_chams;
 local weaponchamssection = visuals:AddRightGroupbox("weapon chams");
 
 weaponchamssection:AddToggle("WeaponChamsEnabled", {
     Text = "weapon chams enabled";
     Default = false;
+    Callback = function(value)
+        if not value then
+            weapon_chams_active = false;
+            last_chams_tool = nil;
+            clean_weapon_chams();
+        else
+            local existing = character and character:FindFirstChildOfClass("Tool");
+            if existing then on_tool_equipped(existing); end;
+        end;
+    end;
 }):AddColorPicker("WeaponChamsColor", {
     Default = Color3.new(1, 0, 0);
     Title = "chams color";
+    Callback = function()
+        if not (Classes.WeaponChamsEnabled and Classes.WeaponChamsEnabled.Value) then return; end;
+        local tool = character and character:FindFirstChildOfClass("Tool");
+        if tool then
+            clean_weapon_chams();
+            apply_weapon_chams(tool);
+        end;
+    end;
 });
 
 weaponchamssection:AddToggle("WeaponChamsHighlight", {
     Text = "enable highlight";
     Default = false;
+    Callback = function(value)
+        if not (Classes.WeaponChamsEnabled and Classes.WeaponChamsEnabled.Value) then return; end;
+        local tool = character and character:FindFirstChildOfClass("Tool");
+        if tool then
+            clean_weapon_chams();
+            apply_weapon_chams(tool);
+        end;
+    end;
 }):AddColorPicker("WeaponChamsHighlightColor", {
     Default = Color3.new(1, 0, 0);
     Title = "highlight color";
+    Callback = function()
+        if not (Classes.WeaponChamsEnabled and Classes.WeaponChamsEnabled.Value) then return; end;
+        local tool = character and character:FindFirstChildOfClass("Tool");
+        if tool then
+            clean_weapon_chams();
+            apply_weapon_chams(tool);
+        end;
+    end;
 });
 
 weaponchamssection:AddDropdown("WeaponChamsMaterial", {
     Text = "material";
     Default = "Plastic";
     Values = {"ForceField", "Neon", "Glass", "Plastic"};
+    Callback = function()
+        if not (Classes.WeaponChamsEnabled and Classes.WeaponChamsEnabled.Value) then return; end;
+        local tool = character and character:FindFirstChildOfClass("Tool");
+        if tool then
+            clean_weapon_chams();
+            apply_weapon_chams(tool);
+        end;
+    end;
 });
 
 local lightingsection = visuals:AddRightGroupbox("lightning");
@@ -6447,9 +6539,6 @@ lightingsection:AddToggle("FieldOfView", {
     Text = "field of view";
 	Default = false;
 	Tooltip = "Changes FOV";
-	Callback = function(Value)
-		if not Value then camera.FieldOfView = 70; end;
-	end;
 });
 
 lightingsection:AddToggle("clip_camera", {
@@ -6652,7 +6741,7 @@ local function get_water_parts()
             table.insert(water_parts, v);
         end;
     end;
-    map_object.DescendantAdded:Connect(LPH_NO_VIRTUALIZE(function(v)
+    map_object.DescendantAdded:Connect(LPH_JIT(function(v)
         if v:IsA("BasePart") and v.Name == "WaterArea" then
             table.insert(water_parts, v);
             if Toggles.walkonwater.Value then
@@ -6715,7 +6804,7 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
     if not localplayer.Character then return; end;
     local humanoid = localplayer.Character:FindFirstChild("Humanoid");
     local remote = humanoid and humanoid:FindFirstChild("RagdollRemoteEvent");
-    if not remote then return end
+    if not remote then return; end;
     local ragdolled = humanoid:GetAttribute("IsRagdolledServer");
     if canragdoll then
         if not ragdolling then
@@ -6729,82 +6818,129 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
             remote:FireServer(false);
             ragdolling = false;
         end;
-	end;
-	framework:GetSessionData():getState().fallDamageClient.isDisabled = settings.nfd or settings.loopkillall;
-	if not Lighting:FindFirstChild("atmosphere") then
-        local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
-        if not atmosphere then
-            atmosphere = Instance.new("Atmosphere", Lighting)
-        end
-        atmosphere.Name = "atmosphere"
     end;
-	local Sky = Lighting:FindFirstChildOfClass("Sky");
-	if not Sky then return; end;
-	local skyboxval = Classes.Skybox.Value;
-	if skyboxval ~= _lastskybox then
-		_lastskybox = skyboxval;
-		local Skybox = Skyboxes[skyboxval];
-		if Skybox then for i, v in next, Skybox do Sky[i] = v; end; end;
+    framework:GetSessionData():getState().fallDamageClient.isDisabled = settings.nfd or settings.loopkillall;
+end), nil, Enum.RenderPriority.Last);
+local function ensure_atmosphere()
+    if not Lighting:FindFirstChild("atmosphere") then
+        local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere", Lighting);
+        atmosphere.Name = "atmosphere";
+    end;
+end;
+local function apply_fog()
+    ensure_atmosphere();
+    if Classes.Fog.Value then
+        Lighting.atmosphere.Density = Classes.Density.Value;
+        Lighting.atmosphere.Decay = Classes.FogColor.Value or Color3.new(1, 1, 1);
+        Lighting.atmosphere.Color = Classes.FogColor.Value or Color3.new(1, 1, 1);
+        Lighting.atmosphere.Offset = 0;
+        Lighting.atmosphere.Glare = Classes.Glare.Value;
+        Lighting.atmosphere.Haze = Classes.Haze.Value;
+    else
+        for i, v in pairs(original_atmosphere) do
+			Lighting.atmosphere[i] = v;
+		end;
+    end;
+end;
+local function apply_skybox()
+    local Sky = Lighting:FindFirstChildOfClass("Sky");
+    if not Sky then return; end;
+    local skyboxval = Classes.Skybox.Value;
+    local Skybox = Skyboxes[skyboxval];
+    if Skybox then
+		for i, v in next, Skybox do
+			Sky[i] = v;
+		end;
 	end;
-	if Classes.FieldOfView.Value then
+    _lastskybox = skyboxval;
+end;
+local fov_conn;
+local function bind_fov()
+    if fov_conn then fov_conn:Disconnect();
+		fov_conn = nil;
+	end;
+    if not Classes.FieldOfView.Value then
+        camera.FieldOfView = 70;
+        return;
+    end;
+    camera.FieldOfView = Classes.FOVLighting.Value;
+    fov_conn = camera:GetPropertyChangedSignal("FieldOfView"):Connect(function()
+        if Classes.FieldOfView.Value and camera.FieldOfView ~= Classes.FOVLighting.Value then
+            camera.FieldOfView = Classes.FOVLighting.Value;
+        end;
+    end);
+end;
+
+Classes.FieldOfView:OnChanged(bind_fov);
+Classes.FOVLighting:OnChanged(function()
+    if Classes.FieldOfView.Value then
         camera.FieldOfView = Classes.FOVLighting.Value;
     end;
-	if Classes.Fog.Value then
-		Lighting.atmosphere.Density = Classes.Density.Value;
-		Lighting.atmosphere.Decay = Classes.FogColor.Value or Color3.new(1, 1, 1);
-		Lighting.atmosphere.Color = Classes.FogColor.Value or Color3.new(1, 1, 1);
-		Lighting.atmosphere.Offset = 0;
-		Lighting.atmosphere.Glare = Classes.Glare.Value;
-		Lighting.atmosphere.Haze = Classes.Haze.Value;
-	else
-		for i, v in pairs(original_atmosphere) do Lighting.atmosphere[i] = v; end;
-	end;
-	if Classes.Ambience.Value then
-		Lighting.OutdoorAmbient = Classes.AmbienceColor.Value or Color3.new(1, 1, 1);
-		Lighting.Ambient = Classes.AmbienceColor.Value or Color3.new(1, 1, 1);
-	else
-		Lighting.OutdoorAmbient = OldAmbience;
-		Lighting.Ambient = OldAmbience2;
-	end;
-	if Classes.MaxZoom.Value then
-		localplayer.CameraMaxZoomDistance = Classes.MaxZoomVal.Value;
-	else
-		localplayer.CameraMaxZoomDistance = OldZoom;
-	end;
-	if Classes.ClockTime.Value then
-		Lighting.ClockTime = Classes.Time.Value;
-	else
-		Lighting.ClockTime = OldClock;
-	end;
-	if Classes.ColorCorrection.Value then
-		ColorCorrection.Enabled = true;
-		ColorCorrection.TintColor = Classes.ColorCorrectionColor.Value or Color3.new(1, 1, 1);
-	else
-		ColorCorrection.Enabled = false;
-		ColorCorrection.TintColor = OldCorrection;
-	end;
-	if Classes.Brightness.Value then
-		Lighting.Brightness = Classes.BrightnessValue.Value;
-	else
-		Lighting.Brightness = OldBrightness;
-	end;
-	if Classes.Environmental.Value then
-		Lighting.EnvironmentDiffuseScale = Classes.EnvironmentValue.Value;
-		Lighting.EnvironmentSpecularScale = Classes.EnvironmentValue.Value;
-	else
-		Lighting.EnvironmentDiffuseScale = OldDiffuse;
-		Lighting.EnvironmentSpecularScale = OldDiffuse2;
-	end;
-	if Classes.Exposure.Value then
-		Lighting.ExposureCompensation = Classes.ExposureValue.Value;
-	else
-		Lighting.ExposureCompensation = OldExposure;
-	end;
-end), nil, Enum.RenderPriority.Last);
-
+end);
+Classes.Fog:OnChanged(apply_fog);
+Classes.Density:OnChanged(apply_fog);
+Classes.FogColor:OnChanged(apply_fog);
+Classes.Glare:OnChanged(apply_fog);
+Classes.Haze:OnChanged(apply_fog);
+Classes.Skybox:OnChanged(apply_skybox);
+local function apply_ambience()
+    if Classes.Ambience.Value then
+        Lighting.OutdoorAmbient = Classes.AmbienceColor.Value or Color3.new(1, 1, 1);
+        Lighting.Ambient = Classes.AmbienceColor.Value or Color3.new(1, 1, 1);
+    else
+        Lighting.OutdoorAmbient = OldAmbience;
+        Lighting.Ambient = OldAmbience2;
+    end;
+end;
+Classes.Ambience:OnChanged(apply_ambience);
+Classes.AmbienceColor:OnChanged(apply_ambience);
+local function apply_zoom()
+    localplayer.CameraMaxZoomDistance = Classes.MaxZoom.Value and Classes.MaxZoomVal.Value or OldZoom;
+end;
+Classes.MaxZoom:OnChanged(apply_zoom);
+Classes.MaxZoomVal:OnChanged(apply_zoom);
+local function apply_clock()
+    Lighting.ClockTime = Classes.ClockTime.Value and Classes.Time.Value or OldClock;
+end;
+Classes.ClockTime:OnChanged(apply_clock);
+Classes.Time:OnChanged(apply_clock);
+local function apply_colorcorrection()
+    if Classes.ColorCorrection.Value then
+        ColorCorrection.Enabled = true;
+        ColorCorrection.TintColor = Classes.ColorCorrectionColor.Value or Color3.new(1, 1, 1);
+    else
+        ColorCorrection.Enabled = false;
+        ColorCorrection.TintColor = OldCorrection;
+    end;
+end;
+Classes.ColorCorrection:OnChanged(apply_colorcorrection);
+Classes.ColorCorrectionColor:OnChanged(apply_colorcorrection);
+local function apply_brightness()
+    Lighting.Brightness = Classes.Brightness.Value and Classes.BrightnessValue.Value or OldBrightness;
+end;
+Classes.Brightness:OnChanged(apply_brightness);
+Classes.BrightnessValue:OnChanged(apply_brightness);
+local function apply_environmental()
+    if Classes.Environmental.Value then
+        Lighting.EnvironmentDiffuseScale = Classes.EnvironmentValue.Value;
+        Lighting.EnvironmentSpecularScale = Classes.EnvironmentValue.Value;
+    else
+        Lighting.EnvironmentDiffuseScale = OldDiffuse;
+        Lighting.EnvironmentSpecularScale = OldDiffuse2;
+    end;
+end;
+Classes.Environmental:OnChanged(apply_environmental);
+Classes.EnvironmentValue:OnChanged(apply_environmental);
+local function apply_exposure()
+    Lighting.ExposureCompensation = Classes.Exposure.Value and Classes.ExposureValue.Value or OldExposure;
+end;
+Classes.Exposure:OnChanged(apply_exposure);
+Classes.ExposureValue:OnChanged(apply_exposure);
 local function esp1()
     local GetService = game.GetService
-    local Service = function(Name) return cloneref(GetService(game, Name)) end
+    local Service = function(Name) 
+        return cloneref(GetService(game, Name));
+    end;
     local Players = Service("Players")
     local Instance_new = Instance.new
     local Color3_fromRGB = Color3.fromRGB
@@ -6923,17 +7059,24 @@ local function esp1()
     local esp_settings = ESP.Settings
     local WorldToViewportPoint = Camera.WorldToViewportPoint
     local math_abs = math.abs
-    local math_floor = math.floor
+    local math_floor = math_floor
     local Utility = {}
     local FontsToDownload = {
         ["Tahoma"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/main/zekton_rg.ttf"}, ["Minecraftia"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/refs/heads/main/Minecraftia.ttf"}, ["Silkscreen"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/refs/heads/main/Silkscreen.ttf"}, }
     do
-        if not isfolder(FolderLocation) then makefolder(FolderLocation) end
-        if not isfolder(FolderLocation .. "\\Fonts") then makefolder(FolderLocation .. "\\Fonts") end
-    end
+        if not isfolder(FolderLocation) then
+            makefolder(FolderLocation);
+        end;
+        if not isfolder(FolderLocation .. "\\Fonts") then
+            makefolder(FolderLocation .. "\\Fonts");
+        end;
+    end;
     do
-        if not Fonts then Fonts = {
-            Loaded = {} }; end;
+        if not Fonts then
+            Fonts = {
+                Loaded = {};
+            };
+        end;
         local function loadfonts()
             for name, table in FontsToDownload do
                 if not isfile(FolderLocation .. "\\Fonts\\" .. name .. ".ttf") then
@@ -7523,10 +7666,10 @@ local function esp1()
     end
     do
         for _, Player in Players:GetPlayers() do ESP.AddTarget(Player) end
-        Utility.AddConnection(Players.PlayerAdded, LPH_JIT_MAX(function(Player) ESP.AddTarget(Player) end))
-        Utility.AddConnection(Players.PlayerRemoving, LPH_JIT_MAX(function(Player) ESP.RemoveTarget(Player) end))
+        Utility.AddConnection(Players.PlayerAdded, LPH_JIT(function(Player) ESP.AddTarget(Player) end))
+        Utility.AddConnection(Players.PlayerRemoving, LPH_JIT(function(Player) ESP.RemoveTarget(Player) end))
         
-        local function checkUtil(util)
+        local function check_util(util)
             if util.Name == "PlacedClaymore" then ESP.AddUtility(util, "Claymore", "Claymore")
             elseif util.Name == "utility7Proxy" then ESP.AddUtility(util, "C4", "C4")
             elseif util.Name == "utility5Proxy" then ESP.AddUtility(util, "Grenade", "Grenade")
@@ -7535,23 +7678,25 @@ local function esp1()
         local Map = workspace:FindFirstChild("Map")
         local EffectsJunk = workspace:FindFirstChild("EffectsJunk")
         if Map then
-            for i, v in pairs(Map:GetChildren()) do checkUtil(v) end
-            Utility.AddConnection(Map.ChildAdded, checkUtil)
-            Utility.AddConnection(Map.ChildRemoved, function(v) ESP.RemoveUtility(v) end)
-        end
+            for i, v in pairs(Map:GetChildren()) do check_util(v) end
+            Utility.AddConnection(Map.ChildAdded, check_util)
+            Utility.AddConnection(Map.ChildRemoved, function(v)
+                ESP.RemoveUtility(v);
+            end);
+        end;
         if EffectsJunk then
             for i, v in pairs(EffectsJunk:GetChildren()) do
-                checkUtil(v);
+                check_util(v);
             end;
             
-            Utility.AddConnection(EffectsJunk.ChildAdded, checkUtil)
+            Utility.AddConnection(EffectsJunk.ChildAdded, check_util)
 
             Utility.AddConnection(EffectsJunk.ChildRemoved, function(v)
                 ESP.RemoveUtility(v);
             end);
         end;
 
-        runservice.RenderStepped:Connect(LPH_JIT_MAX(function()
+        runservice.RenderStepped:Connect(LPH_JIT(function()
             for t, ti in ESP.Targets do
                 if ti and ti.Update then
                     ti.Update();
@@ -7908,7 +8053,7 @@ charactersection:AddToggle("RemoveAccessories", {
 do
 	currently_spoofing = false;
 	lastservercframe = nil;
-	retrieve_position(LPH_JIT_MAX(function(cf, is_spoofing)
+	retrieve_position(LPH_JIT(function(cf, is_spoofing)
 		currently_spoofing = is_spoofing;
 		lastservercframe = cf;
 	end));
@@ -7945,7 +8090,9 @@ do
 			end;
 		end;
 		for _, v in ipairs(to_destroy) do
-			if (v.Parent) then v:Destroy(); end;
+			if (v.Parent) then
+                v:Destroy();
+            end;
 		end;
 	end;
 	local function refresh_tool_parts()
@@ -7981,7 +8128,10 @@ do
 						local current = part;
 						local valid = true;
 						while current ~= obj do
-							if (not current) then valid = false; break; end;
+							if (not current) then
+                                valid = false;
+                                break;
+                            end;
 							table.insert(path, 1, current.Name);
 							current = current.Parent;
 						end;
@@ -8001,8 +8151,12 @@ do
 		end;
 	end;
 	local function bind_tool_connections()
-		if (tool_conn_added) then tool_conn_added:Disconnect(); end;
-		if (tool_conn_removed) then tool_conn_removed:Disconnect(); end;
+		if (tool_conn_added) then
+            tool_conn_added:Disconnect();
+        end;
+		if (tool_conn_removed) then
+            tool_conn_removed:Disconnect();
+        end;
 		local char = localplayer.Character;
 		if (not char) then return; end;
 		tool_conn_added = char.ChildAdded:Connect(function(child)
@@ -8015,7 +8169,9 @@ do
 			if (child:IsA("Tool")) then
 				if (dv_clone) then
 					local stale_tool = dv_clone:FindFirstChild(child.Name);
-					if (stale_tool) then stale_tool:Destroy(); end;
+					if (stale_tool) then
+                        stale_tool:Destroy();
+                    end;
 				end;
 				if parts_map then
 					for original, _ in pairs(parts_map) do
@@ -8031,7 +8187,10 @@ do
 		if (dv_clone) then dv_clone:Destroy(); dv_clone = nil; end;
 		parts_map = {};
 		local char = localplayer.Character;
-		if (not char or not char:FindFirstChild("HumanoidRootPart")) then dv_char = nil; return nil; end;
+		if (not char or not char:FindFirstChild("HumanoidRootPart")) then
+            dv_char = nil;
+            return nil;
+        end;
         dv_char = char;
         local parts_added = 0;
 		local selected_material = get_material();
@@ -8050,7 +8209,11 @@ do
 				apply_clone_part_settings(v, color, selected_material);
 			end;
 		end;
-		if (parts_added == 0) then dv_char = nil; clone:Destroy(); return nil; end;
+		if (parts_added == 0) then
+            dv_char = nil;
+            clone:Destroy();
+            return nil;
+        end;
 		clone.Parent = char.Parent;
 		dv_clone = clone;
 		refresh_tool_parts();
@@ -8081,11 +8244,13 @@ do
 				return;
 			end;
 			bind_tool_connections();
-			dvconnection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
+			dvconnection = runservice.RenderStepped:Connect(LPH_JIT(function(dt)
 				local char = localplayer.Character;
 				local hrp = char and char:FindFirstChild("HumanoidRootPart");
 				if (not hrp or not lastservercframe) then
-					if (dv_clone) then dv_clone.Parent = nil; end;
+					if (dv_clone) then
+                        dv_clone.Parent = nil;
+                    end;
 					return;
 				end;
 				local isdesynced = currently_spoofing;
@@ -8127,8 +8292,9 @@ do
 		Transparency = 0;
 	});
 	charactersection:AddDropdown("desyncvisualisermaterial", {
-    Text = "visualiser material";
-    Default = "ForceField"; Values = {"ForceField", "Neon"};
+        Text = "visualiser material";
+        Default = "ForceField";
+        Values = {"ForceField", "Neon"};
     });
 	localplayer.CharacterAdded:Connect(function(char)
 		if (Toggles.desyncvisualiser and Toggles.desyncvisualiser.Value) then
@@ -8139,10 +8305,10 @@ do
 	end);
 end;
 
-local serenium_global_rainbow_color = Color3.new(1,1,1);
+local nil_global_rainbow_color = Color3.new(1,1,1);
 local current_ragebot_target = nil;
 
-local function InitializeESP()
+local function init_esp()
 	local fov_circles = {
         Silent = drawing_new("Circle");
         Aimbot = drawing_new("Circle");
@@ -8217,7 +8383,7 @@ local function InitializeESP()
 		local blacklist = {"rbxassetid://106649093705106", "rbxassetid://6423003415", "rbxassetid://101463478179793";};
 		local blacklistset = {};
 		for i = 1, #blacklist do blacklistset[blacklist[i]] = true; end;
-		task_spawn(LPH_JIT_MAX(function()
+		task_spawn(LPH_JIT(function()
 			task.wait(0.5);
 			if modules.Name["WeaponMetadata"] then
 				for i, v in pairs(modules.Name["WeaponMetadata"]) do
@@ -8390,29 +8556,19 @@ local function InitializeESP()
 
 	if EffectsJunk then
 		EffectsJunk.ChildRemoved:Connect(function(Utility)
-			if ESP and ESP.RemoveUtility then ESP.RemoveUtility(Utility) end
-		end)
-	end
+			if ESP and ESP.RemoveUtility then
+                ESP.RemoveUtility(Utility);
+            end;
+		end);
+	end;
 
 	local function Rotate(point, center, angle)
 		angle = math.rad(angle)
-		return vector2_new( math_floor(math_cos(angle) * (point.X - center.X) - math_sin(angle) * (point.Y - center.Y) + center.X), math_floor(math_sin(angle) * (point.X - center.X) + math_cos(angle) * (point.Y - center.Y) + center.Y) )
+		return vector2_new(math_floor(math_cos(angle) * (point.X - center.X) - math_sin(angle) * (point.Y - center.Y) + center.X), math_floor(math_sin(angle) * (point.X - center.X) + math_cos(angle) * (point.Y - center.Y) + center.Y) )
 	end
     
-    if SereniumPlayerDrawings then
-        for _, drawings in pairs(SereniumPlayerDrawings) do
-            for _, drawing in pairs(drawings) do
-                if type(drawing) == "table" and drawing.Remove then
-                    pcall(function() drawing:Remove();
-                    end);
-                end;
-            end;
-        end;
-    end;
-
-    SereniumPlayerDrawings = player_drawings
-    if SereniumUtilityDrawings then
-        for _, drawings in pairs(SereniumUtilityDrawings) do
+    if nil_player_drawings then
+        for _, drawings in pairs(nil_player_drawings) do
             for _, drawing in pairs(drawings) do
                 if type(drawing) == "table" and drawing.Remove then
                     pcall(function()
@@ -8423,25 +8579,39 @@ local function InitializeESP()
         end;
     end;
 
-    SereniumUtilityDrawings = UtilityDrawings
-    if SereniumFOVCircle then
-        for _, drawing in pairs(SereniumFOVCircle) do
+    nil_player_drawings = player_drawings
+    if util_drawings then
+        for _, drawings in pairs(util_drawings) do
+            for _, drawing in pairs(drawings) do
+                if type(drawing) == "table" and drawing.Remove then
+                    pcall(function()
+                        drawing:Remove();
+                    end);
+                end;
+            end;
+        end;
+    end;
+
+    util_drawings = UtilityDrawings;
+    if nfov_circle then
+        for _, drawing in pairs(nfov_circle) do
             if type(drawing) == "table" and drawing.Remove then
-                pcall(function() drawing:Remove();
+                pcall(function()
+                    drawing:Remove();
                 end);
             end;
         end;
     end;
 
-    SereniumFOVCircle = fov_circles
+    nfov_circle = fov_circles
 		local lastrainbowtick = 0;
 		local lastespdrawtick = 0;
 
-		runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
+		runservice.Heartbeat:Connect(LPH_JIT(function()
         local now_tick = tick();
         if now_tick - lastrainbowtick >= 0.1 then
             lastrainbowtick = now_tick;
-            serenium_global_rainbow_color = Color3.fromHSV(now_tick % 5 / 5, 1, 1);
+            nil_global_rainbow_color = Color3.fromHSV(now_tick % 5 / 5, 1, 1);
         end;
 
         local mouse_position = userinputservice:GetMouseLocation();
@@ -8525,9 +8695,9 @@ local function InitializeESP()
                 if not root then continue; end;
                 local Pos, OnScreen = camera:WorldToViewportPoint(root.Position);
                 if OnScreen then
-                    local screenDist = (vector2_new(Pos.X, Pos.Y) - mouse_position).Magnitude;
-                    if screenDist < closest_distance then
-                        closest_distance = screenDist;
+                    local screen_dist = (vector2_new(Pos.X, Pos.Y) - mouse_position).Magnitude;
+                    if screen_dist < closest_distance then
+                        closest_distance = screen_dist;
                         closest_to_mousecursor = Player;
                     end;
                 end;
@@ -8680,14 +8850,24 @@ local function InitializeESP()
                             local frompos = (origin == "Cursor") and mouse_position or vector2_new(camera.ViewportSize.X / 2, camera.ViewportSize.Y);
                             local topos = vector2_new(pos.X, pos.Y);
                             local tracercolor = Classes.TracerColor.Value or Color3.new(1, 1, 1);
-                            if tracer.From ~= frompos then tracer.From = frompos; end;
-                            if tracer.To ~= topos then tracer.To = topos; end;
-                            if tracer.Color ~= tracercolor then tracer.Color = tracercolor; end;
+                            if tracer.From ~= frompos then
+                                tracer.From = frompos;
+                            end;
+                            if tracer.To ~= topos then
+                                tracer.To = topos;
+                            end;
+                            if tracer.Color ~= tracercolor then
+                                tracer.Color = tracercolor;
+                            end;
                             tracer.Thickness = 1;
                             tracer.ZIndex = 1;
                             tracer.Visible = true;
-                            if traceroutline.From ~= frompos then traceroutline.From = frompos; end;
-                            if traceroutline.To ~= topos then traceroutline.To = topos; end;
+                            if traceroutline.From ~= frompos then
+                                traceroutline.From = frompos;
+                            end;
+                            if traceroutline.To ~= topos then
+                                traceroutline.To = topos;
+                            end;
                             traceroutline.Color = Color3.new(0, 0, 0);
                             traceroutline.Thickness = 2;
                             traceroutline.ZIndex = 0;
@@ -8706,18 +8886,30 @@ local function InitializeESP()
     end));
 end;
 
-InitializeESP()
+init_esp()
+
 local function initialize_visuals()
-    local weaponchams_data = {OriginalProperties = {}, AppliedParts = {}, CurrentWeapon = nil, WeaponHighlight = nil; };
-    local character_vis_data = {OriginalProperties = {}, OutlineGlow = nil, RainbowConnection = nil; };
-    local function clean_weapon_chams()
+    local weaponchams_data = {
+        original_properties = {};
+        AppliedParts = {};
+        CurrentWeapon = nil;
+        WeaponHighlight = nil;
+    };
+
+    local character_vis_data = {
+        original_properties = {},
+        OutlineGlow = nil,
+        RainbowConnection = nil;
+    };
+
+    clean_weapon_chams = function()
         if weaponchams_data.WeaponHighlight then
             pcall(function()
                 weaponchams_data.WeaponHighlight:Destroy();
             end);
             weaponchams_data.WeaponHighlight = nil;
         end;
-        for part, props in pairs(weaponchams_data.OriginalProperties) do
+        for part, props in pairs(weaponchams_data.original_properties) do
             if part and part.Parent then
                 pcall(function()
                     part.Material = props.Material;
@@ -8731,17 +8923,23 @@ local function initialize_visuals()
                 end);
             end;
         end;
-        weaponchams_data.OriginalProperties = {};
+        weaponchams_data.original_properties = {};
         weaponchams_data.AppliedParts = {};
         weaponchams_data.CurrentWeapon = nil;
     end;
-    local last_weapon_chams = {Material = nil, Color = nil, Highlight = nil, HighlightColor = nil; };
-    local function apply_weapon_chams(tool)
+    local last_weapon_chams = {
+        Material = nil;
+        Color = nil;
+        Highlight = nil;
+        HighlightColor = nil;
+    };
+
+    apply_weapon_chams = function(tool)
         if not tool or not tool:IsA("Tool") then return; end;
         if not Classes.WeaponChamsEnabled or not Classes.WeaponChamsEnabled.Value then
-            clean_weapon_chams()
-            return
-        end
+            clean_weapon_chams();
+            return;
+        end;
         local chams_material = Classes.WeaponChamsMaterial and Classes.WeaponChamsMaterial.Value or "Plastic";
         local chams_color = Classes.WeaponChamsColor and Classes.WeaponChamsColor.Value or Color3.new(1, 0, 0);
         local highlight_enabled = Classes.WeaponChamsHighlight and Classes.WeaponChamsHighlight.Value or false;
@@ -8761,8 +8959,10 @@ local function initialize_visuals()
 
         for _, part in pairs(tool:GetDescendants()) do
             if part:IsA("BasePart") then
-                if not weaponchams_data.OriginalProperties[part] then weaponchams_data.OriginalProperties[part] = {
-                    Material = part.Material, Color = part.Color, Transparency = part.Transparency; };
+                if not weaponchams_data.original_properties[part] then
+                    weaponchams_data.original_properties[part] = {
+                        Material = part.Material, Color = part.Color, Transparency = part.Transparency;
+                    };
                 end;
                 pcall(function()
                     if Enum.Material[chams_material] then
@@ -8772,8 +8972,8 @@ local function initialize_visuals()
                     end;
                     part.Color = chams_color;
                     if part:IsA("MeshPart") and part.TextureID ~= "" then
-                        if not weaponchams_data.OriginalProperties[part].TextureID then
-                            weaponchams_data.OriginalProperties[part].TextureID = part.TextureID;
+                        if not weaponchams_data.original_properties[part].TextureID then
+                            weaponchams_data.original_properties[part].TextureID = part.TextureID;
                         end;
                         part.TextureID = "";
                     end;
@@ -8784,21 +8984,26 @@ local function initialize_visuals()
 
         if Classes.WeaponChamsHighlight and Classes.WeaponChamsHighlight.Value then
             if not weaponchams_data.WeaponHighlight or not weaponchams_data.WeaponHighlight.Parent then
-                weaponchams_data.WeaponHighlight = Instance.new("Highlight")
-                weaponchams_data.WeaponHighlight.Name = "WeaponChams_Highlight"
-                weaponchams_data.WeaponHighlight.FillTransparency = 0.5
-                weaponchams_data.WeaponHighlight.OutlineTransparency = 0
-                weaponchams_data.WeaponHighlight.Adornee = tool
-                weaponchams_data.WeaponHighlight.Parent = tool
-            end
-            local highlight_color = Classes.WeaponChamsHighlightColor and Classes.WeaponChamsHighlightColor.Value or Color3.new(1, 0, 0)
-            weaponchams_data.WeaponHighlight.FillColor = highlight_color
-            weaponchams_data.WeaponHighlight.OutlineColor = highlight_color
+                weaponchams_data.WeaponHighlight = Instance.new("Highlight");
+                weaponchams_data.WeaponHighlight.Name = "highlight";
+                weaponchams_data.WeaponHighlight.FillTransparency = 0.5;
+                weaponchams_data.WeaponHighlight.OutlineTransparency = 0;
+                weaponchams_data.WeaponHighlight.Adornee = tool;
+                weaponchams_data.WeaponHighlight.Parent = tool;
+            end;
+            local highlight_color = Classes.WeaponChamsHighlightColor and Classes.WeaponChamsHighlightColor.Value or Color3.new(1, 0, 0);
+            weaponchams_data.WeaponHighlight.FillColor = highlight_color;
+            weaponchams_data.WeaponHighlight.OutlineColor = highlight_color;
         else
             if weaponchams_data.WeaponHighlight then
-                pcall(function() weaponchams_data.WeaponHighlight:Destroy() end) weaponchams_data.WeaponHighlight = nil end
-        end
-    end
+                pcall(function()
+                    weaponchams_data.WeaponHighlight:Destroy();
+                end);
+                weaponchams_data.WeaponHighlight = nil;
+            end;
+        end;
+    end;
+
     local function clean_character_vis()
         if character_vis_data.OutlineGlow then
             pcall(function() 
@@ -8812,7 +9017,7 @@ local function initialize_visuals()
             character_vis_data.RainbowConnection = nil;
         end;
 
-        for part, props in pairs(character_vis_data.OriginalProperties) do
+        for part, props in pairs(character_vis_data.original_properties) do
             if part and part.Parent then
                 pcall(function()
                     part.Material = props.Material;
@@ -8821,43 +9026,53 @@ local function initialize_visuals()
                 end);
             end;
         end;
-        character_vis_data.OriginalProperties = {};
+        character_vis_data.original_properties = {};
     end;
 
-    local weapon_chams_active = false;
-    local lastchamscheck = 0;
-    local last_chams_tool = nil;
-    runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
-        local now = tick();
-        if now - lastchamscheck < 0.1 then return; end;
-        lastchamscheck = now;
-        if Classes.WeaponChamsEnabled and Classes.WeaponChamsEnabled.Value then
-            weapon_chams_active = true;
-            local equippedTool = character and character:FindFirstChildOfClass("Tool");
-            if equippedTool then
-                last_chams_tool = equippedTool;
-                apply_weapon_chams(equippedTool);
-            else
-                if last_chams_tool then
-                    last_chams_tool = nil;
-                    clean_weapon_chams();
-                end;
-            end;
-        else
-            if weapon_chams_active then
-                weapon_chams_active = false;
-                last_chams_tool = nil;
-                clean_weapon_chams();
-            end;
-        end;
-    end));
-    localplayer.CharacterAdded:Connect(function(new_character)
-        clean_weapon_chams();
-        clean_character_vis();
-        character = new_character
-        humanoidrootpart = new_character:WaitForChild("HumanoidRootPart");
-        humanoid = new_character:WaitForChild("Humanoid");
-    end);
+	local weapon_chams_active = false;
+	local last_chams_tool = nil;
+
+	on_tool_equipped = function(child)
+		if not child:IsA("Tool") then return; end;
+		if not (Classes.WeaponChamsEnabled and Classes.WeaponChamsEnabled.Value) then return; end;
+		last_chams_tool = child;
+		weapon_chams_active = true;
+		apply_weapon_chams(child);
+	end;
+
+	local function on_tool_unequipped(child)
+		if not child:IsA("Tool") then return; end;
+		if last_chams_tool == child then
+			last_chams_tool = nil;
+			clean_weapon_chams();
+		end;
+	end;
+
+	local chams_char_conn = {};
+	local function bind_weapon_chams(char)
+		for _, c in chams_char_conn do c:Disconnect(); end;
+		table.clear(chams_char_conn);
+		if not char then return; end;
+		table.insert(chams_char_conn, char.ChildAdded:Connect(on_tool_equipped));
+		table.insert(chams_char_conn, char.ChildRemoved:Connect(on_tool_unequipped));
+		local existing = char:FindFirstChildOfClass("Tool");
+		if existing then
+			on_tool_equipped(existing);
+		end;
+	end;
+
+	localplayer.CharacterAdded:Connect(function(new_character)
+		clean_weapon_chams();
+		clean_character_vis();
+		character = new_character;
+		humanoidrootpart = new_character:WaitForChild("HumanoidRootPart");
+		humanoid = new_character:WaitForChild("Humanoid");
+		bind_weapon_chams(new_character);
+	end);
+
+	if character then
+		bind_weapon_chams(character);
+	end;
 end;
 
 initialize_visuals();
@@ -9077,7 +9292,7 @@ function hit_detection:ConnectToCaster(caster)
 end;
 
 local Camera = workspace.CurrentCamera;
-framework:BindToRenderStep(LPH_JIT_MAX(function()
+framework:BindToRenderStep(LPH_JIT(function()
     local char = localplayer.Character;
     if not char then return; end;
     local tool = char:FindFirstChildOfClass("Tool");
@@ -9179,7 +9394,7 @@ do
 							part.CFrame = cframe_new(HumanoidRootPart.Position, Head.Position) * cframe_new(0, 0, -part.Size.Z / 2);
 							part.Transparency = 0;
 							part.Parent = workspace;
-							task_spawn(LPH_JIT_MAX(function()
+							task_spawn(LPH_JIT(function()
 								local fade_time = 2;
 								local steps = 30
 								for i = 1, steps do
@@ -9318,7 +9533,7 @@ do
     end);
 
 	local activeragebot = true;
-	task_spawn(LPH_JIT_MAX(function()
+	task_spawn(LPH_JIT(function()
 		while task.wait() do
 			if not activeragebot then
 				break;
@@ -9464,7 +9679,7 @@ do
 				["chargePercentage"] = metadata._chargeProgressVO.Value;
 			};
 
-			network:FireServer("RangedFire", ranged, origin, {
+			fire_server("RangedFire", ranged, origin, {
 				[tostring(metadata._cheatId)] = dir.Unit;
 			}, {
 				[tostring(metadata._cheatId)] = dir;
@@ -9489,7 +9704,7 @@ do
 							part.CFrame = cframe_new(HumanoidRootPart.Position, Head.Position) * cframe_new(0, 0, -part.Size.Z / 2);
 							part.Transparency = 0;
 							part.Parent = workspace;
-							task_spawn(LPH_JIT_MAX(function()
+							task_spawn(LPH_JIT(function()
 								local fade_time = 2;
 								local steps = 30;
 								for i = 1, steps do
@@ -9557,8 +9772,8 @@ misc3:AddButton({
             end;
         end;
         status:SetText("status: searching");
-        spawn(function()
-            local Success, InServer, _, PlaceId, JobId = network:InvokeServer("GetPlayerPlaceInstanceInfo", user_id);
+        task_spawn(function()
+            local Success, InServer, _, PlaceId, JobId = invoke_server("GetPlayerPlaceInstanceInfo", user_id);
             if JobId then
                 local server_info;
                 local HttpService = game:GetService("HttpService");
@@ -9652,7 +9867,7 @@ do
     local frame_timer = tick();
     local frame_counter = 0;
     local FPS = 60;
-    runservice.RenderStepped:Connect(LPH_JIT_MAX(function()
+    runservice.RenderStepped:Connect(LPH_JIT(function()
         frame_counter = frame_counter + 1;
         if (tick() - frame_timer) >= 1 then
             FPS = frame_counter;
@@ -9674,7 +9889,14 @@ local function create_character_vis()
     char_highlight.Name = "CharacterVisualsHighlight";
     char_highlight.FillTransparency = 1;
     char_highlight.OutlineTransparency = 0;
-    local original_data = {Parts = {}, Decals = {}, Meshes = {}, Accessories = {}, Char = nil; };
+    local original_data = {
+        Parts = {};
+        Decals = {};
+        Meshes = {};
+        Accessories = {};
+        Char = nil;
+    };
+
     local trail_ghosts = {};
     local last_settings = {};
     local applied_to_character = nil;
@@ -9706,7 +9928,12 @@ local function create_character_vis()
                 local is_root = (v.Name == "HumanoidRootPart");
                 local is_hitbox = v.Name:lower():find("hitbox");
                 if is_root or is_hitbox then continue; end;
-                original_data.Parts[v] = {Material = v.Material, Color = v.Color, Transparency = v.Transparency };
+                original_data.Parts[v] = {
+                    Material = v.Material;
+                    Color = v.Color;
+                    Transparency = v.Transparency;
+                };
+
                 if v:IsA("MeshPart") then
                     original_data.Parts[v].TextureID = v.TextureID;
                 end;
@@ -9822,7 +10049,7 @@ local function create_character_vis()
         end;
         if outline_glow then
             char_highlight.Parent = char;
-            char_highlight.OutlineColor = is_rainbow and serenium_global_rainbow_color or glow_color;
+            char_highlight.OutlineColor = is_rainbow and nil_global_rainbow_color or glow_color;
         else
             char_highlight.Parent = nil;
         end;
@@ -9838,7 +10065,7 @@ local function create_character_vis()
     local lastnochar = 0;
     local lastcharcheck = 0;
 
-    runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
+    runservice.Heartbeat:Connect(LPH_JIT(function(dt)
         local now2 = tick();
         local char = localplayer.Character;
         if not char or not char:FindFirstChild("HumanoidRootPart") then
@@ -9877,8 +10104,12 @@ local function create_character_vis()
                         task.wait();
                         local removeacc = Toggles.RemoveAccessories and Toggles.RemoveAccessories.Value;
                         local isface = child.Name:lower():find("face") or child.Name:lower():find("facial") or child.Name:lower():find("head");
-                        if not table.find(original_data.Accessories, child) then table.insert(original_data.Accessories, child); end;
-                        if removeacc and not isface then child.Parent = nil; end;
+                        if not table.find(original_data.Accessories, child) then
+                            table.insert(original_data.Accessories, child);
+                        end;
+                        if removeacc and not isface then
+                            child.Parent = nil;
+                        end;
                     end;
                 end));
                 applied_to_character = nil;
@@ -9914,7 +10145,7 @@ local function create_character_vis()
             rainbowstepper = rainbowstepper + dt;
             if rainbowstepper >= 0.033 then
                 rainbowstepper = 0;
-                local rc = serenium_global_rainbow_color;
+                local rc = nil_global_rainbow_color;
                 for part in pairs(original_data.Parts) do
                     if part and part.Parent and part:IsA("BasePart") then
                         part.Color = rc;
@@ -9959,7 +10190,7 @@ local function create_visuals()
         HighlightColor = nil;
     };
 
-    runservice.Heartbeat:Connect(LPH_JIT_MAX(function(dt)
+    runservice.Heartbeat:Connect(LPH_JIT(function(dt)
         if Classes.CrosshairEnabled and Classes.CrosshairEnabled.Value then
             local mouse_location = userinputservice:GetMouseLocation();
             local smooth_amount = math.max(1, Classes.CrosshairSmoothing.Value);
