@@ -38,6 +38,8 @@ local math_floor = math.floor;
 local vector2_new = Vector2.new;
 local task_spawn = task.spawn;
 
+local cenv = getfenv();
+
 localplayer:WaitForChild("DataLoaded");
 repstorage:WaitForChild("ClientInitFinished");
 repstorage:WaitForChild("ServerInitFinished");
@@ -62,6 +64,7 @@ end);
 
 if (not LPH_OBFUSCATED) then
 	LPH_NO_VIRTUALIZE = newcclosure(function(...) return ...; end);
+    LRM_INIT_SCRIPT = newcclosure(function(...) return ...; end);
 	LPH_NO_UPVALUES = newcclosure(function(...) return ...; end);
 	LPH_JIT_MAX = newcclosure(function(...) return ...; end);
 	LPH_CRASH = newcclosure(function(...) return ...; end);
@@ -74,14 +77,6 @@ local modules, framework;
 
 do
     setstackhidden(1, true);
-
-    for _, v in pairs(getnilinstances()) do
-        if (v:IsA("Script") or v:IsA("LocalScript") or v:IsA("ModuleScript")) and v.Name == "" then
-            pcall(function()
-                v:Destroy();
-            end);
-        end;
-    end;
     
     local hooked_functions = {};
     local detected_field, kill_environment, adonis_event;
@@ -2474,6 +2469,7 @@ if localplayer.Character then
     connect(localplayer.Character);
 end;
 
+setfenv(1, getrenv());
 network:BindEvents({
     CreateAntiCheatNotification = function(data)
         if data.punishType == "rectified" and settings.fno and humanoidrootpart then
@@ -2490,6 +2486,7 @@ network:BindEvents({
         end;
     end;
 });
+setfenv(1, cenv);
 
 local activeloops = {};
 local function updatefeature(togglename, keyname, setter)
@@ -5982,6 +5979,7 @@ do
     end;
 end;
 
+setfenv(1, getrenv());
 network:BindEvents({
     KilledPlayer = function(statData)
 		local KillSayStuff = Data.KillSayStuff;
@@ -6048,7 +6046,9 @@ network:BindEvents({
 		end;
 	end;
 });
+setfenv(1, cenv);
 setthreadidentity(8);
+
 local CachedPlayers = {};
 local function UpdateCachedPlayers()
     CachedPlayers = {};
@@ -6059,10 +6059,13 @@ local function UpdateCachedPlayers()
         end;
     end;
 end;
+
 UpdateCachedPlayers();
+
 players.PlayerAdded:Connect(function()
     UpdateCachedPlayers();
 end);
+
 players.PlayerRemoving:Connect(function()
     UpdateCachedPlayers();
 end);
@@ -6333,6 +6336,7 @@ crosshairsection:AddSlider("CrosshairSpinSpeed", {
     Rounding = 0;
     Compact = true;
 });
+
 local on_tool_equipped;
 local clean_weapon_chams;
 local apply_weapon_chams;
@@ -6822,13 +6826,13 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
         if not ragdolled then
             setfenv(1, getrenv());
             remote:FireServer(true);
-            setfenv(1, getfenv());
+            setfenv(1, cenv);
         end;
     else
         if ragdolling then
             setfenv(1, getrenv());
             remote:FireServer(false);
-            setfenv(1, getfenv());
+            setfenv(1, cenv);
             ragdolling = false;
         end;
     end;
