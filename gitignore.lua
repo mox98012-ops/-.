@@ -1,4 +1,3 @@
-
 if (getgenv().nil_solutions) then
     return;
 end;
@@ -140,7 +139,9 @@ do
     for _, obj in pairs(getreg()) do
         if (type(obj) == "thread") then
             local success, source = pcall(debug.info, obj, 1, "s");
-            if (success and is_spooky(source)) then task.cancel(obj); end;
+            if (success and is_spooky(source)) then
+                task.cancel(obj);
+            end;
         end;
     end;
 
@@ -158,7 +159,8 @@ do
             local success, val = pcall(rawget, obj, "getIsBodyMoverCreatedByGame");
             if (success and val) then
                 for k, v in pairs(obj) do
-                    if (type(v) == "function" and not table.find(blacklisted_names, k)) then end;
+                    if (type(v) == "function" and not table.find(blacklisted_names, k)) then
+                    end;
                 end;
             end;
         end;
@@ -444,11 +446,10 @@ do
 						end;
 					end;
 				end;
-				if spoof.direction then
-					local _, _, _, r00, r01, r02, r10, r11, r12, r20, r21, r22 = target:GetComponents();
-					local pos = clientcframe.Position + target.Position;
-					target = cframe_new(pos.X, pos.Y, pos.Z, r00, r01, r02, r10, r11, r12, r20, r21, r22);
-				end;
+                if spoof.direction then
+                    local pos = clientcframe.Position + target.Position;
+                    target = CFrame.fromMatrix(pos, result.RightVector, result.UpVector, result.LookVector);
+                end;
 				primarypart.CFrame = target;
 				renderstepped:Wait();
 				primarypart.CFrame = clientcframe;
@@ -746,19 +747,21 @@ do
             oy = math_cos(t * 0.9) * oy;
             oz = math_sin(t * 1.2) * oz;
         end;
+
         if Toggles.desync_random_rotation and Toggles.desync_random_rotation.Value then
             local speed = Options.desync_random_speed and Options.desync_random_speed.Value or 5;
-            local t = os.clock() * (speed * 0.5);
-            
-            x = (t * 1.3) + math_sin(t * 0.5);
-            y = (-t * 1.7) + math_cos(t * 0.8);
-            z = (t * 2.1) + math_sin(t * 1.1);
+            local t = os.clock() * speed;
+
+            x = math.noise(t * 0.3, 0) * math.pi * 2;
+            y = math.noise(t * 0.3, 100) * math.pi * 2;
+            z = math.noise(t * 0.3, 200) * math.pi * 2;
         end;
 
         if (Toggles.desync_look and Toggles.desync_look.Value) then
-            local _, real_y, _ = cf:ToEulerAnglesYXZ();
-            y = real_y;
+            local look = cf.LookVector;
+            y = math.atan2(look.X, look.Z);
         end;
+
         if Toggles.desync_avoid_walls and Toggles.desync_avoid_walls.Value then
             local ray_origin = cf.Position;
             local ray_direction = vector3_new(ox, oy, oz);
@@ -1212,6 +1215,7 @@ for i = 1, #critical_modules do
 end;
 
 setthreadidentity(2);
+setfenv(1, getrenv());
 for _, child in pairs(repstorage:GetDescendants()) do
     if child:IsA("ModuleScript") and criticalset[child.Name] then
         local success, module = pcall(require, child);
@@ -1220,6 +1224,7 @@ for _, child in pairs(repstorage:GetDescendants()) do
         end;
     end;
 end;
+setfenv(1, cenv);
 setthreadidentity(8);
 
 for i, v in modules.Name["UtilityIds"] do 
@@ -1230,7 +1235,10 @@ for i, v in modules.Name["WeaponIds"] do
     weaponids[i:lower()] = v;
 end;
 
+setfenv(1, getrenv());
 local network = modules.Name["Network"];
+setfenv(1, cenv);
+
 local eventhandler;
 local remotes;
 
@@ -1417,9 +1425,9 @@ local function update_cached()
     end;
 end
 
-players.PlayerAdded:Connect(update_cached)
-players.PlayerRemoving:Connect(update_cached)
-update_cached()
+players.PlayerAdded:Connect(update_cached);
+players.PlayerRemoving:Connect(update_cached);
+update_cached();
 
 function framework:get_closest(Distance, Priority, check_function)
     local n = function(Player)
@@ -4107,7 +4115,9 @@ do
         if gp then return; end;
         if settings.swingsound and (i.KeyCode == Options.swingsoundkey.Value or i.UserInputType == Options.swingsoundkey.Value) then
             local weapon = framework:get_weapon();
-            if weapon then fire_server("MeleeSwing", weapon, math_random(1, 3)); end;
+            if weapon then
+                fire_server("MeleeSwing", weapon, math_random(1, 3));
+            end;
         end;
     end);
 
@@ -5473,8 +5483,8 @@ do
         is_player_mod(player);
     end);
     mmisc:AddToggle("anti_mod", {
-    Text = "anti mod";
-    Default = false;
+        Text = "anti mod";
+        Default = false;
         Callback = function(v)
             settings.anti_mod = v;
             if v then
