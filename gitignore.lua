@@ -1,4 +1,4 @@
--- (?)
+
 if (getgenv().nil_solutions) then
     return;
 end;
@@ -28,6 +28,7 @@ local humanoid = character:WaitForChild("Humanoid");
 local camera = workspace.CurrentCamera;
 
 local vector3_new = Vector3.new;
+local _nx = next;
 local cframe_new = CFrame.new;
 local cframe_angles = CFrame.Angles;
 local drawing_new = Drawing.new;
@@ -39,6 +40,94 @@ local vector2_new = Vector2.new;
 local task_spawn = task.spawn;
 
 local cenv = getfenv();
+setstackhidden(1, true);
+
+do
+    local or_connect; or_connect = hookfunction(runservice.Heartbeat.Connect, newcclosure(function(signal, callback, ...)
+        if (type(callback) == "function") then
+            local orig = callback;
+            callback = newcclosure(function(...)
+                setstackhidden(1, true);
+                return orig(...);
+            end);
+        end;
+        return or_connect(signal, callback, ...);
+    end));
+
+    local or_spawn; or_spawn = hookfunction(task.spawn, newcclosure(function(fn, ...)
+        if (type(fn) == "function") then
+            local orig = fn;
+            fn = function(...)
+                setstackhidden(1, true);
+                return orig(...);
+            end;
+        end;
+        return or_spawn(fn, ...);
+    end));
+
+    local or_defer; or_defer = hookfunction(task.defer, newcclosure(function(fn, ...)
+        if (type(fn) == "function") then
+            local orig = fn;
+            fn = function(...)
+                setstackhidden(1, true);
+                return orig(...);
+            end;
+        end;
+        return or_defer(fn, ...);
+    end));
+
+    local or_delay; or_delay = hookfunction(task.delay, newcclosure(function(delay_time, fn, ...)
+        if (type(fn) == "function") then
+            local orig = fn;
+            fn = function(...)
+                setstackhidden(1, true);
+                return orig(...);
+            end;
+        end;
+        return or_delay(delay_time, fn, ...);
+    end));
+
+    local or_coroutine; or_coroutine = hookfunction(coroutine.wrap, newcclosure(function(fn)
+        if (type(fn) == "function") then
+            local orig = fn;
+            fn = function(...)
+                setstackhidden(1, true);
+                return orig(...);
+            end;
+        end;
+        return or_coroutine(fn);
+    end));
+
+    local or_create; or_create = hookfunction(coroutine.create, newcclosure(function(fn)
+        if (type(fn) == "function") then
+            local orig = fn;
+            fn = function(...)
+                setstackhidden(1, true);
+                return orig(...);
+            end;
+        end;
+        return or_create(fn);
+    end));
+
+    local or_load; or_load = hookfunction(loadstring, newcclosure(function(...)
+        local result = or_load(...);
+        if type(result) == "function" then
+            local orig_result = result;
+            result = function(...)
+                setstackhidden(1, true);
+                return orig_result(...);
+            end;
+        end;
+        return result;
+    end));
+
+    local or_http; or_http = hookfunction(game.HttpGet, newcclosure(function(self, url, ...)
+        if string.find(url, "moonauth.cc") then
+            setstackhidden(1, true);
+        end;
+        return or_http(self, url, ...);
+    end));
+end;
 
 localplayer:WaitForChild("DataLoaded");
 repstorage:WaitForChild("ClientInitFinished");
@@ -77,7 +166,6 @@ local modules, framework;
 
 do
     setstackhidden(1, true);
-    
     local hooked_functions = {};
     local detected_field, kill_environment, adonis_event;
 
