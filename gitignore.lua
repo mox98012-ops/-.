@@ -1,4 +1,3 @@
-
 if (getgenv().nil_solutions) then
     return;
 end;
@@ -42,90 +41,142 @@ local task_spawn = task.spawn;
 local cenv = getfenv();
 setstackhidden(1, true);
 
+-- auto-hide stack for ALL signal callbacks (Heartbeat, toggles, etc.)
 do
-    local or_connect; or_connect = hookfunction(runservice.Heartbeat.Connect, newcclosure(function(signal, callback, ...)
-        if (type(callback) == "function") then
-            local orig = callback;
-            callback = newcclosure(function(...)
-                setstackhidden(1, true);
-                return orig(...);
-            end);
-        end;
-        return or_connect(signal, callback, ...);
-    end));
-
-    local or_spawn; or_spawn = hookfunction(task.spawn, newcclosure(function(fn, ...)
-        if (type(fn) == "function") then
-            local orig = fn;
-            fn = function(...)
-                setstackhidden(1, true);
-                return orig(...);
+    local function kill_legacy()
+        local count = 0
+        for _, obj in pairs(getreg()) do
+            if type(obj) == "thread" then
+                local success, source = pcall(debug.info, obj, 1, "s");
+                if success and source and source:find("legacy") then
+                    coroutine.close(obj);
+                    count = count + 1;
+                end;
             end;
         end;
-        return or_spawn(fn, ...);
-    end));
-
-    local or_defer; or_defer = hookfunction(task.defer, newcclosure(function(fn, ...)
-        if (type(fn) == "function") then
-            local orig = fn;
-            fn = function(...)
-                setstackhidden(1, true);
-                return orig(...);
-            end;
+        if count > 0 then
+            warn("!!! Sniped " .. count .. " Anti-Cheat Threads (legacy) !!!");
         end;
-        return or_defer(fn, ...);
-    end));
+    end;
 
-    local or_delay; or_delay = hookfunction(task.delay, newcclosure(function(delay_time, fn, ...)
-        if (type(fn) == "function") then
-            local orig = fn;
-            fn = function(...)
-                setstackhidden(1, true);
-                return orig(...);
+    kill_legacy();
+    
+    local __original_connect;
+    __original_connect = hookfunction(
+        runservice.Heartbeat.Connect,
+        newcclosure(function(signal, callback, ...)
+            if (type(callback) == "function") then
+                local orig = callback;
+                callback = newcclosure(function(...)
+                    setstackhidden(1, true);
+                    return orig(...);
+                end);
             end;
-        end;
-        return or_delay(delay_time, fn, ...);
-    end));
+            return __original_connect(signal, callback, ...);
+        end)
+    );
 
-    local or_coroutine; or_coroutine = hookfunction(coroutine.wrap, newcclosure(function(fn)
-        if (type(fn) == "function") then
-            local orig = fn;
-            fn = function(...)
-                setstackhidden(1, true);
-                return orig(...);
+    -- hook task.spawn
+    local __original_spawn;
+    __original_spawn = hookfunction(
+        task.spawn,
+        newcclosure(function(fn, ...)
+            if (type(fn) == "function") then
+                local orig = fn;
+                fn = function(...)
+                    setstackhidden(1, true);
+                    return orig(...);
+                end;
             end;
-        end;
-        return or_coroutine(fn);
-    end));
+            return __original_spawn(fn, ...);
+        end)
+    );
 
-    local or_create; or_create = hookfunction(coroutine.create, newcclosure(function(fn)
-        if (type(fn) == "function") then
-            local orig = fn;
-            fn = function(...)
-                setstackhidden(1, true);
-                return orig(...);
+    -- hook task.defer
+    local __original_defer;
+    __original_defer = hookfunction(
+        task.defer,
+        newcclosure(function(fn, ...)
+            if (type(fn) == "function") then
+                local orig = fn;
+                fn = function(...)
+                    setstackhidden(1, true);
+                    return orig(...);
+                end;
             end;
-        end;
-        return or_create(fn);
-    end));
+            return __original_defer(fn, ...);
+        end)
+    );
 
-    local or_load; or_load = hookfunction(loadstring, newcclosure(function(...)
-        local result = or_load(...);
-        if type(result) == "function" then
-            local orig_result = result;
-            result = function(...)
-                setstackhidden(1, true);
-                return orig_result(...);
+    -- hook task.delay
+    local __original_delay;
+    __original_delay = hookfunction(
+        task.delay,
+        newcclosure(function(delay_time, fn, ...)
+            if (type(fn) == "function") then
+                local orig = fn;
+                fn = function(...)
+                    setstackhidden(1, true);
+                    return orig(...);
+                end;
             end;
-        end;
-        return result;
-    end));
+            return __original_delay(delay_time, fn, ...);
+        end)
+    );
 
-    local or_http; or_http = hookfunction(game.HttpGet, newcclosure(function(self, url, ...)
+    -- hook coroutine.wrap
+    local __original_wrap;
+    __original_wrap = hookfunction(
+        coroutine.wrap,
+        newcclosure(function(fn)
+            if (type(fn) == "function") then
+                local orig = fn;
+                fn = function(...)
+                    setstackhidden(1, true);
+                    return orig(...);
+                end;
+            end;
+            return __original_wrap(fn);
+        end)
+    );
+    -- hook coroutine.create
+    local __original_create;
+    __original_create = hookfunction(
+        coroutine.create,
+        newcclosure(function(fn)
+            if (type(fn) == "function") then
+                local orig = fn;
+                fn = function(...)
+                    setstackhidden(1, true);
+                    return orig(...);
+                end;
+            end;
+            return __original_create(fn);
+        end)
+    );
+    -- hook loadstring
+    local __original_loadstring;
+    __original_loadstring = hookfunction(
+        loadstring,
+        newcclosure(function(...)
+            local result = __original_loadstring(...);
+            if type(result) == "function" then
+                local orig_result = result;
+                result = function(...)
+                    setstackhidden(1, true);
+                    return orig_result(...)
+                end
+            end
+            return result;
+        end)
+    );
+    -- hook HttpGet for MoonAuth spoofing/stealth
+    local __original_http;
+    __original_http = hookfunction(game.HttpGet, newcclosure(function(self, url, ...)
         if string.find(url, "moonauth.cc") then
             setstackhidden(1, true);
         end;
-        return or_http(self, url, ...);
+        return __original_http(self, url, ...);
     end));
 end;
 
@@ -134,7 +185,7 @@ repstorage:WaitForChild("ClientInitFinished");
 repstorage:WaitForChild("ServerInitFinished");
 
 workspace.FallenPartsDestroyHeight = -math.huge;
-for _, void in pairs(workspace:GetDescendants()) do
+for _, void in pairs(workspace:GetDescendants() or {}) do
 	if (void.Name == "VoidCollidePart" and void:IsA("Part")) then
         void.CanTouch = false;
 		void:GetPropertyChangedSignal("CanTouch"):Connect(function() 
@@ -160,12 +211,13 @@ if (not LPH_OBFUSCATED) then
 	LPH_JIT = newcclosure(function(...) return ...; end);
 end;
 
-local Data = Data;
+local Data = getgenv().Data;
 if not Data then Data = {InviteToDiscord = false, Intro = true, KillSayStuff = {Normal = {"bro, respawn faster, I need more %XP% XP", "can someone hvh me?? im guessing nobody can 🤣", "你的WiFi是土豆吗, %Died%?", "你打游戏好像老奶奶一样", "Atleast u died to SERENIUM, %Died%", "你是NPC吗, %Died%?", "你的技能和样老", "fix ur aim %Died%", "damn is 😂", "听说你用Internet Explorer在玩游戏", "お前の反応はカタツムリより遅いぞ", "你在玩手机上吗, %Died%?", "你刚才是睡着了吗?", "🤖 你是一台机器人吗, %Died%?", "Internet says 'how to dodge in combat warriors'", "turn off 'get beaten by skids' in cw settings", "左, 右, 晚安 :skull:", "お前はもう死んでいる", "ты был удалён с сервера", "איפה הכבוד שלך, %Died%?", "あなたはゲームをやめるべきです", "your kd is negative btw %Died%", "你的存活率比0%还低", "parrying 💔💔", "Internet says 'how to recover from public humiliation'", "get this script at /SERENIUM !", "tired of cheaters? become one yourself and combat them! /SERENIUM", "Outplayed by SERENIUM.", }, Assist = {"你没死于我, 是死于团队合作", "split my %XP% XP and %Credits% credits with a random, ty for the donation %Died%", "お前は味方にやられた", "ты просто статистика", "你被团队协作打败了", "didnt need an assist to kill u %Died%", "谁帮我补刀的? 这次算你赚到", "yo %Died%, we both know I didn't need the assist", }, Finish = {"你的账号已被暂停, %Died%", "bro got sent to the shadow realm by a %Weapon%", "%Died%, should've dodged, oh wait… too late 💀", "yo %Died%, your Roblox career ended faster than a limited item stock", "Ты уничтожен", "ur name should be 'free kill', %Died%", "%Died% died so fast that Roblox lagged 💀", "お前の敗北は確定していた", "お前の人生はチェックメイト", "fatality.", "bro went out like a YouTube tutorial dummy", "bro got cooked, fried, and served", "bro's internet provider officially disowned him", "Mustache Man once said: 'The greatest defeat comes when one refuses to accept their fate.'", "Napoleon once declared: 'The war is won in the mind before the battlefield.'", "Sun Tzu once wrote: 'The battlefield is not just a place, it is a state of mind.'", "Genghis Khan once proclaimed: 'A warrior's life ends when they fail to adapt to the changing tides.'", "Einstein once said: 'In the end, only the smart survive.'", }, Glory = { "你的死亡动画很美, %Died%", "someone clip that dawg, %Died% just got packed", "%Died%, wanna see my recoil script? (it's called skill)", "yo %Died%, ur gameplay lookin like a speedrun to the death screen", "bro's last words: 'I got this' 💀", "удар был смертельным", "ur name should be 'free kill', %Died%", "%Died% died so fast that Roblox lagged 💀", "お前の存在が消えた", "я сохранил этот момент", "bro thought he was the protagonist, I made sure he wasn't", "Google says 'how to recover from a humiliation kill'", "%Died%, that was a fatality, not a kill", "bro got deleted so hard, he's gonna respawn in another server", "I'm screenshotting this kill for my collection %Died%", "你只是我今天的另一个XP点数 ", "お前は何だったの？", "left right goodnight :skull:", "clip that, I need it for my mixtape", "bro got an express ticket to spectate mode", "100% uninstall speedrun, new record %Died%", "bro thought he had a chance, but the script said no", "Mustache Man once said: 'Victory is a sweet taste for those who dare to fight without hesitation.'", "Sun Tzu once wrote: 'The only true defeat is one suffered without a fight.'", "Einstein once said: 'It's not about how fast you run, but how you use your momentum.'", "Genghis Khan once declared: 'A battle is not won by strength alone, but by will and intellect.'", "Napoleon said: 'The best way to predict the future is to make it.'", }, }, }; end;
 local modules, framework;
 
 do
-    setstackhidden(1, true);
+    setstackhidden(1, true); -- keep this one too for this block's stack level
+    
     local hooked_functions = {};
     local detected_field, kill_environment, adonis_event;
 
@@ -179,7 +231,7 @@ do
         return false;
     end;
 
-    for _, obj in ipairs(repstorage:GetChildren()) do
+    for _, obj in ipairs(repstorage:GetChildren() or {}) do
         if (is_adonis(obj)) then
             adonis_event = obj;
             break;
@@ -199,7 +251,7 @@ do
     end;
 
     setthreadidentity(2);
-    for _, obj in getgc(true) do
+    for _, obj in pairs(getgc(true) or {}) do
         if (typeof(obj) == "table") then
             local detected_env = rawget(obj, "Detected");
             if (typeof(detected_env) == "function" and not detected_field) then
@@ -225,7 +277,7 @@ do
     end;
     setthreadidentity(7);
 
-    for _, obj in pairs(getreg()) do
+    for _, obj in pairs(getreg() or {}) do
         if (type(obj) == "thread") then
             local success, source = pcall(debug.info, obj, 1, "s");
             if (success and is_spooky(source)) then
@@ -234,7 +286,7 @@ do
         end;
     end;
 
-    for _, obj in pairs(getgc(true)) do
+    for _, obj in pairs(getgc(true) or {}) do
         if (type(obj) == "function") then
             local success, source = pcall(debug.info, obj, "s");
             if (success) then
@@ -247,7 +299,7 @@ do
         elseif (type(obj) == "table") then
             local success, val = pcall(rawget, obj, "getIsBodyMoverCreatedByGame");
             if (success and val) then
-                for k, v in pairs(obj) do
+                for k, v in pairs(obj or {}) do
                     if (type(v) == "function" and not table.find(blacklisted_names, k)) then
                     end;
                 end;
@@ -284,7 +336,7 @@ espsection = tabs.visuals:AddLeftGroupbox("esp");
 
 local fly_cframe = nil;
 local whitelist = {};
-local viewing;
+local viewing = nil;
 
 local function player_characters() 
     return workspace:FindFirstChild("PlayerCharacters") or workspace:FindFirstChild("Characters") or workspace; 
@@ -398,32 +450,56 @@ local teleport = function(CFrame)
 end;
 
 local function should_skip_by_whitelist(player, skip_type)
-    if not player then return false; end;
-    if not Toggles.check_whitelist_global or not Toggles.check_whitelist_global.Value then return false; end;
+    if not player then
+        return false;
+    end;
+
+    if not Toggles.check_whitelist_global or not Toggles.check_whitelist_global.Value then
+        return false;
+    end;
     
     local types_raw = Options.global_whitelist_type and Options.global_whitelist_type.Value;
-    if not types_raw then return false; end;
+    if not types_raw then
+        return false;
+    end;
     
     local types = {};
-    if type(types_raw) == "table" then types = types_raw; elseif type(types_raw) == "string" then types = {[types_raw] = true}; end;
+
+    if type(types_raw) == "table" then
+        types = types_raw;
+    elseif type(types_raw) == "string" then
+        types = {[types_raw] = true};
+    end;
     
-    if skip_type and not types[skip_type] then return false; end;
+    if skip_type and not types[skip_type] then
+        return false;
+    end;
 
     local raw = Options.global_whitelist_mode and Options.global_whitelist_mode.Value;
-    if not raw then return false; end;
+    if not raw then return
+        false;
+    end;
     
     local modes = {};
-    if type(raw) == "table" then modes = raw; elseif type(raw) == "string" then modes = {[raw] = true}; end;
+
+    if type(raw) == "table" then
+        modes = raw;
+    elseif type(raw) == "string" then
+        modes = {[raw] = true};
+    end;
 
     if modes["whitelist"] and table.find(whitelist, player.Name) then
         return true;
     end;
+
     if modes["friend"] and localplayer:IsFriendsWith(player.UserId) then
         return true;
     end;
+
     if modes["team"] and localplayer.Team and player.Team == localplayer.Team then
         return true;
     end;
+
     if modes["clan"] then
         local ok, clan_data = pcall(function()
             return framework:get_clan_data();
@@ -448,13 +524,13 @@ local function whitelisted(player)
 end;
 
 do
-    local frame_spoofed = false;
 	local typeofcache = typeof;
 	local tickcache = tick;
 	local renderstepped = runservice.RenderStepped;
 	local connection, currentlooptype, cframecallback, currentactive;
 	local stopspoofing, executing = false, false;
 	local activespoofs, registeredspoofs, persistentloops = {}, {}, {};
+
 	local function oncharacter(char)
 		character = char;
 		humanoid = char:WaitForChild("Humanoid");
@@ -462,25 +538,30 @@ do
 		primarypart = humanoidrootpart;
 		clientcframe = primarypart.CFrame;
 	end;
+
 	if localplayer.Character then
 		oncharacter(localplayer.Character);
 	end;
+
 	localplayer.CharacterAdded:Connect(oncharacter);
+
 	local mt = getrawmetatable(game);
 	local originalindex = mt.__index;
 	setreadonly(mt, false);
-	mt.__index = LPH_JIT_MAX(newcclosure(function(self, property)
+	mt.__index = newcclosure(function(self, property)
 		if (not checkcaller() and self == primarypart and property == "CFrame" and isspoofing) then
 			return clientcframe;
 		end;
 		return originalindex(self, property);
-	end));
+	end);
 	setreadonly(mt, true);
+
 	local looptypes = {
 		heartbeat = runservice.Heartbeat,
 		renderstepped = runservice.RenderStepped,
 		stepped = runservice.Stepped
 	};
+
 	local function evaluatecurrent()
 		local best;
 		for _, v in ipairs(activespoofs) do
@@ -496,6 +577,7 @@ do
 		end;
 		currentactive = best;
 	end;
+
 	local function refreshconnection()
 		if not currentactive then
 			if connection then
@@ -505,14 +587,17 @@ do
 			end;
 			return;
 		end;
+		
 		local looptype = currentactive.looptype;
 		if connection and currentlooptype == looptype then
 			return;
 		end;
+
 		if connection then
 			connection:Disconnect();
 			connection = nil;
 		end;
+
 		currentlooptype = looptype;
 		local event = looptypes[looptype] or runservice.Heartbeat;
 		connection = event:Connect(function()
@@ -521,12 +606,13 @@ do
 			local spoof = currentactive;
 			if not spoof then return; end;
 			executing = true;
+
 			clientcframe = primarypart.CFrame;
 			local success, result = pcall(spoof.callback, clientcframe);
 			if success and result and typeofcache(result) == "CFrame" then
-                frame_spoofed = true;
 				isspoofing = true;
 				local target = result;
+
 				for _, v in ipairs(activespoofs) do
 					if v ~= spoof and v.ignore_priority then
 						local ok, res = pcall(v.callback, clientcframe);
@@ -535,45 +621,59 @@ do
 						end;
 					end;
 				end;
+
                 if spoof.direction then
                     local pos = clientcframe.Position + target.Position;
                     target = CFrame.fromMatrix(pos, result.RightVector, result.UpVector, result.LookVector);
                 end;
+
 				primarypart.CFrame = target;
 				renderstepped:Wait();
 				primarypart.CFrame = clientcframe;
 				isspoofing = false;
+
 				if cframecallback then
                     cframecallback(target);
                 end;
-                frame_spoofed = false;
-			elseif not success then
+
+			elseif success then
+				if cframecallback then
+					cframecallback(clientcframe);
+				end;
+			else
 				warn("callback error . .. spoof.name .. : " .. tostring(result));
 			end;
+
 			executing = false;
 		end);
 	end;
+
 	serverposition = function(looptype, logicname, targetlogic, priority, direction, ignore_priority)
 		if typeofcache(logicname) ~= "string" then
 			warn("invalid logic name");
 			return;
 		end;
+		
 		if registeredspoofs[logicname] then
 			warn("logic already registered: " .. logicname);
 			return;
 		end;
+		
 		if typeofcache(targetlogic) ~= "function" then
 			warn("invalid callback for: " .. logicname);
 			return;
 		end;
+		
 		if priority ~= nil and typeofcache(priority) ~= "number" then
 			warn("invalid priority for: " .. logicname);
 			return;
 		end;
+		
 		if typeofcache(looptype) ~= "string" then
 			warn("invalid looptype for: " .. logicname);
 			return;
 		end;
+
 		local lt = looptype:lower();
 		registeredspoofs[logicname] = {
 			priority = priority or 0,
@@ -585,6 +685,7 @@ do
 			ignore_priority = (direction == true) and (ignore_priority == true),
 		};
 	end;
+
 	setrunning = function(logicname, booleanref, persistent)
 		local spoofdata = registeredspoofs[logicname];
 		if not spoofdata then
@@ -616,25 +717,26 @@ do
 				for i, v in ipairs(activespoofs) do
 					if v.name == logicname then
 						if v == currentactive then
-                            removedcurrent = true;
-                        end;
+							removedcurrent = true;
+						end;
 						table.remove(activespoofs, i);
 						break;
 					end;
 				end;
 				if removedcurrent then
-                    evaluatecurrent();
-                end;
+					evaluatecurrent();
+				end;
 				refreshconnection();
 			end;
 		end;
+
 		applystatus(booleanref);
 		if persistent then
 			persistentloops[logicname] = persistentloops[logicname] or {};
 			persistentloops[logicname].paused = false;
 			persistentloops[logicname].getter = booleanref;
 			if not persistentloops[logicname].connection then
-				persistentloops[logicname].connection = runservice.Heartbeat:Connect(LPH_JIT(function()
+				persistentloops[logicname].connection = runservice.Heartbeat:Connect(LPH_JIT_MAX(function()
 					local loop = persistentloops[logicname];
 					if not loop.paused then
 						local desired;
@@ -651,6 +753,7 @@ do
 			end;
 		end;
 	end;
+
 	getrunning = function(logicname)
 		if not registeredspoofs[logicname] then
 			return false;
@@ -662,6 +765,7 @@ do
 		end;
 		return false;
 	end;
+
 	resetcframe = function()
 		stopspoofing = true;
 		isspoofing = false;
@@ -688,12 +792,14 @@ do
 		end;
 		stopspoofing = false;
 	end;
+
 	clearspoofs = function()
 		for _, v in pairs(persistentloops) do
 			if v.connection then
 				v.connection:Disconnect();
 			end;
 		end;
+
 		activespoofs = {};
 		registeredspoofs = {};
 		persistentloops = {};
@@ -704,13 +810,14 @@ do
 			currentlooptype = nil;
 		end;
 	end;
+
 	retrieve_position = function(callback)
 		if typeof(callback) ~= "function" then
 			warn("invalid callback for retrieve_position");
 			return;
 		end;
 		cframecallback = LPH_JIT_MAX(function(cf)
-			local is_spoofing = frame_spoofed and currentactive and currentactive.name ~= "exclude";
+			local is_spoofing = cf ~= clientcframe and currentactive and currentactive.name ~= "exclude";
 			callback(cf, is_spoofing);
 		end);
 	end;
@@ -770,7 +877,7 @@ do
 
     runservice.Heartbeat:Connect(LPH_JIT(function(delta_time)
         local strafe_active = settings.tpenemy;
-        local extra = settings.strafe_extra or {};
+        local extra = settings.strafe_extra;
         local forg = (os.clock() - (settings.last_parry_tick or 0) < 3);
         local is_baiting = extra["bait parry"];
 
@@ -875,7 +982,7 @@ do
     local function noclip(char)
         noclip_parts = {};
         if not char then return end;
-        for _, v in ipairs(char:GetDescendants()) do 
+        for _, v in ipairs(char:GetDescendants() or {}) do 
             if v:IsA("BasePart") then 
                 table.insert(noclip_parts, v); 
             end; 
@@ -1013,7 +1120,7 @@ hitdetection_impl.create_log = function(text)
         label_dot:Remove();
         label_solutions:Remove();
         label_rest:Remove();
-        for i, v in ipairs(hitdetection_impl.Labels) do
+        for i, v in ipairs(hitdetection_impl.Labels or {}) do
             if v[1] == nil_label then
                 table.remove(hitdetection_impl.Labels, i);
                 break;
@@ -1076,7 +1183,7 @@ hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, dama
                 end;
             end;
         end;
-        for _, v in pairs(clone:GetDescendants()) do
+        for _, v in pairs(clone:GetDescendants() or {}) do
             if v:IsA("BasePart") then
                 property_collision(v);
             elseif v:IsA("SpecialMesh") then
@@ -1091,7 +1198,7 @@ hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, dama
                 if is_neon then
                     v:Destroy();
                 else
-                    for _, accessory_parts in pairs(v:GetDescendants()) do 
+                    for _, accessory_parts in pairs(v:GetDescendants() or {}) do 
                         property_collision(accessory_parts);
                     end;
                 end;
@@ -1099,7 +1206,7 @@ hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, dama
                 v:Destroy(); 
             end;
         end;
-        for _, v in pairs(target_character:GetDescendants()) do
+        for _, v in pairs(target_character:GetDescendants() or {}) do
             if v:IsA("BasePart") then
                 local clone_part = clone:FindFirstChild(v.Name, true);
                 if clone_part and clone_part:IsA("BasePart") then
@@ -1256,7 +1363,7 @@ local OnHit = LPH_JIT(function(target_player, hit_part, damage, hit_type)
         end;
         if Options.HitEffects and Options.HitEffects.Value and hit_part then
             local color = Options.HitEffectColor and Options.HitEffectColor.Value or Color3.new(1,1,1);
-            for effect_type, enabled in pairs(Options.HitEffects.Value) do
+            for effect_type, enabled in pairs(Options.HitEffects.Value or {}) do
                 if enabled then
                     task_spawn(LPH_JIT(function()
                         if hit_part and hit_part.Parent then
@@ -1305,7 +1412,7 @@ end;
 
 setthreadidentity(2);
 setfenv(1, getrenv());
-for _, child in pairs(repstorage:GetDescendants()) do
+for _, child in pairs(repstorage:GetDescendants() or {}) do
     if child:IsA("ModuleScript") and criticalset[child.Name] then
         local success, module = pcall(require, child);
         if success then
@@ -1316,11 +1423,11 @@ end;
 setfenv(1, cenv);
 setthreadidentity(8);
 
-for i, v in modules.Name["UtilityIds"] do 
+for i, v in pairs(modules.Name["UtilityIds"] or {}) do 
     utilityids[i:lower()] = v;
 end;
 
-for i, v in modules.Name["WeaponIds"] do 
+for i, v in pairs(modules.Name["WeaponIds"] or {}) do 
     weaponids[i:lower()] = v;
 end;
 
@@ -1328,8 +1435,8 @@ setfenv(1, getrenv());
 local network = modules.Name["Network"];
 setfenv(1, cenv);
 
-local eventhandler;
-local remotes;
+local eventhandler = nil;
+local remotes = nil;
 
 if eventhandler then 
     remotes = getupvalue(eventhandler, 1);
@@ -1340,9 +1447,8 @@ local hooks = {};
 local modify = {};
 local signal = modules.Name["Signal"];
 local onfireserver = network.FireServer;
-local old_fireserver;
-local hooks = {};
-local modify = {};
+local old_fireserver = nil;
+
 
 local function handle(self, Name, ...)
 	local Args = { ... };
@@ -1351,14 +1457,14 @@ local function handle(self, Name, ...)
 		local can_hook = modify[Name].Check(Name, unpack(Args));
 		if can_hook then
 			if typeof(can_hook) == "table" then
-				for i, v in pairs(can_hook) do
+				for i, v in pairs(can_hook or {}) do
 					Args[i] = v;
 				end;
 			else
 				if can_hook == "Blocked" then
 					return;
 				end;
-				for i, v in pairs(modify[Name].Args) do
+				for i, v in pairs(modify[Name].Args or {}) do
 					Args[i] = v;
 				end;
 			end;
@@ -1373,22 +1479,23 @@ local function handle(self, Name, ...)
 	return old_fireserver(self, Name, unpack(Args));
 end;
 
+
 old_fireserver = hookfunction(network.FireServer, newcclosure(function(self, Name, ...)
+	setstackhidden(1, true);
 	return handle(self, Name, ...);
 end));
 
+
 local cache = { };
-for _, v in getgc() do
-    if (type(v) ~= "function") then
-        continue;
-    end;
-    local name = debug.info(v, "n");
-    if (name ~= "FireServer" and name ~= "InvokeServerWithTimeout") then
-        continue;
-    end;
-    local source = debug.info(v, "s");
-    if (source and source:find(".Vendor.Network")) then
-        cache[name] = v;
+for _, v in pairs(getgc() or {}) do
+    if type(v) == "function" then
+        local success_n, name = pcall(debug.info, v, "n");
+        if success_n and (name == "FireServer" or name == "InvokeServerWithTimeout") then
+            local success_s, source = pcall(debug.info, v, "s");
+            if success_s and source and source:find(".Vendor.Network") then
+                cache[name] = v;
+            end;
+        end;
     end;
 end;
 
@@ -1417,13 +1524,13 @@ function framework:removehook(Name)
 end;
 
 function framework:removeargmodifier(Name, ToModify) 
-    table.remove(Modify, table.find(Modify, Name));
+    table.remove(modify, table.find(modify, Name));
 end;
 
 function framework:hookclient(Table, Name, new_function)
 	if not remotes then return; end;
 	local to_hook;
-	for i, v in pairs(getconnections(remotes[Name].remote.OnClientEvent)) do
+	for i, v in pairs(getconnections(remotes[Name].remote.OnClientEvent) or {}) do
 		to_hook = v.Function;
 		break;
 	end;
@@ -1450,7 +1557,7 @@ function framework:get_weapon(Player)
 	if not Player then return; end;
 	local Character = Player.Character or Player.CharacterAdded:Wait();
 	if not Character then return; end;
-	for i, v in Character:GetChildren() do
+	for i, v in pairs(Character:GetChildren() or {}) do
 		if not v:IsA("Tool") then continue; end;
 		if v:GetAttribute("ItemType") == "weapon" and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")] and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")].class:lower():match("melee") then return
             v, modules.Name["MeleeWeaponClient"].getObj(v);
@@ -1464,7 +1571,7 @@ function framework:get_ranged(Player)
 	if not Player then return; end;
 	local Character = Player.Character or Player.CharacterAdded:Wait();
 	if not Character then return; end;
-	for i, v in Character:GetChildren() do
+	for i, v in pairs(Character:GetChildren() or {}) do
 		if not v:IsA("Tool") then continue; end;
 		if v:GetAttribute("ItemType") == "weapon" and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")] and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")].class:lower():match("ranged") then
             return v, modules.Name["RangedWeaponClient"].getObj(v);
@@ -1486,7 +1593,9 @@ function framework:in_menu(Player)
 	if not Player.Character then
         return is_menu;
     end;
-	for i, v in Player.Character:GetChildren() do 
+	local char_children = Player.Character:GetChildren();
+	for i = 1, #char_children do
+        local v = char_children[i]; 
         if v:GetAttribute("ParryShieldId") then 
             is_menu = false; 
         end; 
@@ -1507,7 +1616,7 @@ local function update_cached()
             inserver[p] = true;
         end;
     end;
-    for p in pairs(cache) do
+    for p in pairs(cache or {}) do
         if not inserver[p] then
             cache[p] = nil;
         end;
@@ -1528,7 +1637,7 @@ function framework:get_closest(Distance, Priority, check_function)
     local Distance = Distance or math.huge;
     local check_function = check_function or n;
     local ClosestPlayers = {};
-    for v, _ in pairs(cachedplayers) do
+    for v, _ in pairs(cachedplayers or {}) do
         if v == localplayer then continue; end;
         if Ignored and table.find(Ignored, v.Name) then continue; end;
         local check_success, check_result = pcall(check_function, v)
@@ -1545,7 +1654,7 @@ function framework:get_closest(Distance, Priority, check_function)
 
     if Priority then
         local Sorted = {};
-        for k, _ in pairs(ClosestPlayers) do
+        for k, _ in pairs(ClosestPlayers or {}) do
             table.insert(Sorted, k);
         end;
         table.sort(Sorted);
@@ -1565,7 +1674,7 @@ function framework:get_closest_2(Distance, check_function)
 	local closest_player = nil;
 	local self_position = humanoidrootpart and humanoidrootpart.Position;
 	if not self_position then return nil; end;
-	for player, _ in pairs(cachedplayers) do
+	for player, _ in pairs(cachedplayers or {}) do
 		if player == localplayer then continue; end;
 		if should_skip_by_whitelist(player, "ragebot") then continue; end;
 		local char = player.Character;
@@ -1599,7 +1708,7 @@ function framework:closest_to_mouse(Distance, Priority, check_function, max_dist
 	local check_function = check_function or n;
 	local closest_player = nil;
 	local mouse_position = userinputservice:GetMouseLocation();
-	for player, _ in pairs(cachedplayers) do
+	for player, _ in pairs(cachedplayers or {}) do
 		if player == localplayer then continue; end;
 		if Ignored and table.find(Ignored, player.Name) then continue; end;
 		if should_skip_by_whitelist(player, "silent aim") then continue; end;
@@ -1634,7 +1743,7 @@ function framework:get_current_gamemode()
 	local CurrentMap = Map:FindFirstChildOfClass("Model");
 	if CurrentMap then
 		local Gamemodes = CurrentMap.MapConfiguration.Gamemodes;
-		for i, v in pairs(Gamemodes:GetDescendants()) do
+		for i, v in pairs(Gamemodes:GetDescendants() or {}) do
             if v:IsA("ObjectValue") then
                 return v:FindFirstAncestorOfClass("Folder");
             end;
@@ -1644,7 +1753,7 @@ function framework:get_current_gamemode()
 end;
 
 function framework:get_enemy_point(Gamemode)
-	for i, v in pairs(Gamemode:GetDescendants()) do
+	for i, v in pairs(Gamemode:GetDescendants() or {}) do
         if v:IsA("ObjectValue") and v.Value and v.Value:FindFirstChild("Inner") then
             if v.Value.Inner.BrickColor ~= localplayer.Team.TeamColor then
                 return v.Parent;
@@ -1655,7 +1764,7 @@ function framework:get_enemy_point(Gamemode)
 end;
 
 function framework:get_team_point(Gamemode)
-	for i, v in pairs(Gamemode:GetDescendants()) do
+	for i, v in pairs(Gamemode:GetDescendants() or {}) do
         if v:IsA("ObjectValue") and v.Value and v.Value:FindFirstChild("Inner") then
             if v.Value.Inner.BrickColor == localplayer.Team.TeamColor then
                 return v.Parent;
@@ -1667,7 +1776,7 @@ end;
 
 function framework:closest_characters_origin(Origin, Dist)
 	local folder = player_characters();
-	for i, v in pairs(folder:GetChildren()) do
+	for i, v in pairs(folder:GetChildren() or {}) do
 		local Player = players:GetPlayerFromCharacter(v);
 		if not Player then continue; end;
 		if whitelisted(Player) then continue; end;
@@ -1690,7 +1799,7 @@ end;
 function framework:closest_characters_to_origin(Origin, Dist)
 	local closests = {};
 	local folder = player_characters();
-	for i, v in pairs(folder:GetChildren()) do
+	for i, v in pairs(folder:GetChildren() or {}) do
 		local Player = players:GetPlayerFromCharacter(v);
 		if not Player then continue; end;
 		if whitelisted(Player) then continue; end;
@@ -1737,7 +1846,7 @@ function framework:GetMeleeFuncs(Table)
             end;
         };
 	end;
-	for i, v in pairs(getconnections(tool.Equipped)) do
+	for i, v in pairs(getconnections(tool.Equipped) or {}) do
 		if v.Function then
 			local uv = getupvalues(v.Function);
 			if #uv == 1 and uv[1].singleWeaponMetadata then
@@ -1813,7 +1922,7 @@ function framework:BindToRenderStep(to_bind, delay_time, priority)
 end;
 
 function framework:unbind_all()
-    for _, name in ipairs(active_rendersteps) do
+    for _, name in ipairs(active_rendersteps or {}) do
         pcall(function() 
             runservice:UnbindFromRenderStep(name);
         end);
@@ -1827,7 +1936,9 @@ function framework:in_menu(Player)
 	if not Player.Character then
         return is_menu;
     end;
-	for i, v in pairs(Player.Character:GetChildren()) do
+	local char_children = Player.Character:GetChildren();
+	for i = 1, #char_children do
+        local v = char_children[i];
         if v:GetAttribute("ParryShieldId") then
             is_menu = false;
         end;
@@ -1853,14 +1964,14 @@ function framework:check(self, Character)
 			local Animator = Humanoid:FindFirstChild("Animator");
 			if Animator then
 				local PlayingAnimations = Animator:GetPlayingAnimationTracks();
-				for i, v in pairs(PlayingAnimations) do
+				for i, v in pairs(PlayingAnimations or {}) do
                     if v.Animation and v.Animation.Name and v.Animation.Name:match("Parry") then 
 						return false;
                     end;
                 end;
 			end;
 		end;
-		for i, v in pairs(Character:GetChildren()) do
+		for i, v in pairs(Character:GetChildren() or {}) do
             if v:GetAttribute("ParryShieldId") and #v:GetChildren() == 1 then
 				local shieldPart = v:GetChildren()[1];
 				if shieldPart:IsA("BasePart") then
@@ -1875,6 +1986,7 @@ function framework:check(self, Character)
     end;
 	return result;
 end;
+
 
 local clan_store = nil;
 local clan_ranks = modules.Name["ClanRanksConfigs"];
@@ -1924,18 +2036,18 @@ local rangedog = {};
 local weaponorder = {};
 local ranged = {};
 
-for i, v in pairs(modules.Name["WeaponsInOrder"]) do
+for i, v in pairs(modules.Name["WeaponsInOrder"] or {}) do
     weaponorder[v.id] = v;
 end;
 
-for name, id in pairs(modules.Name["WeaponIds"]) do
+for name, id in pairs(modules.Name["WeaponIds"] or {}) do
 	local meta = modules.Name["WeaponMetadata"][id];
 	if meta and meta.class == "ranged" then
         table.insert(ranged, name);
     end;
 end;
 
-for i, v in pairs(ranged) do
+for i, v in pairs(ranged or {}) do
 	local m = framework:getmetadata(v) or framework:getutility(v);
 	if m then
         table.insert(rangedog, {
@@ -1947,7 +2059,7 @@ end;
 local function deepmodify(tbl, key, val)
 	if type(tbl) ~= "table" then return; end;
 	if tbl[key] ~= nil then tbl[key] = val; end;
-	for _, v in pairs(tbl) do
+	for _, v in pairs(tbl or {}) do
         if type(v) == "table" then
             deepmodify(v, key, val);
         end;
@@ -1955,7 +2067,7 @@ local function deepmodify(tbl, key, val)
 end;
 
 function modifyranged(name, val)
-	for _, v in pairs(rangedog) do
+	for _, v in pairs(rangedog or {}) do
 		local m = framework:getmetadata(v.name) or framework:getutility(v.name);
 		if m then
             deepmodify(m, name, val);
@@ -1968,7 +2080,7 @@ local function revert(tbl, original, key)
 	if original[key] ~= nil then
         tbl[key] = original[key];
     end;
-	for k, v in pairs(tbl) do
+	for k, v in pairs(tbl or {}) do
         if type(v) == "table" and type(original[k]) == "table" then
             revert(v, original[k], key);
         end;
@@ -1976,7 +2088,7 @@ local function revert(tbl, original, key)
 end;
 
 function revertranged(name)
-	for _, v in pairs(rangedog) do
+	for _, v in pairs(rangedog or {}) do
 		local m = framework:getmetadata(v.name) or framework:getutility(v.name);
 		if m then
             revert(m, v.og, name);
@@ -2066,6 +2178,7 @@ do
         apply_regen();
     end;
 end;
+
 
 local Map = workspace:FindFirstChild("Map");
 
@@ -2174,12 +2287,12 @@ end;
 
 task_spawn(LPH_JIT(function()
     task.wait(0.3);
-    for _, v in PlayerCharacters:GetChildren() do
+    for _, v in pairs(PlayerCharacters:GetChildren() or {}) do
         if v ~= localplayer.Character then
             apply_hitbox(v);
         end;
     end;
-    for player in pairs(cachedplayers) do
+    for player in pairs(cachedplayers or {}) do
         if player ~= localplayer then
             if player.Character then
                 apply_hitbox(player.Character);
@@ -2635,7 +2748,7 @@ do
                             if Toggles.AutoSelect.Value or needs_new_target or (not Toggles.AutoSelect.Value and keybind_just_pressed) then
                                 local closest_target = nil;
                                 local closest_distance = math.huge;
-                                for player,_ in pairs(cachedplayers) do
+                                for player,_ in pairs(cachedplayers or {}) do
                                     if player and player.Parent and player ~= localplayer and player.Character then
                                         local humanoid = player.Character:FindFirstChild("Humanoid");
                                         local hrp = player.Character:FindFirstChild("HumanoidRootPart");
@@ -3216,7 +3329,7 @@ do
         if part:GetAttribute("DamagePerSecond") then
             return true;
         end;
-        for root in pairs(targets) do 
+        for root in pairs(targets or {}) do 
             if root and part:IsDescendantOf(root) then
                 return true;
             end;
@@ -3241,12 +3354,12 @@ do
         end;
     end);
 
-    for _, obj in ipairs(effectsjunk:GetDescendants()) do
+    for _, obj in ipairs(effectsjunk:GetDescendants() or {}) do
         process_part(obj);
     end;
 
     if map then
-        for _, obj in ipairs(map:GetDescendants()) do
+        for _, obj in ipairs(map:GetDescendants() or {}) do
             process_part(obj);
         end;
     end;
@@ -3318,7 +3431,7 @@ do
 		max_distance = max_distance or math.huge;
 		check_function = check_function or default_check;
 		local ClosestPlayers = {}
-		for _, player in ipairs(players:GetPlayers()) do
+		for _, player in ipairs(players:GetPlayers() or {}) do
 			if player == localplayer then continue; end;
 			if Ignored and table.find(Ignored, player.Name) then continue; end;
 			local success, result = pcall(check_function, player)
@@ -3351,14 +3464,14 @@ do
 				local Animator = Humanoid:FindFirstChild("Animator");
 				if Animator then
 					local PlayingAnimations = Animator:GetPlayingAnimationTracks();
-					for i, v in pairs(PlayingAnimations) do
+					for i, v in pairs(PlayingAnimations or {}) do
                         if v.Animation.Name:match("Parry") then
                             return false;
                         end;
                     end;
 				end;
 			end;
-			for i, v in pairs(Character:GetChildren()) do 
+			for i, v in pairs(Character:GetChildren() or {}) do 
                 if v:GetAttribute("ParryShieldId") and #v:GetChildren() == 1 then
                     return v:GetChildren()[1].Transparency == 1;
                 end;
@@ -3428,7 +3541,7 @@ do
 		if (now - last_slash) < (cooldown - buffer) then return; end;
 		local karange = Classes.KillAuraRange.Value;
 		local closest = framework:get_closest_ka(karange, true);
-		if not closest or not next(closest) then return; end;
+		if not closest or not _nx(closest or {}) then return; end;
 		KADebounce = true;
 		if not Classes.PlayAnimation.Value then
 			local hitboxes = meleehitboxes(metadata);
@@ -3442,8 +3555,8 @@ do
 			local issingle = Classes.KillAuraType.Value == "single person";
 			task.defer(LPH_JIT(function()
 				local ok, err = pcall(function()
-					for i, hitbox in pairs(hitboxes) do
-						for player, data in pairs(closest) do
+					for i, hitbox in pairs(hitboxes or {}) do
+						for player, data in pairs(closest or {}) do
 							if data.Health == 0 then continue; end;
 							local character = player.Character;
 							if not character or not framework:Check(character) then continue; end;
@@ -3477,9 +3590,9 @@ do
                     return yield_timeout(anim:GetMarkerReachedSignal("startHitDetection"), 2);
                 end);
 				if success and response ~= "Timed out" and response ~= "Wait failed" and response ~= "Signal creation failed" then
-					for i, v in metadata.meleeHitboxes do
+					for i, v in pairs(metadata.meleeHitboxes or {}) do
 						v.HitboxStopTime = 1;
-						for target_player, data in pairs(closest) do
+						for target_player, data in pairs(closest or {}) do
 							if not target_player or not target_player.Character or not target_player.Character:FindFirstChild("Head") or data.Health == 0 or not framework:Check(target_player.Character) then continue; end;
 							if table.find(whitelist, target_player.Name) then continue; end;
 							local character = target_player.Character;
@@ -3512,7 +3625,7 @@ framework:BindToRenderStep(LPH_JIT(function()
 	if not settings.autoequip and not settings.BeartrapEnemy and not settings.AutoAttachC4 and not settings.AutoDetonateC4 then return; end;
 	if not weapon and settings.autoequip then
 		local Character = localplayer.Character;
-		for _, v in pairs(localplayer.Backpack:GetChildren()) do
+		for _, v in pairs(localplayer.Backpack:GetChildren() or {}) do
 			if v:IsA("Tool") and (v:FindFirstChild("Hitboxes") or v:GetAttribute("IsRangedWeapon")) then
 				Character.Humanoid:EquipTool(v);
 				break;
@@ -3525,8 +3638,8 @@ framework:BindToRenderStep(LPH_JIT(function()
 		if not HumanoidRootPart then return end;
 		local Closest = framework:get_closest(15, true);
 		local CurrentTool = Character:FindFirstChildOfClass("Tool");
-		if next(Closest) then
-			local TargetPlayer = players:FindFirstChild(next(Closest));
+		if _nx(Closest or {}) then
+			local TargetPlayer = players:FindFirstChild(_nx(Closest or {}));
 			if TargetPlayer and TargetPlayer.Character and TargetPlayer.Character:FindFirstChild("HumanoidRootPart") then
 				if settings.BeartrapEnemy and CurrentTool and CurrentTool.Name == "Bear Trap" then
                     local target_root = TargetPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -3584,7 +3697,9 @@ do
                 do_loopspawn();
             end;
         end);
-        for _, child in ipairs(char:GetChildren()) do
+        local char_children = char:GetChildren();
+        for _ = 1, #char_children do
+            local child = char_children[_];
             child:GetAttributeChangedSignal("ParryShieldId"):Connect(function()
                 if child:GetAttribute("ParryShieldId") == nil then
                     do_loopspawn();
@@ -3673,13 +3788,13 @@ do
                 local metadata = cachedstompmeta;
                 if metadata and metadata._cooldownProgressTimer:getValue() > 0.75 then
                     local closest = framework:get_closest(s.stompshoverange, true);
-                    if closest and next(closest) then
+                    if closest and _nx(closest or {}) then
                         local slashdata = metadata._itemConfig.slashMetadata[metadata._currSlashCount];
                         local hitbox = slashdata.getHitboxInfo(metadata.tool);
                         local hitboxes = metadata:getHitboxesToUseFromHitboxParts(hitbox.hitboxPartsToUse);
-                        for i, v in hitboxes do
+                        for i, v in pairs(hitboxes or {}) do
                             if not v.HitboxPendingRemoval then
-                                for playername, health in closest do
+                                for playername, health in pairs(closest or {}) do
                                     local targetplayer = players:FindFirstChild(playername);
                                     if not targetplayer or not targetplayer.Character then continue; end;
                                     local tchar = targetplayer.Character;
@@ -3714,8 +3829,8 @@ do
             glorythrottle = now;
             local closest = framework:get_closest(s.gloryrange, true);
             local tool = framework:get_weapon();
-            if tool and closest and next(closest) then
-                local targetplayer = players:FindFirstChild(next(closest));
+            if tool and closest and _nx(closest or {}) then
+                local targetplayer = players:FindFirstChild(_nx(closest or {}));
                 if targetplayer and targetplayer.Character then
                     local thum = targetplayer.Character:FindFirstChild("Humanoid");
                     if thum and thum.Health <= 20 then
@@ -3746,7 +3861,7 @@ do
         if not target_root then return; end;
         if not settings.tpenemy then return; end;
 
-        local extra = settings.strafe_extra or {};
+        local extra = settings.strafe_extra;
         local is_baiting = extra["bait parry"];
         local avoid_walls = extra["avoid walls"];
 
@@ -3877,7 +3992,7 @@ do
             else
                 local closestdist = math.huge;
                 local mousepos = userinputservice:GetMouseLocation();
-                for player in pairs(cachedplayers) do
+                for player in pairs(cachedplayers or {}) do
                     if player == localplayer then continue; end;
                     if should_skip_by_whitelist(player, "strafe") then continue; end;
                     local char = player.Character;
@@ -3956,7 +4071,7 @@ do
         end);
         if s and ks then
             local function recurse(parent)
-                for _, child in pairs(parent:GetChildren()) do
+                for _, child in pairs(parent:GetChildren() or {}) do
                     if child:IsA("KeyframeMarker") then
                         local kf = child:FindFirstAncestor("Keyframe");
                         if kf then
@@ -3987,10 +4102,10 @@ do
     local parries = {};
     task_spawn(LPH_JIT(function()
         task.wait(0.5);
-        for _, obj in pairs(getgc(true)) do
+        for _, obj in pairs(getgc(true) or {}) do
             if type(obj) == "table" and rawget(obj, "slashMetadata") and rawget(obj, "parryMetadata") ~= nil then
                 if obj.slashMetadata then
-                    for _, meta in ipairs(obj.slashMetadata) do
+                    for _, meta in ipairs(obj.slashMetadata or {}) do
                         if meta.animation and meta.animation.AnimationId then
                             local id = string.gsub(meta.animation.AnimationId, "rbxassetid://", "");
                             if not blacklisted_IDS[id] then
@@ -4000,7 +4115,7 @@ do
                     end;
                 end;
                 if obj.parryMetadata then
-                    for _, meta in ipairs(obj.parryMetadata) do
+                    for _, meta in ipairs(obj.parryMetadata or {}) do
                         if meta.animation and meta.animation.AnimationId then
                             local id = string.gsub(meta.animation.AnimationId, "rbxassetid://", "");
                             if not blacklisted_IDS[id] then
@@ -4017,7 +4132,7 @@ do
     local HumanoidToParry = {};
 
     if PlayerCharacters then
-        for i, v in pairs(PlayerCharacters:GetChildren()) do
+        for i, v in pairs(PlayerCharacters:GetChildren() or {}) do
             if v ~= localplayer.Character and v:FindFirstChildOfClass("Humanoid") then
                 local Player = players:GetPlayerFromCharacter(v);
                 if not Player then continue; end;
@@ -4293,7 +4408,7 @@ do
         on_hitbox_created(child, nil);
     end);
 
-    for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+    for _, player in pairs(game:GetService("Players"):GetPlayers() or {}) do
         if player ~= localplayer and player.Character then
             watch_character(player.Character);
         end;
@@ -4403,7 +4518,7 @@ do
         if not humanoid_root_part then return; end;
         local tool, metadata = framework:get_weapon();
         if not tool or not metadata then return; end;
-        for _, humanoid in pairs(HumanoidToParry) do
+        for _, humanoid in pairs(HumanoidToParry or {}) do
             local root_part = humanoid.RootPart;
             if not root_part then continue; end;
             local distance = (humanoid_root_part.Position - root_part.Position).Magnitude;
@@ -4411,7 +4526,7 @@ do
             local animator = humanoid:FindFirstChildOfClass("Animator");
             if not animator then continue; end;
             local animations = animator:GetPlayingAnimationTracks();
-            for _, anim in pairs(animations) do
+            for _, anim in pairs(animations or {}) do
                 local anim_obj = anim.Animation;
                 if not anim_obj or not anim_obj.AnimationId then continue; end;
                 local anim_id = string.gsub(anim_obj.AnimationId, "rbxassetid://", "");
@@ -4628,7 +4743,7 @@ do
         local hum = char:WaitForChild("Humanoid");
         local animator = hum:FindFirstChildOfClass("Animator");
         if not animator then return; end;
-        for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
+        for _, track in ipairs(hum:GetPlayingAnimationTracks() or {}) do
             if track.Animation ~= spin_animation then
                 track:Stop();
             end;
@@ -5070,7 +5185,7 @@ exploit:AddToggle("itu", {
     Default = false;
     Callback = function(Value)
         if Value then
-            for i, v in modules.Name["UtilityMetadata"] do
+            for i, v in pairs(modules.Name["UtilityMetadata"] or {}) do
                 if v.displayName ~= "Medkit" then
                     v.cacheDur = v.preThrowDuration or 0.001;
                     v.cacheTime = v.useTime or 0;
@@ -5079,7 +5194,7 @@ exploit:AddToggle("itu", {
                 end;
             end;
         else
-            for i, v in modules.Name["UtilityMetadata"] do
+            for i, v in pairs(modules.Name["UtilityMetadata"] or {}) do
                 if v.displayName ~= "Medkit" then
                     v.preThrowDuration = v.cacheDur or v.preThrowDuration;
                     v.useTime = v.cacheTime or v.useTime;
@@ -5122,11 +5237,11 @@ do
         antifling_connections[player] = player.CharacterAdded:Connect(on_char);
     end;
     local function stop_antifling()
-        for key, conn in antifling_connections do
+        for key, conn in pairs(antifling_connections or {}) do
             conn:Disconnect();
         end;
         table.clear(antifling_connections);
-        for hrp, original in collision_cache do
+        for hrp, original in pairs(collision_cache or {}) do
             if hrp and hrp.Parent then
                 hrp.CanCollide = original;
             end;
@@ -5140,7 +5255,7 @@ do
             settings.antifling = Value;
             stop_antifling();
             if Value then
-                for player in pairs(cachedplayers) do
+                for player in pairs(cachedplayers or {}) do
                     watch_player(player);
                 end;
             end;
@@ -5233,14 +5348,14 @@ do
     local anim_connections = {};
     local charcon = nil;
     local function cleanup_anim()
-        for _, c in anim_connections do 
+        for _, c in pairs(anim_connections or {}) do 
             c:Disconnect();
         end;
         table.clear(anim_connections);
     end;
     local function reset_speeds()
         if humanoid then
-            for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do
+            for _, track in ipairs(humanoid:GetPlayingAnimationTracks() or {}) do
                 track:AdjustSpeed(1);
             end;
         end;
@@ -5253,7 +5368,7 @@ do
             local speed = Options.AnimSpeed and Options.AnimSpeed.Value or 5;
             track:AdjustSpeed(speed);
         end;
-        for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
+        for _, track in ipairs(hum:GetPlayingAnimationTracks() or {}) do
             on_track_played(track);
         end;
         table.insert(anim_connections, animator.AnimationPlayed:Connect(on_track_played));
@@ -5538,7 +5653,7 @@ do
                 callback(false, nil);
                 return;
             end;
-            for _, group in ipairs(result) do
+            for _, group in ipairs(result or {}) do
                 if (group.Id == group_id) then
                     local is_mod = not non_mods[group.Role] and group.Rank > 1;
                     callback(is_mod, group.Role);
@@ -5565,7 +5680,7 @@ do
             end;
         end);
     end;
-    for _, player in ipairs(players:GetPlayers()) do
+    for _, player in ipairs(players:GetPlayers() or {}) do
         is_player_mod(player);
     end;
     players.ChildAdded:Connect(function(player)
@@ -5577,7 +5692,7 @@ do
         Callback = function(v)
             settings.anti_mod = v;
             if v then
-                for _, player in ipairs(players:GetPlayers()) do
+                for _, player in ipairs(players:GetPlayers() or {}) do
                     is_player_mod(player);
                 end;
             end;
@@ -5591,7 +5706,7 @@ end);
 
 misc:AddButton("unlock emotes", function()
 	local rodux = framework:GetState()
-	for i, v in modules.Name["EmotesInOrder"] do
+	for i, v in pairs(modules.Name["EmotesInOrder"] or {}) do
         if typeof(v) == "table" then 
             rodux.OwnedEmotes[v.id] = 1
         end;
@@ -5675,7 +5790,7 @@ misc:AddToggle("include_position", {
 					notowner = false;
 					hasteleported = false;
 					toolonloss = nil;
-					for _, item in ipairs(character:GetChildren()) do
+					for _, item in ipairs(character:GetChildren() or {}) do
 						if item:IsA("Tool") then
 							toolonloss = item;
 							break;
@@ -5704,7 +5819,7 @@ local casemt = modules.Name["CaseMetadata"];
 local cratenames = {};
 local displayid = {}
 
-for caseid, casedata in pairs(casemt) do
+for caseid, casedata in pairs(casemt or {}) do
     local displayname = casedata.displayName or caseid;
     table.insert(cratenames, displayname);
     displayid[displayname] = caseid;
@@ -5744,7 +5859,7 @@ crates:AddButton({
 			local success, response = invoke_server("PurchaseCase", caseid, selectedamount);
 			if success then
 				setthreadidentity(2);
-				modules.Name["ToastNotificationActionsClient"].add( "success", `Opened {tostring(selectedamount)} case(s) of {SelectedCrateName}`, 2 )(modules.Name["RoduxStore"].store);
+				modules.Name["ToastNotificationActionsClient"].add( "success", "Opened " .. tostring(selectedamount) .. " case(s) of " .. tostring(SelectedCrateName), 2 )(modules.Name["RoduxStore"].store);
 				modules.Name["SoundHandler"].playSound({soundObject = repstorage.Shared.Assets.Sounds.Success, parent = Workspace.Sounds, });
 				setthreadidentity(7);
 			else
@@ -5834,7 +5949,7 @@ miscauto:AddToggle("autoqueue", {
 function bestmatch(Input)
     if not Input or Input == "" then return nil; end;
     Input = Input:lower();
-    for plr, _ in pairs(cachedplayers) do
+    for plr, _ in pairs(cachedplayers or {}) do
         if plr ~= localplayer then
             local namematch = plr.Name:lower():find(Input);
             local displaymatch = plr.DisplayName:lower():find(Input);
@@ -5869,7 +5984,7 @@ misc1:AddInput("playersearch", {
 local player_names = {};
 local function players_dropdown()
     table.clear(player_names);
-    for plr, _ in pairs(cachedplayers) do
+    for plr, _ in pairs(cachedplayers or {}) do
         if plr ~= localplayer then
             table.insert(player_names, plr.Name);
         end;
@@ -6027,7 +6142,7 @@ do
         return Enum.ContextActionResult.Sink;
     end;
     local function has_parry_shield(character)
-        for _, v in character:GetChildren() do
+        for _, v in pairs(character:GetChildren() or {}) do
             if v:GetAttribute("ParryShieldId") then 
                 return true;
             end;
@@ -6049,7 +6164,7 @@ do
 	end;
     local child_connections = {};
     local function watch_character(character)
-        for _, c in child_connections do 
+        for _, c in pairs(child_connections or {}) do 
             c:Disconnect();
         end;
         table.clear(child_connections);
@@ -6067,7 +6182,7 @@ do
         watch_character(character);
     end);
     localplayer.CharacterRemoving:Connect(function()
-        for _, c in child_connections do 
+        for _, c in pairs(child_connections or {}) do 
             c:Disconnect();
         end;
         table.clear(child_connections);
@@ -6301,7 +6416,7 @@ server_gb:AddButton({
             return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100"));
         end);
         if ok and res and res.data then
-            for i, v in pairs(res.data) do
+            for i, v in pairs(res.data or {}) do
                 if v.playing < v.maxPlayers and v.id ~= game.JobId then
                     if typeof(queue_on_teleport) == "function" then
                         queue_on_teleport(string.format([[
@@ -6322,7 +6437,7 @@ server_gb:AddButton({
             return httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"));
         end);
         if ok and res and res.data then
-            for i, v in pairs(res.data) do
+            for i, v in pairs(res.data or {}) do
                if v.playing < v.maxPlayers and v.id ~= game.JobId then
                    if typeof(queue_on_teleport) == "function" then
                        queue_on_teleport(string.format([[
@@ -6666,14 +6781,17 @@ lightingsection:AddToggle("clip_camera", {
 		local target_val_camoff = 0.25;
 		local value_to_set = Value and target_value_noclip or target_val_camoff;
 		local modified = false;
-		for _, v in pairs(getgc()) do
+		for _, v in pairs(getgc() or {}) do
 			if type(v) == "function" and getfenv(v).script == popper then
-				for i, v1 in pairs(gc(v)) do
-					if tonumber(v1) == target_value_noclip or tonumber(v1) == target_val_camoff then
-						if tonumber(v1) ~= value_to_set then
-							sc(v, i, value_to_set);
-							modified = true;
-							break;
+				local rv = gc(v);
+				if type(rv) == "table" then
+					for i, v1 in pairs(rv or {}) do
+						if tonumber(v1) == target_value_noclip or tonumber(v1) == target_val_camoff then
+							if tonumber(v1) ~= value_to_set then
+								sc(v, i, value_to_set);
+								modified = true;
+								break;
+							end;
 						end;
 					end;
 				end;
@@ -6848,7 +6966,7 @@ local function get_water_parts()
     if not map_object then
         return water_parts;
     end;
-    for _, v in ipairs(map_object:GetDescendants()) do
+    for _, v in ipairs(map_object:GetDescendants() or {}) do
         if v:IsA("BasePart") and v.Name == "WaterArea" then
             table.insert(water_parts, v);
         end;
@@ -6875,7 +6993,7 @@ local function set_water_collision(state)
 end;
 
 local function stop_water()
-    for _, c in part_watchers do 
+    for _, c in pairs(part_watchers or {}) do 
         c:Disconnect();
     end;
     table.clear(part_watchers);
@@ -6953,7 +7071,7 @@ local function apply_fog()
         Lighting.atmosphere.Glare = Classes.Glare.Value;
         Lighting.atmosphere.Haze = Classes.Haze.Value;
     else
-        for i, v in pairs(original_atmosphere) do
+        for i, v in pairs(original_atmosphere or {}) do
 			Lighting.atmosphere[i] = v;
 		end;
     end;
@@ -6964,7 +7082,7 @@ local function apply_skybox()
     local skyboxval = Classes.Skybox.Value;
     local Skybox = Skyboxes[skyboxval];
     if Skybox then
-		for i, v in next, Skybox do
+		for i, v in pairs(Skybox or {}) do
 			Sky[i] = v;
 		end;
 	end;
@@ -7160,8 +7278,8 @@ local function esp1()
                             TargetInfo.CachedFlagsString = ""
                             return ""
                         end
-                        if Humanoid.MoveDirection.Magnitude > 0 then table_insert(Flags, "moving") end
-                        if Humanoid.Jump then table_insert(Flags, "jumping") end
+                        if Humanoid.MoveDirection.Magnitude > 0 then table.insert(Flags, "moving") end
+                        if Humanoid.Jump then table.insert(Flags, "jumping") end
                         TargetInfo.CachedFlagsString = table_concat(Flags, "\n")
                         return TargetInfo.CachedFlagsString
                     end }, }, Connections = {}, Errors = {}, Objects = {}, Targets = {}, Utilities = {}, Folder = "ESP", Font = nil, Holder = nil, }
@@ -7194,7 +7312,7 @@ local function esp1()
             };
         end;
         local function loadfonts()
-            for name, table in FontsToDownload do
+            for name, table in pairs(FontsToDownload or {}) do
                 if not isfile(FolderLocation .. "\\Fonts\\" .. name .. ".ttf") then
                     local ok, data = pcall(game.HttpGet, game, table.Link);
                     if ok and data then writefile(FolderLocation .. "\\Fonts\\" .. name .. ".ttf", data); end;
@@ -7206,7 +7324,7 @@ local function esp1()
                     writefile(FolderLocation .. "\\Fonts\\" .. name .. ".font", HttpService:JSONEncode(cfg));
                 end;
             end;
-            for _, fontpath in listfiles(FolderLocation .. "\\Fonts") do
+            for _, fontpath in pairs(listfiles(FolderLocation .. "\\Fonts") or {}) do
                 local name = string_match(fontpath, FolderLocation .. "\\Fonts\\(.+)%.font");
                 if name and not Fonts.Loaded[name] then Fonts.Loaded[name] = Font_new(getcustomasset(fontpath), Enum.FontWeight.Regular); end;
             end;
@@ -7226,14 +7344,14 @@ local function esp1()
                     return Connection and Connection:Disconnect()
                 end
             end)
-            if Connection and ConnectionsTable then table_insert(ConnectionsTable, Connection) end
+            if Connection and ConnectionsTable then table.insert(ConnectionsTable, Connection) end
             return Connection
         end
         function Utility.CreateObject(Type, Properties, Hidden)
             local isHidden = Hidden or false
             local Object = Instance_new(Type)
-            for Index, Value in Properties do Object[Index] = Value end
-            table_insert(ObjectsTable, Object)
+            for Index, Value in pairs(Properties or {}) do Object[Index] = Value end
+            table.insert(ObjectsTable, Object)
             return Object
         end
         function Utility.CalculateBox(Target, RootPart, Parts)
@@ -7241,7 +7359,7 @@ local function esp1()
             local BoxWidth, BoxHeight = 0, 0
             local Position, OnScreen = WorldToViewportPoint(Camera, RootPart.Position)
             if esp_settings.BoundingBox.DynamicBox then
-                for _, Part in Parts do
+                for _, Part in pairs(Parts or {}) do
                     if Part.ClassName ~= "HumanoidRootPart" and (Part:IsA("BasePart")) then
                         local Size = Part.Size / 2
                         local CFrame = Part.CFrame
@@ -7298,8 +7416,8 @@ local function esp1()
             local TextAlignments = {
                 ["Left"] = "Right", ["Right"] = "Left", ["Top"] = "Center", ["Bottom"] = "Center", }
             CharacterObjects.Character = IsA(Target, "Player") and Target.Character or Target
-            CharacterObjects.Children = CharacterObjects.Character and CharacterObjects.Character:GetChildren() or {}
-            CharacterObjects.Descendants = CharacterObjects.Character and CharacterObjects.Character:GetDescendants() or {}
+            CharacterObjects.Children = CharacterObjects.Character and CharacterObjects.Character:GetChildren()
+            CharacterObjects.Descendants = CharacterObjects.Character and CharacterObjects.Character:GetDescendants()
             if IsA(Target, "Player") then
                 CharacterObjects.HumanoidRootPart = CharacterObjects.Character and CharacterObjects.Character:FindFirstChild("HumanoidRootPart") or nil
                 CharacterObjects.Humanoid = CharacterObjects.Character and CharacterObjects.Character:FindFirstChildWhichIsA("Humanoid") or nil
@@ -7405,7 +7523,7 @@ local function esp1()
                         Objects["BoxFillGradient"] = Utility.CreateObject("UIGradient", {Parent = Objects["BoxFill"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 1), NumberSequenceKeypoint_new(1, 1)}})
                     end
                     do
-                        for BarName, Bar in esp_settings.Bars do
+                        for BarName, Bar in pairs(esp_settings.Bars or {}) do
                             Objects[BarName .. "Outline"] = Utility.CreateObject("Frame", {Parent = Objects[Bar.Position .. "BarHolder"], ZIndex = 5, LayoutOrder = 0, Visible = true, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(0, 0, 0)})
                             Utility.CreateObject("UIStroke", {Parent = Objects[BarName .. "Outline"], Thickness = 1, LineJoinMode = Enum.LineJoinMode.Miter})
                             Objects[BarName] = Utility.CreateObject("Frame", {Parent = Objects[BarName .. "Outline"], ZIndex = 6, LayoutOrder = 0, Visible = true, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
@@ -7561,7 +7679,7 @@ local function esp1()
                             if BoxFill.Visible then BoxFill.Visible = false end
                         end
                     end
-                    for BarName, BarInfo in esp_settings.Bars do
+                    for BarName, BarInfo in pairs(esp_settings.Bars or {}) do
                         local Bar, BarOutline, BarGradient = Objects[BarName], Objects[BarName .. "Outline"], Objects[BarName .. "Gradient"]; do
                             local BarEnabled, BarColor, BarTransparency = BarInfo.Enabled, BarInfo.Color, BarInfo.Transparency
                             local Position = BarInfo.Position
@@ -7698,7 +7816,7 @@ local function esp1()
                     end
                 end
                 function TargetInfo.Remove()
-                    for _, Object in Objects do Object:Destroy() end
+                    for _, Object in pairs(Objects or {}) do Object:Destroy() end
                     if TargetInfo.CharacterConnection then
                         TargetInfo.CharacterConnection:Disconnect()
                         TargetInfo.CharacterConnection = nil
@@ -7716,7 +7834,7 @@ local function esp1()
             end
             TargetInfo.Init()
         end
-        function ESP.RemoveTarget(NewTarget) for Target, TargetInfo in ESP.Targets do if Target == NewTarget then TargetInfo.Remove() end end end
+        function ESP.RemoveTarget(NewTarget) for Target, TargetInfo in pairs(ESP.Targets or {}) do if Target == NewTarget then TargetInfo.Remove() end end end
         function ESP.AddUtility(Target, UtilityName, OptionName)
             if ESP.Utilities[Target] then return end
             local Info = {
@@ -7768,20 +7886,20 @@ local function esp1()
                 end;
             end
             function Info.Remove()
-                for _, obj in pairs(Objects) do pcall(function() obj:Destroy() end) end
+                for _, obj in pairs(Objects or {}) do pcall(function() obj:Destroy() end) end
                 ESP.Utilities[Target] = nil
             end
             Info.Init()
         end
         function ESP.RemoveUtility(Target) if ESP.Utilities[Target] then ESP.Utilities[Target].Remove() end end
         function ESP.Unload()
-            for _, Connection in ESP.Connections do Connection:Disconnect() end
-            for _, Object in ESP.Objects do Object:Destroy() end
+            for _, Connection in pairs(ESP.Connections or {}) do Connection:Disconnect() end
+            for _, Object in pairs(ESP.Objects or {}) do Object:Destroy() end
             Fonts = nil
         end
     end
     do
-        for _, Player in Players:GetPlayers() do ESP.AddTarget(Player) end
+        for _, Player in pairs(Players:GetPlayers() or {}) do ESP.AddTarget(Player) end
         Utility.AddConnection(Players.PlayerAdded, LPH_JIT(function(Player) ESP.AddTarget(Player) end))
         Utility.AddConnection(Players.PlayerRemoving, LPH_JIT(function(Player) ESP.RemoveTarget(Player) end))
         
@@ -7794,14 +7912,14 @@ local function esp1()
         local Map = workspace:FindFirstChild("Map")
         local EffectsJunk = workspace:FindFirstChild("EffectsJunk")
         if Map then
-            for i, v in pairs(Map:GetChildren()) do check_util(v) end
+            for i, v in pairs(Map:GetChildren() or {}) do check_util(v) end
             Utility.AddConnection(Map.ChildAdded, check_util)
             Utility.AddConnection(Map.ChildRemoved, function(v)
                 ESP.RemoveUtility(v);
             end);
         end;
         if EffectsJunk then
-            for i, v in pairs(EffectsJunk:GetChildren()) do
+            for i, v in pairs(EffectsJunk:GetChildren() or {}) do
                 check_util(v);
             end;
             
@@ -7813,12 +7931,12 @@ local function esp1()
         end;
 
         runservice.RenderStepped:Connect(LPH_JIT(function()
-            for t, ti in ESP.Targets do
+            for t, ti in pairs(ESP.Targets or {}) do
                 if ti and ti.Update then
                     ti.Update();
                 end;
             end;
-            for t, ti in ESP.Utilities do
+            for t, ti in pairs(ESP.Utilities or {}) do
                 if ti and ti.Update then
                     ti.Update();
                 end;
@@ -8502,9 +8620,9 @@ local function init_esp()
 		task_spawn(LPH_JIT(function()
 			task.wait(0.5);
 			if modules.Name["WeaponMetadata"] then
-				for i, v in pairs(modules.Name["WeaponMetadata"]) do
+				for i, v in pairs(modules.Name["WeaponMetadata"] or {}) do
 					if v.slashMetadata then
-						for _, data in pairs(v.slashMetadata) do
+						for _, data in pairs(v.slashMetadata or {}) do
 							if data.animation and data.animation.AnimationId and not blacklistset[data.animation.AnimationId] then
 								animations[#animations + 1] = data.animation.AnimationId;
 							end;
@@ -8523,7 +8641,7 @@ local function init_esp()
 
 	function New(Type, Outline, Name)
 		local drawing = drawing_new(Type)
-		for i, v in pairs(esp_settings[Type]) do
+		for i, v in pairs(esp_settings[Type] or {}) do
             drawing[i] = v;
         end;
 		if Outline then
@@ -8547,7 +8665,7 @@ local function init_esp()
                     return;
                 end;
                 
-				for i, v in pairs(char:GetChildren()) do
+				for i, v in pairs(char:GetChildren() or {}) do
 					if v:GetAttribute("ParryShieldId") then
 						local thing = v:GetChildren()[1]
 						if thing then
@@ -8607,7 +8725,7 @@ local function init_esp()
 			local Root = Character and Character:FindFirstChild("HumanoidRootPart");
 			local Hum = Root and Character:FindFirstChild("Humanoid");
 			if Character then
-				for i, v in pairs(Character:GetChildren()) do
+				for i, v in pairs(Character:GetChildren() or {}) do
                     on_new_tool(v);
                 end;
 				check(Character);
@@ -8635,7 +8753,7 @@ local function init_esp()
 		end;
 	end;
 
-	for Player, _ in pairs(cachedplayers) do
+	for Player, _ in pairs(cachedplayers or {}) do
         if Player ~= localplayer then
             Add(Player);
         end;
@@ -8644,7 +8762,7 @@ local function init_esp()
 	players.PlayerAdded:Connect(Add)
 	players.PlayerRemoving:Connect(function(Player)
 		if player_drawings[Player] then
-			for i, v in pairs(player_drawings[Player]) do
+			for i, v in pairs(player_drawings[Player] or {}) do
 				if v and i ~= "RootPart" and i ~= "Humanoid" then
 					if i == "Highlight" then
 						v:Destroy();
@@ -8653,8 +8771,8 @@ local function init_esp()
 					end;
 				end;
 			end;
-			if player_connections[Player] and next(player_connections[Player]) then
-                for i, v in pairs(player_connections[Player]) do
+			if player_connections[Player] and _nx(player_connections[Player] or {}) then
+                for i, v in pairs(player_connections[Player] or {}) do
                     v:Disconnect();
                 end;
             end;
@@ -8684,8 +8802,8 @@ local function init_esp()
 	end
     
     if nil_player_drawings then
-        for _, drawings in pairs(nil_player_drawings) do
-            for _, drawing in pairs(drawings) do
+        for _, drawings in pairs(nil_player_drawings or {}) do
+            for _, drawing in pairs(drawings or {}) do
                 if type(drawing) == "table" and drawing.Remove then
                     pcall(function()
                         drawing:Remove();
@@ -8697,8 +8815,8 @@ local function init_esp()
 
     nil_player_drawings = player_drawings
     if util_drawings then
-        for _, drawings in pairs(util_drawings) do
-            for _, drawing in pairs(drawings) do
+        for _, drawings in pairs(util_drawings or {}) do
+            for _, drawing in pairs(drawings or {}) do
                 if type(drawing) == "table" and drawing.Remove then
                     pcall(function()
                         drawing:Remove();
@@ -8710,7 +8828,7 @@ local function init_esp()
 
     util_drawings = UtilityDrawings;
     if nfov_circle then
-        for _, drawing in pairs(nfov_circle) do
+        for _, drawing in pairs(nfov_circle or {}) do
             if type(drawing) == "table" and drawing.Remove then
                 pcall(function()
                     drawing:Remove();
@@ -8804,7 +8922,7 @@ local function init_esp()
             last_cursor_scan = now_tick;
             local mouse_position = userinputservice:GetMouseLocation();
             local closest_distance = math.huge;
-            for Player, _ in pairs(cachedplayers) do
+            for Player, _ in pairs(cachedplayers or {}) do
                 if Player == localplayer then continue; end;
                 local char = Player.Character;
                 local root = char and char:FindFirstChild("HumanoidRootPart");
@@ -8830,7 +8948,7 @@ local function init_esp()
         local tracermaxdist = Classes.TracerMaxDist.Value;
         local ragetarget = serenium_ragebot_target or locked_target;
         local satarget = serenium_sa_target;
-        for player in pairs(cachedplayers) do
+        for player in pairs(cachedplayers or {}) do
             if player == localplayer then continue; end;
             local playerdrawing = player_drawings[player];
             if not playerdrawing then continue; end;
@@ -9025,7 +9143,7 @@ local function initialize_visuals()
             end);
             weaponchams_data.WeaponHighlight = nil;
         end;
-        for part, props in pairs(weaponchams_data.original_properties) do
+        for part, props in pairs(weaponchams_data.original_properties or {}) do
             if part and part.Parent then
                 pcall(function()
                     part.Material = props.Material;
@@ -9073,7 +9191,7 @@ local function initialize_visuals()
             return;
         end;
 
-        for _, part in pairs(tool:GetDescendants()) do
+        for _, part in pairs(tool:GetDescendants() or {}) do
             if part:IsA("BasePart") then
                 if not weaponchams_data.original_properties[part] then
                     weaponchams_data.original_properties[part] = {
@@ -9133,7 +9251,7 @@ local function initialize_visuals()
             character_vis_data.RainbowConnection = nil;
         end;
 
-        for part, props in pairs(character_vis_data.original_properties) do
+        for part, props in pairs(character_vis_data.original_properties or {}) do
             if part and part.Parent then
                 pcall(function()
                     part.Material = props.Material;
@@ -9166,7 +9284,7 @@ local function initialize_visuals()
 
 	local chams_char_conn = {};
 	local function bind_weapon_chams(char)
-		for _, c in chams_char_conn do c:Disconnect(); end;
+		for _, c in pairs(chams_char_conn or {}) do c:Disconnect(); end;
 		table.clear(chams_char_conn);
 		if not char then return; end;
 		table.insert(chams_char_conn, char.ChildAdded:Connect(on_tool_equipped));
@@ -9368,7 +9486,7 @@ function hit_detection:ConnectToCaster(caster)
                         table.insert(keys, tool:GetAttribute("ItemId"));
                     end;
                     local damage_config = nil;
-                    for _, k in ipairs(keys) do
+                    for _, k in ipairs(keys or {}) do
                         damage_config = framework:getmetadata(k) or framework:getutility(k);
                         if not damage_config and modules.Name["WeaponMetadata"] then
                             damage_config = modules.Name["WeaponMetadata"][k];
@@ -9611,11 +9729,11 @@ do
 					new_params.IgnoreWater = old_params.IgnoreWater;
 					local ignore_list = {};
 					if old_params.FilterDescendantsInstances then
-                        for _, v in ipairs(old_params.FilterDescendantsInstances) do
+                        for _, v in ipairs(old_params.FilterDescendantsInstances or {}) do
                             table.insert(ignore_list, v);
                         end;
                     end;
-					for _, plr in pairs(game.Players:GetPlayers()) do
+					for _, plr in pairs(game.Players:GetPlayers() or {}) do
 						local player_character = plr.Character;
 						if player_character and player_character ~= target.Character then table.insert(ignore_list, player_character);
                         end;
@@ -9677,16 +9795,16 @@ do
 
 			local player = locked_target or framework:get_closest_2(Classes.RagebotDist.Value);
 
-			if locked_target and not next(locked_target) then
+			if locked_target and not _nx(locked_target or {}) then
 				locked_target = nil;
 				continue;
 			end;
 
-			if not player or not next(player) then
+			if not player or not _nx(player or {}) then
 				continue;
 			end;
 
-            local target_player = players:FindFirstChild(next(player))
+            local target_player = players:FindFirstChild(_nx(player or {}))
             if target_player and (should_skip_by_whitelist(target_player, "ragebot")) then
                 locked_target = nil;
                 continue;
@@ -9712,7 +9830,7 @@ do
 				continue;
 			end;
 
-			local target_player = players:FindFirstChild(next(player));
+			local target_player = players:FindFirstChild(_nx(player or {}));
 			if not target_player or not target_player.Character then
 				continue;
 			end;
@@ -9897,7 +10015,7 @@ misc3:AddButton({
                     return HttpService:JSONDecode(HttpService:GetAsync("https://games.roblox.com/v1/games/"  .. PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"));
                 end);
                 if ok and res and res.data then
-                    for _, v in pairs(res.data) do
+                    for _, v in pairs(res.data or {}) do
                         if v.id == JobId then
                             server_info = v;
                             break;
@@ -9952,7 +10070,7 @@ local function update_keybinds(mode)
         return;
     end;
     library.KeybindFrame.Visible = true;
-    for _, option in pairs(Options) do
+    for _, option in pairs(Options or {}) do
         update_keybind_ui(option, mode);
     end;
 end;
@@ -10019,7 +10137,7 @@ local function create_character_vis()
     local character_connection = {};
 
     local function clear_connections()
-        for _, v in pairs(character_connection) do
+        for _, v in pairs(character_connection or {}) do
             if v and v.Disconnect then
                 v:Disconnect();
             end;
@@ -10039,7 +10157,7 @@ local function create_character_vis()
         if original_data.Char == char then return; end;
         clear_original_data();
         original_data.Char = char;
-        for _, v in ipairs(char:GetDescendants()) do
+        for _, v in ipairs(char:GetDescendants() or {}) do
             if v:IsA("BasePart") then
                 local is_root = (v.Name == "HumanoidRootPart");
                 local is_hitbox = v.Name:lower():find("hitbox");
@@ -10067,7 +10185,7 @@ local function create_character_vis()
 
     local function apply_visuals()
         local char = localplayer.Character;
-        if not char or not next(original_data.Parts) then return; end;
+        if not char or not _nx(original_data.Parts or {}) then return; end;
         local is_rainbow = Toggles.RainbowCharacter and Toggles.RainbowCharacter.Value;
         local custom_color = Toggles.CustomMaterialColor and Toggles.CustomMaterialColor.Value;
         local mat = Classes.CharacterMaterial and Classes.CharacterMaterial.Value;
@@ -10078,7 +10196,7 @@ local function create_character_vis()
         local glow_color = Classes.OutlineGlowColor and Classes.OutlineGlowColor.Value;
         local is_forcefield = (mat == "ForceField");
         local is_neon = (mat == "Neon");
-        for part, data in pairs(original_data.Parts) do
+        for part, data in pairs(original_data.Parts or {}) do
             if not part or not part.Parent then continue; end;
             if mat == "ForceField" then
                 part.Material = Enum.Material.ForceField;
@@ -10111,7 +10229,7 @@ local function create_character_vis()
             end;
         end;
 
-        for mesh, data in pairs(original_data.Meshes) do
+        for mesh, data in pairs(original_data.Meshes or {}) do
             if not mesh or not mesh.Parent then continue; end;
             local is_head = (mesh.Parent.Name == "Head");
             if (is_rainbow or is_forcefield) and not is_head then
@@ -10120,7 +10238,7 @@ local function create_character_vis()
                 mesh.TextureId = data.TextureId;
             end;
         end;
-        for decal, data in pairs(original_data.Decals) do
+        for decal, data in pairs(original_data.Decals or {}) do
             if not decal or not decal.Parent then continue; end;
             local is_face = decal.Name:lower():find("face") or (decal.Parent and decal.Parent.Name == "Head");
             if (is_rainbow or is_forcefield) and not is_face then
@@ -10136,7 +10254,7 @@ local function create_character_vis()
         end;
 
         if remove_accessories then
-            for _, acc in ipairs(original_data.Accessories) do
+            for _, acc in ipairs(original_data.Accessories or {}) do
                 if acc and acc:IsA("Accessory") and acc.Parent == char then
                     local is_face = acc.Name:lower():find("face") or acc.Name:lower():find("facial") or acc.Name:lower():find("head");
                     if not is_face then
@@ -10145,7 +10263,7 @@ local function create_character_vis()
                 end;
             end;
 
-            for _, v in ipairs(char:GetChildren()) do
+            for _, v in ipairs(char:GetChildren() or {}) do
                 if v:IsA("Accessory") then
                     local is_face = v.Name:lower():find("face") or v.Name:lower():find("facial") or v.Name:lower():find("head")
                     if not is_face then
@@ -10157,7 +10275,7 @@ local function create_character_vis()
                 end;
             end;
         else
-            for _, acc in ipairs(original_data.Accessories) do
+            for _, acc in ipairs(original_data.Accessories or {}) do
                 if acc and acc:IsA("Accessory") and acc.Parent ~= char then
                     acc.Parent = char;
                 end;
@@ -10262,7 +10380,7 @@ local function create_character_vis()
             if rainbowstepper >= 0.033 then
                 rainbowstepper = 0;
                 local rc = nil_global_rainbow_color;
-                for part in pairs(original_data.Parts) do
+                for part in pairs(original_data.Parts or {}) do
                     if part and part.Parent and part:IsA("BasePart") then
                         part.Color = rc;
                     end;
