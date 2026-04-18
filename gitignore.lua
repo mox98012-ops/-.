@@ -77,11 +77,12 @@ local modules, framework;
 
 do
     setstackhidden(1, true);
-    for _, obj in pairs(getreg()) do
+    for _, obj in ipairs(getreg()) do
         if (type(obj) == "thread") then
             local success, source = pcall(debug.info, obj, 1, "s");
             if (success and source and source:find("legacy")) then
                 coroutine.close(obj);
+                break;
             end;
         end;
     end;
