@@ -71,29 +71,20 @@ if (not LPH_OBFUSCATED) then
 	LPH_JIT = newcclosure(function(...) return ...; end);
 end;
 
-local Data = getgenv().Data;
+local Data = Data;
 if not Data then Data = {InviteToDiscord = false, Intro = true, KillSayStuff = {Normal = {"bro, respawn faster, I need more %XP% XP", "can someone hvh me?? im guessing nobody can 🤣", "你的WiFi是土豆吗, %Died%?", "你打游戏好像老奶奶一样", "Atleast u died to SERENIUM, %Died%", "你是NPC吗, %Died%?", "你的技能和样老", "fix ur aim %Died%", "damn is 😂", "听说你用Internet Explorer在玩游戏", "お前の反応はカタツムリより遅いぞ", "你在玩手机上吗, %Died%?", "你刚才是睡着了吗?", "🤖 你是一台机器人吗, %Died%?", "Internet says 'how to dodge in combat warriors'", "turn off 'get beaten by skids' in cw settings", "左, 右, 晚安 :skull:", "お前はもう死んでいる", "ты был удалён с сервера", "איפה הכבוד שלך, %Died%?", "あなたはゲームをやめるべきです", "your kd is negative btw %Died%", "你的存活率比0%还低", "parrying 💔💔", "Internet says 'how to recover from public humiliation'", "get this script at /SERENIUM !", "tired of cheaters? become one yourself and combat them! /SERENIUM", "Outplayed by SERENIUM.", }, Assist = {"你没死于我, 是死于团队合作", "split my %XP% XP and %Credits% credits with a random, ty for the donation %Died%", "お前は味方にやられた", "ты просто статистика", "你被团队协作打败了", "didnt need an assist to kill u %Died%", "谁帮我补刀的? 这次算你赚到", "yo %Died%, we both know I didn't need the assist", }, Finish = {"你的账号已被暂停, %Died%", "bro got sent to the shadow realm by a %Weapon%", "%Died%, should've dodged, oh wait… too late 💀", "yo %Died%, your Roblox career ended faster than a limited item stock", "Ты уничтожен", "ur name should be 'free kill', %Died%", "%Died% died so fast that Roblox lagged 💀", "お前の敗北は確定していた", "お前の人生はチェックメイト", "fatality.", "bro went out like a YouTube tutorial dummy", "bro got cooked, fried, and served", "bro's internet provider officially disowned him", "Mustache Man once said: 'The greatest defeat comes when one refuses to accept their fate.'", "Napoleon once declared: 'The war is won in the mind before the battlefield.'", "Sun Tzu once wrote: 'The battlefield is not just a place, it is a state of mind.'", "Genghis Khan once proclaimed: 'A warrior's life ends when they fail to adapt to the changing tides.'", "Einstein once said: 'In the end, only the smart survive.'", }, Glory = { "你的死亡动画很美, %Died%", "someone clip that dawg, %Died% just got packed", "%Died%, wanna see my recoil script? (it's called skill)", "yo %Died%, ur gameplay lookin like a speedrun to the death screen", "bro's last words: 'I got this' 💀", "удар был смертельным", "ur name should be 'free kill', %Died%", "%Died% died so fast that Roblox lagged 💀", "お前の存在が消えた", "я сохранил этот момент", "bro thought he was the protagonist, I made sure he wasn't", "Google says 'how to recover from a humiliation kill'", "%Died%, that was a fatality, not a kill", "bro got deleted so hard, he's gonna respawn in another server", "I'm screenshotting this kill for my collection %Died%", "你只是我今天的另一个XP点数 ", "お前は何だったの？", "left right goodnight :skull:", "clip that, I need it for my mixtape", "bro got an express ticket to spectate mode", "100% uninstall speedrun, new record %Died%", "bro thought he had a chance, but the script said no", "Mustache Man once said: 'Victory is a sweet taste for those who dare to fight without hesitation.'", "Sun Tzu once wrote: 'The only true defeat is one suffered without a fight.'", "Einstein once said: 'It's not about how fast you run, but how you use your momentum.'", "Genghis Khan once declared: 'A battle is not won by strength alone, but by will and intellect.'", "Napoleon said: 'The best way to predict the future is to make it.'", }, }, }; end;
 local modules, framework;
 
 do
     setstackhidden(1, true);
-    local function bypass_ac()
-        local count = 0
-        for _, obj in pairs(getreg()) do
-            if type(obj) == "thread" then
-                local success, source = pcall(debug.info, obj, 1, "s");
-                if success and source and source:find("legacy") then
-                    coroutine.close(obj);
-                    count = count + 1;
-                end;
+    for _, obj in pairs(getreg()) do
+        if (type(obj) == "thread") then
+            local success, source = pcall(debug.info, obj, 1, "s");
+            if (success and source and source:find("legacy")) then
+                coroutine.close(obj);
             end;
         end;
-        if count > 0 then
-            --warn("destroyed " .. count .. " threads");
-        end;
     end;
-    
-    bypass_ac();
 
     local or_connect; or_connect = hookfunction(runservice.Heartbeat.Connect, newcclosure(function(signal, callback, ...)
         if (type(callback) == "function") then
@@ -7236,7 +7227,7 @@ local function esp1()
                     local cfg = {
                         name = name, faces = {{
                         name = "Regular", weight = 9e9, style = "normal", assetId = getcustomasset(FolderLocation .. "\\Fonts\\" .. name .. ".ttf") }} };
-                    writefile(FolderLocation .. "\\Fonts\\" .. name .. ".font", HttpService:JSONEncode(cfg));
+                    writefile(FolderLocation .. "\\Fonts\\" .. name .. ".font", httpservice:JSONEncode(cfg));
                 end;
             end;
             for _, fontpath in pairs(listfiles(FolderLocation .. "\\Fonts") or {}) do
@@ -9352,22 +9343,21 @@ function KalmanFilter:update(measured_pos, measured_vel, dt)
 	return self.x, self.v;
 end;
 
-function PredictTargetPosition(origin, destination, weapon_speed, ping, gravity)
-	local filter = destination.KalmanFilter or KalmanFilter.new();
-	destination.KalmanFilter = filter;
+function PredictTargetPosition(origin, destination, weapon_speed, ping_ms, gravity)
 	local measured_pos = destination.Position;
 	local measured_vel = destination.Velocity or Vector3.zero;
-	local dt = runservice.Heartbeat:Wait();
-	local estimated_pos, estimated_vel = filter:update(measured_pos, measured_vel, dt);
-	local network_delay = ping / 1000;
-	local future_pos = estimated_pos + estimated_vel * network_delay;
-	local travel_time = (future_pos - origin).magnitude / weapon_speed;
-	if measured_vel.Y <= -15 or measured_vel.Y >= 15 then
-        measured_vel = vector3_new(measured_vel.X, measured_vel.Y * travel_time, measured_vel.Z);
-    end;
-	future_pos = future_pos + estimated_vel * travel_time;
-	future_pos = future_pos + vector3_new(0, -0.5 * gravity * travel_time ^ 2, 0);
-	return future_pos;
+	local network_delay = (ping_ms or 0) / 1000;
+	local estimated_pos = measured_pos + (measured_vel * network_delay);
+	local travel_time = (estimated_pos - origin).Magnitude / weapon_speed;
+	local final_pos = estimated_pos + (measured_vel * travel_time);
+	if gravity then
+		local g_val = typeof(gravity) == "Vector3" and gravity.Y or gravity;
+		if g_val ~= 0 then
+			final_pos = final_pos + Vector3.new(0, -0.5 * g_val * travel_time^2, 0);
+		end;
+	end;
+	
+	return final_pos;
 end;
 
 local hit_detection = {
@@ -9468,6 +9458,7 @@ hit_detection.Active = true;
 
 do
 	setthreadidentity(2);
+	local LocalPlayer = game:GetService("Players").LocalPlayer;
 	local ActiveCast = require(game:GetService("ReplicatedStorage").Shared.Vendor.FastCast.ActiveCast);
 	setthreadidentity(7);
 
@@ -9477,209 +9468,269 @@ do
 	local old_simulate_cast = getupvalue(ActiveCast.new, 6);
 	local old_calculate_fire = modules.Name["RangedWeaponHandler"].calculateFireDirection;
 
+	local function get_pos(caster)
+		if not caster then return Vector3.zero end;
+		if caster.GetPosition then 
+			local s, r = pcall(caster.GetPosition, caster);
+			if s then return r end;
+		end;
+		
+		local state = caster.StateInfo;
+		local trajectories = state and state.Trajectories;
+		if trajectories and #trajectories > 0 then
+			local v2 = trajectories[#trajectories]
+			local v3 = state.TotalRuntime - v2.StartTime
+			local Acceleration = v2.Acceleration
+			return v2.Origin + v2.InitialVelocity * v3 + Vector3.new(Acceleration.X * v3^2 / 2, Acceleration.Y * v3^2 / 2, Acceleration.Z * v3^2 / 2)
+		end
+		
+		if caster.RayInfo and caster.RayInfo.CosmeticBulletObject then
+			local obj = caster.RayInfo.CosmeticBulletObject;
+			if obj:IsA("BasePart") then return obj.Position end;
+		end;
+		
+		return Vector3.zero;
+	end;
+
 	function new_simulate(...)
-		local args = {... };
+		local args = {...};
 		local caster = args[1];
-		local terminated = false;
-		newcclosure(function()
-			local weapon, metadata = framework:get_ranged();
-			local Chance = framework:Chance(Classes.HitChance.Value);
-			if not Chance then
-                table.insert(chance_cache, caster);
-            end;
+		if not (caster and caster.UserData and caster.StateInfo) then 
+			return old_simulate_cast(...);
+		end;
 
-			if Toggles.avoidprojectiles.Value and caster and caster.UserData and caster.UserData.tool ~= weapon then
-				local root_part = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart");
-				if not root_part then return; end;
-				local pos = caster:GetPosition();
-				if not pos then return; end;
-				local projectile_speed = metadata._itemConfig.speed;
-				if not projectile_speed or projectile_speed <= 0 then return; end;
-				local distance = (root_part.Position - pos).Magnitude;
-				local stats = game:GetService("Stats");
-				local ping_value = stats.Network.ServerStatsItem["Data Ping"]:GetValue();
-				local ping_seconds = ping_value / 1000;
-				local caster_velocity = Vector3.zero;
-				if caster.GetVelocity then
-                    caster_velocity = caster:GetVelocity();
-                end;
-				local predicted_pos = pos + (caster_velocity * ping_seconds);
-				local predicted_distance = (root_part.Position - predicted_pos).Magnitude;
-				local predicted_travel_time = predicted_distance / projectile_speed;
-				local saftey_bugger = 0.05;
-				local adjusted_time = predicted_travel_time - ping_seconds - saftey_bugger;
-				if adjusted_time <= 0.15 then
-					setrunning("AvoidProjectiles", true)
-					task.delay(0.5, function()
-                        setrunning("AvoidProjectiles", false);
-                    end);
-                end;
-            end;
+		local weapon, metadata = framework:get_ranged();
+		if not (weapon and metadata) then 
+			return old_simulate_cast(...);
+		end;
 
-			if not table.find(chance_cache, caster) and Chance and caster and caster.UserData and caster.StateInfo and caster.UserData.tool == weapon and (Classes.SilentAim.Value or settings.ragebot) and weapon and metadata then
-				local Player = framework:closest_characters_origin(caster:GetPosition(), 19);
-				if Classes.ClosestType.Value == "Only Redirect To Target" then
-					Player = nil;
-					local Characters = framework:closest_characters_to_origin(caster:GetPosition(), 19)
-					if table.find(Characters, silentaim_target) then
-                        Player = silentaim_target;
-                    end;
+		if not caster.UserData.pierce_hooked then
+			caster.UserData.pierce_hooked = true;
+			local old_pierce = caster.RayInfo.CanPierceCallback;
+			caster.RayInfo.CanPierceCallback = function(cast, result, ...)
+				if result.Instance and result.Instance.Name == "hitbox" then
+					return true;
 				end;
+				if old_pierce then
+                    return old_pierce(cast, result, ...);
+                end;
+				return false;
+			end;
+		end;
 
-				local mouse_closest = framework:closest_to_mouse(Classes.FOVSize.Value);
+		local Chance = framework:Chance(Classes.HitChance.Value);
+		if not Chance and not table.find(chance_cache, caster) then
+			table.insert(chance_cache, caster);
+		end;
 
-				if Player then
-					local Head = Player:FindFirstChild("Head");
-					local Character = localplayer.Character;
-					local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart");
-					if settings.ragebot and Head and HumanoidRootPart then
-						if Toggles.ShowLine.Value then
-							local part = Instance.new("Part");
-							part.Anchored = true;
-							part.CanCollide = false;
-							part.Material = Enum.Material.Neon;
-							part.Color = Options.LineColor.Value;
-							part.Size = vector3_new(0.1, 0.1, (Head.Position - HumanoidRootPart.Position).Magnitude);
-							part.CFrame = cframe_new(HumanoidRootPart.Position, Head.Position) * cframe_new(0, 0, -part.Size.Z / 2);
-							part.Transparency = 0;
-							part.Parent = workspace;
-							task_spawn(LPH_JIT(function()
-								local fade_time = 2;
-								local steps = 30
-								for i = 1, steps do
-									part.Transparency = i / steps;
-									task.wait(fade_time / steps);
-								end;
-								part:Destroy();
-							end));
-						end;
-						if caster.Caster and caster.Caster.RayHit then
-							local fake_result = {
-								Instance = Head,
-								Position = Head.Position,
-								Normal = Vector3.yAxis,
-								Material = Enum.Material.SmoothPlastic,
-								Distance = 1,
-							}
-							local fake_velocity = (Head.Position - caster:GetPosition()).Unit * 3000
-							caster.Caster.RayHit:Fire(
-								caster,
-								fake_result,
-								fake_velocity,
-								caster.RayInfo and caster.RayInfo.CosmeticBulletObject
-							);
-						end;
-						caster:Terminate();
-						terminated = true;
-						return;
+		if Toggles.avoidprojectiles.Value and caster.UserData.tool ~= weapon then
+			local root_part = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart");
+			if root_part then
+				local pos = get_pos(caster);
+				local projectile_speed = metadata._itemConfig and metadata._itemConfig.speed;
+				if pos and projectile_speed and projectile_speed > 0 then
+					local distance = (root_part.Position - pos).Magnitude;
+					local ping_seconds = LocalPlayer:GetNetworkPing();
+					
+					local caster_velocity = Vector3.zero;
+					if caster.GetVelocity then
+						caster_velocity = caster:GetVelocity();
+					end;
+
+					local predicted_pos = pos + (caster_velocity * ping_seconds);
+					local predicted_distance = (root_part.Position - predicted_pos).Magnitude;
+					local predicted_travel_time = predicted_distance / projectile_speed;
+					local safety_buffer = 0.05;
+					local adjusted_time = predicted_travel_time - ping_seconds - safety_buffer;
+
+					if adjusted_time <= 0.15 then
+						setrunning("AvoidProjectiles", true);
+						task.delay(0.5, function()
+							setrunning("AvoidProjectiles", false);
+						end);
 					end;
 				end;
+			end;
+		end;
 
-				if Classes.SilentAim.Value then
-					if Classes.ClosestType.Value == "Closest To Mouse" then
-						if mouse_closest then
-							local player_character = mouse_closest.Character;
-							if player_character then
-								local HitPart = player_character:FindFirstChild( Classes.SilentHitPart.Value == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Classes.SilentHitPart.Value);
-								if HitPart and (HitPart.Position - caster:GetPosition()).Magnitude <= Classes.SilentAimRange.Value then
-									local target_position = HitPart.Position;
-									local origin = caster:GetPosition();
-									local direction = (target_position - origin);
-									local distance = direction.Magnitude;
-									local speed = 3000;
-									local Vel = direction.Unit * speed;
-									caster:SetVelocity(Vel);
-									caster.RayInfo.Direction = Vel.Unit;
-								end;
+		if not table.find(chance_cache, caster) and Chance and caster.UserData.tool == weapon and (Classes.SilentAim.Value or settings.ragebot) then
+
+			if not (caster and caster.StateInfo) then
+                return old_simulate_cast(...);
+            end;
+
+			local target_player = framework:closest_characters_origin(get_pos(caster), 19);
+			if Classes.ClosestType.Value == "Only Redirect To Target" then
+				target_player = nil;
+				local characters = framework:closest_characters_to_origin(get_pos(caster), 19);
+				if table.find(characters, silentaim_target) then
+					target_player = silentaim_target;
+				end;
+			end;
+
+			if settings.ragebot and target_player then
+				local head = target_player:FindFirstChild("Head");
+				local root_part = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart");
+				if head and root_part then
+					if Toggles.ShowLine.Value then
+						local part = Instance.new("Part");
+						part.Anchored = true;
+						part.CanCollide = false;
+						part.Material = Enum.Material.Neon;
+						part.Color = Options.LineColor.Value;
+						part.Size = Vector3.new(0.1, 0.1, (head.Position - root_part.Position).Magnitude);
+						part.CFrame = CFrame.new(root_part.Position, head.Position) * CFrame.new(0, 0, -part.Size.Z / 2);
+						part.Parent = workspace;
+						task.spawn(function()
+							local steps = 30;
+							for i = 1, steps do
+								part.Transparency = i / steps;
+								task.wait(2 / steps);
 							end;
-						end;
-					elseif Classes.ClosestType.Value == "Closest To Arrow" or Classes.ClosestType.Value == "Only Redirect To Target" then
-						if Player then
-							local HitPart = Player:FindFirstChild( Classes.SilentHitPart.Value == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Classes.SilentHitPart.Value )
-							if HitPart and (HitPart.Position - caster:GetPosition()).Magnitude <= Classes.SilentAimRange.Value then
-								local target_position = HitPart.Position;
-								local Vel = (target_position - caster:GetPosition()).Unit * 3000;
-								caster:SetVelocity(Vel);
+							part:Destroy();
+						end);
+					end;
+
+					if caster.Caster and caster.Caster.RayHit then
+						local fake_result = {
+							Instance = head,
+							Position = head.Position,
+							Normal = Vector3.yAxis,
+							Material = Enum.Material.SmoothPlastic,
+							Distance = 1,
+						};
+						local projectile_speed = metadata._itemConfig and metadata._itemConfig.speed or 3000;
+						local fake_velocity = (head.Position - get_pos(caster)).Unit * projectile_speed;
+						caster.Caster.RayHit:Fire(caster, fake_result, fake_velocity, caster.RayInfo and caster.RayInfo.CosmeticBulletObject);
+					end;
+					
+					if caster and caster.Terminate then 
+						caster:Terminate();
+					end;
+					return;
+				end;
+			end;
+
+			if Classes.SilentAim.Value and caster and caster.StateInfo then
+				local target = nil;
+				if Classes.ClosestType.Value == "Closest To Mouse" then
+					local mouse_tgt = framework:closest_to_mouse(Classes.FOVSize.Value);
+					target = mouse_tgt and mouse_tgt.Character;
+				else
+					target = target_player;
+				end;
+
+				if target then
+					local hit_part_name = Classes.SilentHitPart.Value == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Classes.SilentHitPart.Value;
+					local hit_part = target:FindFirstChild(hit_part_name);
+					local humanoid = target:FindFirstChildOfClass("Humanoid");
+					
+					if hit_part and humanoid then
+						local pos = get_pos(caster);
+						local projectile_speed = metadata._itemConfig and metadata._itemConfig.speed or 3000;
+						local projectile_gravity = metadata._itemConfig and (metadata._itemConfig.gravity or metadata._itemConfig.Acceleration) or Vector3.new(0, 0, 0);
+
+						local aim_position = PredictTargetPosition(pos, {
+							Position = hit_part.Position,
+							Velocity = (Classes.Resolver.Value and humanoid.MoveDirection or hit_part.Velocity),
+						}, projectile_speed, 0, projectile_gravity);
+
+						if (aim_position - pos).Magnitude <= Classes.SilentAimRange.Value then
+							local new_vel = (aim_position - pos).Unit * projectile_speed;
+							
+							if caster and caster.SetVelocity and caster.StateInfo and caster.StateInfo.UpdateConnection then
+								caster:SetVelocity(new_vel);
+
+								if Classes.Wallbang.Value and caster.RayInfo then
+									local params = caster.RayInfo.Parameters;
+									if params then
+										params.FilterType = Enum.RaycastFilterType.Include;
+										params.FilterDescendantsInstances = {target};
+									end;
+								end;
 							end;
 						end;
 					end;
 				end;
 			end;
-		end);
+		end;
 
-		if terminated then 
-            return; 
-        end;
-
-		if caster and caster.UserData and caster.StateInfo then
-            return old_simulate_cast(...);
-        end;
+		return old_simulate_cast(...);
 	end;
 
 	function new_calculate_fire(...)
 		local args = {...};
-		local target = framework:closest_to_mouse(Options.FOVSize.Value)
+		local target = framework:closest_to_mouse(Options.FOVSize.Value);
 		if settings.stick and stick_target then 
-            target = stick_target;
-        end;
-		local ranged, metadata = framework:get_ranged();
-		if Classes.SilentAim.Value and target and ranged and metadata and framework:Chance(Classes.HitChance.Value) and not framework:in_menu(target) then
-			local hit_part = target.Character:FindFirstChild(Classes.SilentHitPart.Value);
-			local humanoid = target.Character:FindFirstChildOfClass("Humanoid");
+			target = stick_target;
+		end;
+
+		local weapon, metadata = framework:get_ranged();
+		if Classes.SilentAim.Value and target and weapon and metadata and framework:Chance(Classes.HitChance.Value) and not framework:in_menu(target) then
+			local hit_part = target.Character and target.Character:FindFirstChild(Classes.SilentHitPart.Value);
+			local humanoid = target.Character and target.Character:FindFirstChildOfClass("Humanoid");
+
 			if hit_part and humanoid then
-				local cheated_origin = metadata:getCheatedBackOriginIfInObject( metadata._mainCasterBehavior.RaycastParams);
+				local cheated_origin = metadata:getCheatedBackOriginIfInObject(metadata._mainCasterBehavior.RaycastParams);
 				if cheated_origin then
 					silentaim_target = target.Character;
 					local projectile_speed = metadata._itemConfig.speed;
-					local projectile_gravity = metadata._itemConfig.gravity or vector3_new(0, 0, 0);
+					local projectile_gravity = metadata._itemConfig.gravity or Vector3.new(0, 0, 0);
+					
+					local ping_ms = LocalPlayer:GetNetworkPing() * 1000;
+					
 					local aim_position = PredictTargetPosition(cheated_origin, {
-                        Position = hit_part.Position,
-                        Velocity = (Classes.Resolver.Value and humanoid.MoveDirection or hit_part.Velocity),
-                    },
-                    projectile_speed, localplayer:GetNetworkPing() * 1000, projectile_gravity);
-					args[1] = CFrame.lookAt(vector3_new(), (aim_position - cheated_origin).Unit);
+						Position = hit_part.Position,
+						Velocity = (Classes.Resolver.Value and humanoid.MoveDirection or hit_part.Velocity),
+					}, projectile_speed, ping_ms, projectile_gravity);
+
+					args[1] = CFrame.lookAt(cheated_origin, aim_position);
+
 					local old_params = metadata._mainCasterBehavior.RaycastParams;
 					local new_params = RaycastParams.new();
-					new_params.FilterType = Enum.RaycastFilterType.Blacklist;
 					new_params.IgnoreWater = old_params.IgnoreWater;
-					local ignore_list = {};
-					if old_params.FilterDescendantsInstances then
-                        for _, v in ipairs(old_params.FilterDescendantsInstances or {}) do
-                            table.insert(ignore_list, v);
-                        end;
-                    end;
-					for _, plr in pairs(game.Players:GetPlayers() or {}) do
-						local player_character = plr.Character;
-						if player_character and player_character ~= target.Character then table.insert(ignore_list, player_character);
-                        end;
+					
+					if Classes.Wallbang.Value then
+						new_params.FilterType = Enum.RaycastFilterType.Include;
+						new_params.FilterDescendantsInstances = {target.Character};
+					else
+						new_params.FilterType = Enum.RaycastFilterType.Blacklist;
+						local ignore_list = {workspace.Terrain};
+						if old_params.FilterDescendantsInstances then
+							for _, v in ipairs(old_params.FilterDescendantsInstances) do
+								table.insert(ignore_list, v);
+							end;
+						end;
+						for _, plr in pairs(game.Players:GetPlayers()) do
+							if plr.Character and plr.Character ~= target.Character then 
+								table.insert(ignore_list, plr.Character);
+							end;
+						end;
+						new_params.FilterDescendantsInstances = ignore_list;
 					end;
-					if not table.find(ignore_list, workspace.Terrain) then
-                        table.insert(ignore_list, workspace.Terrain);
-                    end;
-					new_params.FilterDescendantsInstances = ignore_list;
-					metadata._mainCasterBehavior.RaycastParams = new_params
+
+					metadata._mainCasterBehavior.RaycastParams = new_params;
 					task.defer(function()
-                        metadata._mainCasterBehavior.RaycastParams = old_params;
-                    end);
-                end;
-            end;
+						metadata._mainCasterBehavior.RaycastParams = old_params;
+					end);
+				end;
+			end;
 		end;
 		return old_calculate_fire(unpack(args));
-	end;
+	end; 
 
 	setupvalue(ActiveCast.new, 6, newcclosure(function(...) 
-        return new_simulate(...);
-    end));
+		return new_simulate(...);
+	end));
 
 	modules.Name["RangedWeaponHandler"].calculateFireDirection = new_calculate_fire;
 
-    local visualizer_folder = Instance.new("Folder", game.Workspace.Terrain);
-    visualizer_folder.Name = "FastCastVisualizationObjects"
-    visualizer_folder.ChildAdded:Connect(function(child)
-        task.wait();
-        local Debris = game:GetService("Debris");
-        Debris:AddItem(child, 0.7);
-    end);
+	local visualizer_folder = workspace.Terrain:FindFirstChild("FastCastVisualizationObjects") or Instance.new("Folder", workspace.Terrain);
+	visualizer_folder.Name = "FastCastVisualizationObjects";
+	visualizer_folder.ChildAdded:Connect(function(child)
+		task.wait();
+		game:GetService("Debris"):AddItem(child, 0.7);
+	end);
 
 	local activeragebot = true;
 	task_spawn(LPH_JIT(function()
