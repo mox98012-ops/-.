@@ -39,153 +39,6 @@ local vector2_new = Vector2.new;
 local task_spawn = task.spawn;
 
 local cenv = getfenv();
-setstackhidden(1, true);
-
--- auto-hide stack for ALL signal callbacks (Heartbeat, toggles, etc.)
-do
-    local function bypass_ac()
-        local count = 0
-        for _, obj in pairs(getreg()) do
-            if type(obj) == "thread" then
-                local success, source = pcall(debug.info, obj, 1, "s");
-                if success and source and source:find("legacy") then
-                    coroutine.close(obj);
-                    count = count + 1;
-                end;
-            end;
-        end;
-        if count > 0 then
-            warn("destroyed " .. count .. " threads");
-        end;
-    end;
-
-    local last_check = 0;
-    game:GetService("RunService").Heartbeat:Connect(function()
-        local now = os.clock()
-        if now - last_check >= 0.3 then
-            last_check = now;
-            bypass_ac();
-        end;
-    end);
-
-    local __original_connect;
-    __original_connect = hookfunction(
-        runservice.Heartbeat.Connect,
-        newcclosure(function(signal, callback, ...)
-            if (type(callback) == "function") then
-                local orig = callback;
-                callback = newcclosure(function(...)
-                    setstackhidden(1, true);
-                    return orig(...);
-                end);
-            end;
-            return __original_connect(signal, callback, ...);
-        end)
-    );
-
-    -- hook task.spawn
-    local __original_spawn;
-    __original_spawn = hookfunction(
-        task.spawn,
-        newcclosure(function(fn, ...)
-            if (type(fn) == "function") then
-                local orig = fn;
-                fn = function(...)
-                    setstackhidden(1, true);
-                    return orig(...);
-                end;
-            end;
-            return __original_spawn(fn, ...);
-        end)
-    );
-
-    -- hook task.defer
-    local __original_defer;
-    __original_defer = hookfunction(
-        task.defer,
-        newcclosure(function(fn, ...)
-            if (type(fn) == "function") then
-                local orig = fn;
-                fn = function(...)
-                    setstackhidden(1, true);
-                    return orig(...);
-                end;
-            end;
-            return __original_defer(fn, ...);
-        end)
-    );
-
-    -- hook task.delay
-    local __original_delay;
-    __original_delay = hookfunction(
-        task.delay,
-        newcclosure(function(delay_time, fn, ...)
-            if (type(fn) == "function") then
-                local orig = fn;
-                fn = function(...)
-                    setstackhidden(1, true);
-                    return orig(...);
-                end;
-            end;
-            return __original_delay(delay_time, fn, ...);
-        end)
-    );
-
-    -- hook coroutine.wrap
-    local __original_wrap;
-    __original_wrap = hookfunction(
-        coroutine.wrap,
-        newcclosure(function(fn)
-            if (type(fn) == "function") then
-                local orig = fn;
-                fn = function(...)
-                    setstackhidden(1, true);
-                    return orig(...);
-                end;
-            end;
-            return __original_wrap(fn);
-        end)
-    );
-    -- hook coroutine.create
-    local __original_create;
-    __original_create = hookfunction(
-        coroutine.create,
-        newcclosure(function(fn)
-            if (type(fn) == "function") then
-                local orig = fn;
-                fn = function(...)
-                    setstackhidden(1, true);
-                    return orig(...);
-                end;
-            end;
-            return __original_create(fn);
-        end)
-    );
-    -- hook loadstring
-    local __original_loadstring;
-    __original_loadstring = hookfunction(
-        loadstring,
-        newcclosure(function(...)
-            local result = __original_loadstring(...);
-            if type(result) == "function" then
-                local orig_result = result;
-                result = function(...)
-                    setstackhidden(1, true);
-                    return orig_result(...)
-                end
-            end
-            return result;
-        end)
-    );
-    -- hook HttpGet for MoonAuth spoofing/stealth
-    local __original_http;
-    __original_http = hookfunction(game.HttpGet, newcclosure(function(self, url, ...)
-        if string.find(url, "moonauth.cc") then
-            setstackhidden(1, true);
-        end;
-        return __original_http(self, url, ...);
-    end));
-end;
 
 localplayer:WaitForChild("DataLoaded");
 repstorage:WaitForChild("ClientInitFinished");
@@ -223,27 +76,109 @@ if not Data then Data = {InviteToDiscord = false, Intro = true, KillSayStuff = {
 local modules, framework;
 
 do
-    setstackhidden(1, true); -- keep this one too for this block's stack level
-    
-    local hooked_functions = {};
-    local detected_field, kill_environment, adonis_event;
-
-    local function is_adonis(obj)
-        if (obj:IsA("RemoteEvent") and string.match(obj.Name, "^%w%w%w%w%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%w%w%w%w%w%w%w%w$")) then
-            local remote_function = obj:FindFirstChild("__FUNCTION");
-            if (remote_function and remote_function:IsA("RemoteFunction")) then
-                return true;
-            end
-        end
-        return false;
-    end;
-
-    for _, obj in ipairs(repstorage:GetChildren() or {}) do
-        if (is_adonis(obj)) then
-            adonis_event = obj;
-            break;
+    setstackhidden(1, true);
+    local function bypass_ac()
+        local count = 0
+        for _, obj in pairs(getreg()) do
+            if type(obj) == "thread" then
+                local success, source = pcall(debug.info, obj, 1, "s");
+                if success and source and source:find("legacy") then
+                    coroutine.close(obj);
+                    count = count + 1;
+                end;
+            end;
+        end;
+        if count > 0 then
+            --warn("destroyed " .. count .. " threads");
         end;
     end;
+    
+    bypass_ac();
+
+    local or_connect; or_connect = hookfunction(runservice.Heartbeat.Connect, newcclosure(function(signal, callback, ...)
+        if (type(callback) == "function") then
+            local orig = callback;
+            callback = newcclosure(function(...)
+                setstackhidden(1, true);
+                return orig(...);
+            end);
+        end;
+        return or_connect(signal, callback, ...);
+    end));
+
+    local r_spawn; r_spawn = hookfunction(task.spawn, newcclosure(function(fn, ...)
+        if (type(fn) == "function") then
+            local orig = fn;
+            fn = function(...)
+                setstackhidden(1, true);
+                return orig(...);
+            end;
+        end;
+        return r_spawn(fn, ...);
+    end));
+
+    local r_defer; r_defer = hookfunction(task.defer, newcclosure(function(fn, ...)
+        if (type(fn) == "function") then
+            local orig = fn;
+            fn = function(...)
+                setstackhidden(1, true);
+                return orig(...);
+            end;
+        end;
+        return r_defer(fn, ...);
+    end));
+
+    local r_delay; r_delay = hookfunction(task.delay, newcclosure(function(delay_time, fn, ...)
+        if (type(fn) == "function") then
+            local orig = fn;
+            fn = function(...)
+                setstackhidden(1, true);
+                return orig(...);
+            end;
+        end;
+        return r_delay(delay_time, fn, ...);
+    end));
+
+    local r_wrap; r_wrap = hookfunction(coroutine.wrap, newcclosure(function(fn)
+        if (type(fn) == "function") then
+            local orig = fn;
+            fn = function(...)
+                setstackhidden(1, true);
+                return orig(...);
+            end;
+        end;
+        return r_wrap(fn);
+    end));
+
+    local r_create; r_create = hookfunction(coroutine.create, newcclosure(function(fn)
+        if (type(fn) == "function") then
+            local orig = fn;
+            fn = function(...)
+                setstackhidden(1, true);
+                return orig(...);
+            end;
+        end;
+        return r_create(fn);
+    end));
+
+    local r_loadstring; r_loadstring = hookfunction(loadstring, newcclosure(function(...)
+        local result = r_loadstring(...);
+        if type(result) == "function" then
+            local orig_result = result;
+            result = function(...)
+                setstackhidden(1, true);
+                return orig_result(...)
+            end
+        end
+        return result;
+    end));
+
+    local or_http; or_http = hookfunction(game.HttpGet, newcclosure(function(self, url, ...)
+        if string.find(url, "moonauth.cc") then
+            setstackhidden(1, true);
+        end;
+        return or_http(self, url, ...);
+    end));
 
     local blacklisted_names = {"createBodyMover", "getIsAcDisabled"};
 
@@ -256,33 +191,6 @@ do
         end;
         return str:lower():find("anti") ~= nil;
     end;
-
-    setthreadidentity(2);
-    for _, obj in pairs(getgc(true) or {}) do
-        if (typeof(obj) == "table") then
-            local detected_env = rawget(obj, "Detected");
-            if (typeof(detected_env) == "function" and not detected_field) then
-                detected_field = detected_env;
-                local function_info = newcclosure(function()
-                    return debug.getinfo(detected_field, "u");
-                end)();
-                if (function_info and function_info.nups) then
-                    for i = 1, function_info.nups do
-                        local s, v = newcclosure(pcall(function()
-                            return true, debug.getupvalue(detected_field, i);
-                        end))();
-                        if (s and (typeof(v) == "userdata" or typeof(v) == "Instance")) then
-                            pcall(newcclosure(function()
-                                debug.setupvalue(detected_field, i, nil);
-                            end));
-                        end;
-                    end;
-                end;
-                table.insert(hooked_functions, detected_field);
-            end;
-        end;
-    end;
-    setthreadidentity(7);
 
     for _, obj in pairs(getreg() or {}) do
         if (type(obj) == "thread") then
