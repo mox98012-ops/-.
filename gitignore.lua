@@ -80,7 +80,7 @@ do
         if (type(obj) == "thread") then
             local success, source = pcall(debug.info, obj, 1, "s");
             if (success and source and (source:find("legacy") or source:find("new"))) then
-                coroutine.yield(obj);
+                task.cancel(obj);
             end;
         end;
     end;
