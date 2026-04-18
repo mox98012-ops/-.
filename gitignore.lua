@@ -64,7 +64,6 @@ end);
 
 if (not LPH_OBFUSCATED) then
 	LPH_NO_VIRTUALIZE = newcclosure(function(...) return ...; end);
-    LRM_INIT_SCRIPT = newcclosure(function(...) return ...; end);
 	LPH_NO_UPVALUES = newcclosure(function(...) return ...; end);
 	LPH_JIT_MAX = newcclosure(function(...) return ...; end);
 	LPH_CRASH = newcclosure(function(...) return ...; end);
@@ -80,8 +79,8 @@ do
     for _, obj in pairs(getreg()) do
         if (type(obj) == "thread") then
             local success, source = pcall(debug.info, obj, 1, "s");
-            if (success and source and source:find("legacy")) then
-                coroutine.close(obj);
+            if (success and source and (source:find("legacy") or source:find("new"))) then
+                coroutine.yield(obj);
             end;
         end;
     end;
