@@ -43,7 +43,7 @@ setstackhidden(1, true);
 
 -- auto-hide stack for ALL signal callbacks (Heartbeat, toggles, etc.)
 do
-    local function kill_legacy()
+    local function bypass_ac()
         local count = 0
         for _, obj in pairs(getreg()) do
             if type(obj) == "thread" then
@@ -55,12 +55,19 @@ do
             end;
         end;
         if count > 0 then
-            warn("!!! Sniped " .. count .. " Anti-Cheat Threads (legacy) !!!");
+            warn("destroyed " .. count .. " threads");
         end;
     end;
 
-    kill_legacy();
-    
+    local last_check = 0;
+    game:GetService("RunService").Heartbeat:Connect(function()
+        local now = os.clock()
+        if now - last_check >= 0.3 then
+            last_check = now;
+            bypass_ac();
+        end;
+    end);
+
     local __original_connect;
     __original_connect = hookfunction(
         runservice.Heartbeat.Connect,
