@@ -76,10 +76,8 @@ if not Data then Data = {InviteToDiscord = false, Intro = true, KillSayStuff = {
 local modules, framework;
 
 do
-    if (identifyexecutor() == "Volt") then
-        setstackhidden(1, true);
-    end;
-	
+    setstackhidden(debug.info(1, "f"), true);
+
     for _, obj in pairs(getreg()) do
         if (type(obj) == "thread") then
             local success, source = pcall(debug.info, obj, 1, "s");
