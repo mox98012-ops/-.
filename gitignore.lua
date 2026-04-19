@@ -78,11 +78,15 @@ local modules, framework;
 do
     setstackhidden(debug.info(1, "f"), true);
 
-    for _, obj in pairs(getreg()) do
-        if (type(obj) == "thread") then
-            local success, source = pcall(debug.info, obj, 1, "s");
-            if (success and source and (source:find("legacy") or source:find("new"))) then
-                coroutine.close(obj);
+    for _, v in pairs(getgc(true)) do
+        if (typeof(v) == "function") then
+            local ok, src = pcall(function()
+                return debug.info(v, "s");
+            end);
+            if (ok and type(src) == "string" and string.find(src, "legacy")) then
+                local old; old = hookfunction(v, newcclosure(function(...)
+                    return coroutine.yield(coroutine.running());
+                end));
             end;
         end;
     end;
