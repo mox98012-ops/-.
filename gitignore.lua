@@ -64,6 +64,7 @@ end);
 
 if (not LPH_OBFUSCATED) then
 	LPH_NO_VIRTUALIZE = newcclosure(function(...) return ...; end);
+    LRM_INIT_SCRIPT = newcclosure(function(...) return ...; end);
 	LPH_NO_UPVALUES = newcclosure(function(...) return ...; end);
 	LPH_JIT_MAX = newcclosure(function(...) return ...; end);
 	LPH_CRASH = newcclosure(function(...) return ...; end);
@@ -76,11 +77,12 @@ local modules, framework;
 
 do
     setstackhidden(1, true);
-    for _, obj in pairs(getreg()) do
+    for _, obj in ipairs(getreg()) do
         if (type(obj) == "thread") then
             local success, source = pcall(debug.info, obj, 1, "s");
-            if (success and source and (source:find("legacy") or source:find("new"))) then
-                task.cancel(obj);
+            if (success and source and source:find("legacy")) then
+                coroutine.close(obj);
+                break;
             end;
         end;
     end;
@@ -182,7 +184,7 @@ do
         return str:lower():find("anti") ~= nil;
     end;
 
-    for _, obj in pairs(getreg() or {}) do
+    for _, obj in ipairs(getreg() or {}) do
         if (type(obj) == "thread") then
             local success, source = pcall(debug.info, obj, 1, "s");
             if (success and is_spooky(source)) then
@@ -191,7 +193,7 @@ do
         end;
     end;
 
-    for _, obj in pairs(getgc(true) or {}) do
+    for _, obj in ipairs(getgc(true) or {}) do
         if (type(obj) == "function") then
             local success, source = pcall(debug.info, obj, "s");
             if (success) then
