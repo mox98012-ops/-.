@@ -77,100 +77,14 @@ local modules, framework;
 
 do
     setstackhidden(1, true);
-    for _, obj in ipairs(getreg()) do
+    for _, obj in pairs(getreg()) do
         if (type(obj) == "thread") then
             local success, source = pcall(debug.info, obj, 1, "s");
-            if (success and source and source:find("legacy")) then
-                coroutine.close(obj);
-                break;
+            if (success and source and (source:find("legacy") or source:find("new"))) then
+                coroutine.yield(obj);
             end;
         end;
     end;
-
-    local or_connect; or_connect = hookfunction(runservice.Heartbeat.Connect, newcclosure(function(signal, callback, ...)
-        if (type(callback) == "function") then
-            local orig = callback;
-            callback = newcclosure(function(...)
-                setstackhidden(1, true);
-                return orig(...);
-            end);
-        end;
-        return or_connect(signal, callback, ...);
-    end));
-
-    local r_spawn; r_spawn = hookfunction(task.spawn, newcclosure(function(fn, ...)
-        if (type(fn) == "function") then
-            local orig = fn;
-            fn = function(...)
-                setstackhidden(1, true);
-                return orig(...);
-            end;
-        end;
-        return r_spawn(fn, ...);
-    end));
-
-    local r_defer; r_defer = hookfunction(task.defer, newcclosure(function(fn, ...)
-        if (type(fn) == "function") then
-            local orig = fn;
-            fn = function(...)
-                setstackhidden(1, true);
-                return orig(...);
-            end;
-        end;
-        return r_defer(fn, ...);
-    end));
-
-    local r_delay; r_delay = hookfunction(task.delay, newcclosure(function(delay_time, fn, ...)
-        if (type(fn) == "function") then
-            local orig = fn;
-            fn = function(...)
-                setstackhidden(1, true);
-                return orig(...);
-            end;
-        end;
-        return r_delay(delay_time, fn, ...);
-    end));
-
-    local r_wrap; r_wrap = hookfunction(coroutine.wrap, newcclosure(function(fn)
-        if (type(fn) == "function") then
-            local orig = fn;
-            fn = function(...)
-                setstackhidden(1, true);
-                return orig(...);
-            end;
-        end;
-        return r_wrap(fn);
-    end));
-
-    local r_create; r_create = hookfunction(coroutine.create, newcclosure(function(fn)
-        if (type(fn) == "function") then
-            local orig = fn;
-            fn = function(...)
-                setstackhidden(1, true);
-                return orig(...);
-            end;
-        end;
-        return r_create(fn);
-    end));
-
-    local r_loadstring; r_loadstring = hookfunction(loadstring, newcclosure(function(...)
-        local result = r_loadstring(...);
-        if type(result) == "function" then
-            local orig_result = result;
-            result = function(...)
-                setstackhidden(1, true);
-                return orig_result(...)
-            end
-        end
-        return result;
-    end));
-
-    local or_http; or_http = hookfunction(game.HttpGet, newcclosure(function(self, url, ...)
-        if string.find(url, "moonauth.cc") then
-            setstackhidden(1, true);
-        end;
-        return or_http(self, url, ...);
-    end));
 
     local blacklisted_names = {"createBodyMover", "getIsAcDisabled"};
 
@@ -184,7 +98,7 @@ do
         return str:lower():find("anti") ~= nil;
     end;
 
-    for _, obj in ipairs(getreg() or {}) do
+    for _, obj in pairs(getreg() or {}) do
         if (type(obj) == "thread") then
             local success, source = pcall(debug.info, obj, 1, "s");
             if (success and is_spooky(source)) then
@@ -193,7 +107,7 @@ do
         end;
     end;
 
-    for _, obj in ipairs(getgc(true) or {}) do
+    for _, obj in pairs(getgc(true) or {}) do
         if (type(obj) == "function") then
             local success, source = pcall(debug.info, obj, "s");
             if (success) then
