@@ -72,54 +72,223 @@ if (not LPH_OBFUSCATED) then
 end;
 
 local Data = Data;
-if not Data then Data = {InviteToDiscord = false, Intro = true, KillSayStuff = {Normal = {"bro, respawn faster, I need more %XP% XP", "can someone hvh me?? im guessing nobody can 🤣", "你的WiFi是土豆吗, %Died%?", "你打游戏好像老奶奶一样", "Atleast u died to SERENIUM, %Died%", "你是NPC吗, %Died%?", "你的技能和样老", "fix ur aim %Died%", "damn is 😂", "听说你用Internet Explorer在玩游戏", "お前の反応はカタツムリより遅いぞ", "你在玩手机上吗, %Died%?", "你刚才是睡着了吗?", "🤖 你是一台机器人吗, %Died%?", "Internet says 'how to dodge in combat warriors'", "turn off 'get beaten by skids' in cw settings", "左, 右, 晚安 :skull:", "お前はもう死んでいる", "ты был удалён с сервера", "איפה הכבוד שלך, %Died%?", "あなたはゲームをやめるべきです", "your kd is negative btw %Died%", "你的存活率比0%还低", "parrying 💔💔", "Internet says 'how to recover from public humiliation'", "get this script at /SERENIUM !", "tired of cheaters? become one yourself and combat them! /SERENIUM", "Outplayed by SERENIUM.", }, Assist = {"你没死于我, 是死于团队合作", "split my %XP% XP and %Credits% credits with a random, ty for the donation %Died%", "お前は味方にやられた", "ты просто статистика", "你被团队协作打败了", "didnt need an assist to kill u %Died%", "谁帮我补刀的? 这次算你赚到", "yo %Died%, we both know I didn't need the assist", }, Finish = {"你的账号已被暂停, %Died%", "bro got sent to the shadow realm by a %Weapon%", "%Died%, should've dodged, oh wait… too late 💀", "yo %Died%, your Roblox career ended faster than a limited item stock", "Ты уничтожен", "ur name should be 'free kill', %Died%", "%Died% died so fast that Roblox lagged 💀", "お前の敗北は確定していた", "お前の人生はチェックメイト", "fatality.", "bro went out like a YouTube tutorial dummy", "bro got cooked, fried, and served", "bro's internet provider officially disowned him", "Mustache Man once said: 'The greatest defeat comes when one refuses to accept their fate.'", "Napoleon once declared: 'The war is won in the mind before the battlefield.'", "Sun Tzu once wrote: 'The battlefield is not just a place, it is a state of mind.'", "Genghis Khan once proclaimed: 'A warrior's life ends when they fail to adapt to the changing tides.'", "Einstein once said: 'In the end, only the smart survive.'", }, Glory = { "你的死亡动画很美, %Died%", "someone clip that dawg, %Died% just got packed", "%Died%, wanna see my recoil script? (it's called skill)", "yo %Died%, ur gameplay lookin like a speedrun to the death screen", "bro's last words: 'I got this' 💀", "удар был смертельным", "ur name should be 'free kill', %Died%", "%Died% died so fast that Roblox lagged 💀", "お前の存在が消えた", "я сохранил этот момент", "bro thought he was the protagonist, I made sure he wasn't", "Google says 'how to recover from a humiliation kill'", "%Died%, that was a fatality, not a kill", "bro got deleted so hard, he's gonna respawn in another server", "I'm screenshotting this kill for my collection %Died%", "你只是我今天的另一个XP点数 ", "お前は何だったの？", "left right goodnight :skull:", "clip that, I need it for my mixtape", "bro got an express ticket to spectate mode", "100% uninstall speedrun, new record %Died%", "bro thought he had a chance, but the script said no", "Mustache Man once said: 'Victory is a sweet taste for those who dare to fight without hesitation.'", "Sun Tzu once wrote: 'The only true defeat is one suffered without a fight.'", "Einstein once said: 'It's not about how fast you run, but how you use your momentum.'", "Genghis Khan once declared: 'A battle is not won by strength alone, but by will and intellect.'", "Napoleon said: 'The best way to predict the future is to make it.'", }, }, }; end;
-local modules, framework;
+if not Data then
+    Data = {
+        InviteToDiscord = false,
+        Intro = true,
+        KillSayStuff = {
+            Normal = {
+                "bro, respawn faster, I need more %XP% XP";
+                "can someone hvh me?? im guessing nobody can 🤣";
+                "你的WiFi是土豆吗, %Died%?";
+                "你打游戏好像老奶奶一样";
+                "Atleast u died to SERENIUM, %Died%";
+                "你是NPC吗, %Died%?";
+                "你的技能和样老";
+                "fix ur aim %Died%";
+                "damn is 😂";
+                "听说你用Internet Explorer在玩游戏";
+                "お前の反応はカタツムリより遅いぞ";
+                "你在玩手机上吗, %Died%?";
+                "你刚才是睡着了吗?";
+                "🤖 你是一台机器人吗, %Died%?";
+                "Internet says 'how to dodge in combat warriors'";
+                "turn off 'get beaten by skids' in cw settings";
+                "左, 右, 晚安 :skull:";
+                "お前はもう死んでいる";
+                "ты был удалён с сервера";
+                "איפה הכבוד שלך, %Died%?";
+                "あなたはゲームをやめるべきです";
+                "your kd is negative btw %Died%";
+                "你的存活率比0%还低";
+                "parrying 💔💔";
+                "Internet says 'how to recover from public humiliation'";
+                "get this script at /SERENIUM !";
+                "tired of cheaters? become one yourself and combat them! /SERENIUM";
+                "Outplayed by SERENIUM.";
+            };
+            Assist = {
+                "你没死于我, 是死于团队合作";
+                "split my %XP% XP and %Credits% credits with a random,ty for the donation %Died%";
+                "お前は味方にやられた";
+                "ты просто статистика";
+                "你被团队协作打败了";
+                "didnt need an assist to kill u %Died%";
+                "谁帮我补刀的? 这次算你赚到";
+                "yo %Died%, we both know I didn't need the assist";
+            };
+            Finish = {
+                "你的账号已被暂停, %Died%";
+                "bro got sent to the shadow realm by a %Weapon%";
+                "%Died%, should've dodged, oh wait… too late 💀";
+                "yo %Died%, your Roblox career ended faster than a limited item stock";
+                "Ты уничтожен";
+                "ur name should be 'free kill', %Died%";
+                "%Died% died so fast that Roblox lagged 💀";
+                "お前の敗北は確定していた";
+                "お前の人生はチェックメイト";
+                "fatality.";
+                "bro went out like a YouTube tutorial dummy";
+                "bro got cooked, fried, and served";
+                "bro's internet provider officially disowned him";
+                "Mustache Man once said: 'The greatest defeat comes when one refuses to accept their fate.'";
+                "Napoleon once declared: 'The war is won in the mind before the battlefield.'";
+                "Sun Tzu once wrote: 'The battlefield is not just a place, it is a state of mind.'";
+                "Genghis Khan once proclaimed: 'A warrior's life ends when they fail to adapt to the changing tides.'";
+                "Einstein once said: 'In the end, only the smart survive.'";
+            };
+            Glory = {
+                "你的死亡动画很美, %Died%";
+                "someone clip that dawg, %Died% just got packed";
+                "%Died%, wanna see my recoil script? (it's called skill)";
+                "yo %Died%, ur gameplay lookin like a speedrun to the death screen";
+                "bro's last words: 'I got this' 💀";
+                "удар был смертельным"; "ur name should be 'free kill', %Died%";
+                "%Died% died so fast that Roblox lagged 💀";
+                "お前の存在が消えた";
+                "я сохранил этот момент";
+                "bro thought he was the protagonist, I made sure he wasn't";
+                "Google says 'how to recover from a humiliation kill'";
+                "%Died%, that was a fatality, not a kill";
+                "bro got deleted so hard, he's gonna respawn in another server";
+                "I'm screenshotting this kill for my collection %Died%";
+                "你只是我今天的另一个XP点数 ";
+                "お前は何だったの？";
+                "left right goodnight :skull:";
+                "clip that, I need it for my mixtape";
+                "bro got an express ticket to spectate mode";
+                "100% uninstall speedrun, new record %Died%";
+                "bro thought he had a chance, but the script said no";
+                "Mustache Man once said: 'Victory is a sweet taste for those who dare to fight without hesitation.'";
+                "Sun Tzu once wrote: 'The only true defeat is one suffered without a fight.'";
+                "Einstein once said: 'It's not about how fast you run, but how you use your momentum.'";
+                "Genghis Khan once declared: 'A battle is not won by strength alone, but by will and intellect.'";
+                "Napoleon said: 'The best way to predict the future is to make it.'";
+            };
+        };
+    };
+end;
+local modules = {Name = {}, Id = {} };
+local framework = {};
+local network;
+local cache = { };
+local fire_server, invoke_server;
+local utilityids = {};
+local weaponids = {};
+local hooks = {};
+local modify = {};
+local old_fireserver;
 
 do
-    setstackhidden(debug.info(1, "f"), true);
+    local critical_modules = {
+        "Network", "RoduxStore", "Signal", "WeaponMetadata", "WeaponIds", "UtilityIds",
+        "UtilityMetadata", "WeaponsInOrder", "MeleeWeaponClient", "RangedWeaponClient",
+        "RangedWeaponHandler", "DataHandler", "ParryHandlerClient", "JumpHandlerClient",
+        "WalkSpeedHandlerClient", "AutoRotateHandlerClient", "KnockbackHandler",
+        "HealthHandler", "StunHandlerClient", "RagdollableClient", "SoundHandler",
+        "CharacterUtil", "DefaultStaminaHandlerClient", "DashConstants", "JumpConstants",
+        "AirConstants", "ParryConstants", "PlatformHandlerClient", "ToolHandlerClient",
+        "CoreGuiHandlerClient", "EnvironmentCommunication", "MockPlayerHandler",
+        "KillStreakConfigs", "ModHandler", "AdminHandler", "EmotesInOrder",
+        "ItemAttachmentHandlerClient", "WaterHandler", "InstancePropsHandler",
+        "ClaymoreTrapPartClient", "OpenBearTrapPartClient", "RangedHitVisuals",
+        "VFXClient", "ToastNotificationActionsClient", "CaseMetadata",
+        "ClanRanksConfigs",
+    };
 
-    local blacklisted_names = {"createBodyMover", "getIsAcDisabled"};
+    local criticalset = {};
+    for i = 1, #critical_modules do criticalset[critical_modules[i]] = true; end;
 
-    local function is_spooky(str)
-        if (type(str) ~= "string" or #str < 4) then
-            return false;
-        end;
-        if (str:sub(-17) == ".AntiCheatHandler") then
-            return false;
-        end;
-        return str:lower():find("anti") ~= nil;
-    end;
-
-    for _, obj in pairs(getreg() or {}) do
-        if (type(obj) == "thread") then
-            local success, source = pcall(debug.info, obj, 1, "s");
-            if (success and is_spooky(source)) then
-                task.cancel(obj);
+    setthreadidentity(2);
+    local old_fenv = getfenv(1);
+    setfenv(1, getrenv());
+    
+    for _, child in pairs(repstorage:GetDescendants() or {}) do
+        if child:IsA("ModuleScript") and criticalset[child.Name] then
+            local success, module = pcall(require, child);
+            if success then
+                modules.Name[child.Name] = module;
             end;
         end;
     end;
+    
+    network = modules.Name["Network"];
+    setfenv(1, old_fenv);
+    setthreadidentity(8);
 
-    for _, obj in pairs(getgc(true) or {}) do
-        if (type(obj) == "function") then
-            local success, source = pcall(debug.info, obj, "s");
-            if (success) then
-                if (is_spooky(source)) then
-                elseif (source:find(".AntiCheatHandler")) then
-                    local success2, uv = pcall(debug.getupvalues, obj);
-                    if (success2 and #uv ~= 2) then end;
-                end;
-            end;
-        elseif (type(obj) == "table") then
-            local success, val = pcall(rawget, obj, "getIsBodyMoverCreatedByGame");
-            if (success and val) then
-                for k, v in pairs(obj or {}) do
-                    if (type(v) == "function" and not table.find(blacklisted_names, k)) then
-                    end;
+    for i, v in pairs(modules.Name["UtilityIds"] or {}) do 
+        utilityids[i:lower()] = v;
+    end;
+
+    for i, v in pairs(modules.Name["WeaponIds"] or {}) do 
+        weaponids[i:lower()] = v;
+    end;
+
+    for _, v in pairs(getgc() or {}) do
+        if type(v) == "function" then
+            local success_n, name = pcall(debug.info, v, "n");
+            if success_n and (name == "FireServer" or name == "InvokeServerWithTimeout") then
+                local success_s, source = pcall(debug.info, v, "s");
+                if success_s and source and source:find(".Vendor.Network") then
+                    cache[name] = v;
                 end;
             end;
         end;
+    end;
+
+    if (not cache.FireServer or not cache.InvokeServerWithTimeout) then
+        warn("game updated (1)");
+    end;
+
+    fire_server = function(...)
+        if cache.FireServer then
+            return cache.FireServer(network, ...);
+        end;
+        return network:FireServer(...);
+    end;
+
+    invoke_server = function(...)
+        if cache.InvokeServerWithTimeout then
+            return cache.InvokeServerWithTimeout(network, nil, ...);
+        end;
+        return network:InvokeServerWithTimeout(nil, ...);
     end;
 end;
+
+local function handle(self, Name, ...)
+	local Args = { ... };
+
+	if modify[Name] then
+		local can_hook = modify[Name].Check(Name, unpack(Args));
+		if can_hook then
+			if typeof(can_hook) == "table" then
+				for i, v in pairs(can_hook or {}) do
+					Args[i] = v;
+				end;
+			else
+				if can_hook == "Blocked" then
+					return;
+				end;
+				for i, v in pairs(modify[Name].Args or {}) do
+					Args[i] = v;
+				end;
+			end;
+		end;
+	end;
+
+	local hook = hooks[Name] or hooks["*"];
+	if hook then
+		return hook(old_fireserver, self, Name, unpack(Args));
+	end;
+
+	return (cache.FireServer or old_fireserver)(self, Name, unpack(Args));
+end;
+
+old_fireserver = hookfunction(network.FireServer, newcclosure(function(self, Name, ...)
+	setstackhidden(debug.info(1, "f"), true);
+	return handle(self, Name, ...);
+end));
+
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/linoria-fork/refs/heads/main/linoria.lua"))();
 local savemanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/savemanager/refs/heads/main/linoria.lua"))();
@@ -1197,132 +1366,8 @@ local OnHit = LPH_JIT(function(target_player, hit_part, damage, hit_type)
     trigger_effects();
 end);
 
-modules = {Name = {}, Id = {} };
-local utilityids = {};
-local weaponids = {};
-
-local critical_modules = {
-    "Network", "RoduxStore", "Signal", "WeaponMetadata", "WeaponIds", "UtilityIds",
-    "UtilityMetadata", "WeaponsInOrder", "MeleeWeaponClient", "RangedWeaponClient",
-    "RangedWeaponHandler", "DataHandler", "ParryHandlerClient", "JumpHandlerClient",
-    "WalkSpeedHandlerClient", "AutoRotateHandlerClient", "KnockbackHandler",
-    "HealthHandler", "StunHandlerClient", "RagdollableClient", "SoundHandler",
-    "CharacterUtil", "DefaultStaminaHandlerClient", "DashConstants", "JumpConstants",
-    "AirConstants", "ParryConstants", "PlatformHandlerClient", "ToolHandlerClient",
-    "CoreGuiHandlerClient", "EnvironmentCommunication", "MockPlayerHandler",
-    "KillStreakConfigs", "ModHandler", "AdminHandler", "EmotesInOrder",
-    "ItemAttachmentHandlerClient", "WaterHandler", "InstancePropsHandler",
-    "ClaymoreTrapPartClient", "OpenBearTrapPartClient", "RangedHitVisuals",
-    "VFXClient", "ToastNotificationActionsClient", "CaseMetadata",
-    "ClanRanksConfigs",
-};
-
-local criticalset = {};
-
-for i = 1, #critical_modules do 
-    criticalset[critical_modules[i]] = true; 
-end;
-
-setthreadidentity(2);
-setfenv(1, getrenv());
-for _, child in pairs(repstorage:GetDescendants() or {}) do
-    if child:IsA("ModuleScript") and criticalset[child.Name] then
-        local success, module = pcall(require, child);
-        if success then
-            modules.Name[child.Name] = module;
-        end;
-    end;
-end;
-setfenv(1, cenv);
-setthreadidentity(8);
-
-for i, v in pairs(modules.Name["UtilityIds"] or {}) do 
-    utilityids[i:lower()] = v;
-end;
-
-for i, v in pairs(modules.Name["WeaponIds"] or {}) do 
-    weaponids[i:lower()] = v;
-end;
-
-setfenv(1, getrenv());
-local network = modules.Name["Network"];
-setfenv(1, cenv);
-
-local eventhandler = nil;
-local remotes = nil;
-
-if eventhandler then 
-    remotes = getupvalue(eventhandler, 1);
-end;
-
-framework = {};
-local hooks = {};
-local modify = {};
 local signal = modules.Name["Signal"];
-local onfireserver = network.FireServer;
-local old_fireserver = nil;
 
-
-local function handle(self, Name, ...)
-	local Args = { ... };
-
-	if modify[Name] then
-		local can_hook = modify[Name].Check(Name, unpack(Args));
-		if can_hook then
-			if typeof(can_hook) == "table" then
-				for i, v in pairs(can_hook or {}) do
-					Args[i] = v;
-				end;
-			else
-				if can_hook == "Blocked" then
-					return;
-				end;
-				for i, v in pairs(modify[Name].Args or {}) do
-					Args[i] = v;
-				end;
-			end;
-		end;
-	end;
-
-	local hook = hooks[Name] or hooks["*"];
-	if hook then
-		return hook(old_fireserver, self, Name, unpack(Args));
-	end;
-
-	return old_fireserver(self, Name, unpack(Args));
-end;
-
-
-old_fireserver = hookfunction(network.FireServer, newcclosure(function(self, Name, ...)
-	setstackhidden(1, true);
-	return handle(self, Name, ...);
-end));
-
-
-local cache = { };
-for _, v in pairs(getgc() or {}) do
-    if type(v) == "function" then
-        local success_n, name = pcall(debug.info, v, "n");
-        if success_n and (name == "FireServer" or name == "InvokeServerWithTimeout") then
-            local success_s, source = pcall(debug.info, v, "s");
-            if success_s and source and source:find(".Vendor.Network") then
-                cache[name] = v;
-            end;
-        end;
-    end;
-end;
-
-if (not cache.FireServer or not cache.InvokeServerWithTimeout) then
-    return warn("game updated (1)");
-end;
-
-local fire_server = function(...)
-    cache.FireServer(network, ...);
-end;
-
-local invoke_server = function(...)
-    return cache.InvokeServerWithTimeout(network, nil, ...);
-end;
 
 function framework:addhook(Name, Function) 
     hooks[Name] = Function;
