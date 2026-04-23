@@ -4,6 +4,7 @@ end;
 getgenv().nil_solutions = true;
 
 if (not game:IsLoaded()) then game.Loaded:Wait(); end;
+task.wait(1.5);
 
 if (game.GameId ~= 1390601379) then
     return; 
@@ -1247,7 +1248,8 @@ local OnHit = LPH_JIT(function(target_player, hit_part, damage, hit_type)
     trigger_effects();
 end);
 
-task.wait(1);
+task.wait(2);
+
 modules = {Name = {}, Id = {} };
 utilityids = {};
 weaponids = {};
@@ -1307,6 +1309,7 @@ network = modules.Name["Network"];
 
 
 
+task.wait(0.5);
 for _, v in pairs(getgc() or {}) do
     if type(v) == "function" then
         local success_n, name = pcall(debug.info, v, "n");
