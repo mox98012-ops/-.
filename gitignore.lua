@@ -1247,6 +1247,7 @@ local OnHit = LPH_JIT(function(target_player, hit_part, damage, hit_type)
     trigger_effects();
 end);
 
+task.wait(1);
 modules = {Name = {}, Id = {} };
 utilityids = {};
 weaponids = {};
@@ -1281,6 +1282,7 @@ for i = 1, #critical_modules do
 end;
 
 setthreadidentity(2);
+
 for _, child in pairs(repstorage:GetDescendants() or {}) do
     if child:IsA("ModuleScript") and criticalset[child.Name] then
         local success, module = pcall(require, child);
@@ -1291,6 +1293,8 @@ for _, child in pairs(repstorage:GetDescendants() or {}) do
 end;
 setthreadidentity(8);
 
+
+
 for i, v in pairs(modules.Name["UtilityIds"] or {}) do 
     utilityids[i:lower()] = v;
 end;
@@ -1300,6 +1304,8 @@ for i, v in pairs(modules.Name["WeaponIds"] or {}) do
 end;
 
 network = modules.Name["Network"];
+
+
 
 for _, v in pairs(getgc() or {}) do
     if type(v) == "function" then
@@ -1314,8 +1320,9 @@ for _, v in pairs(getgc() or {}) do
 end;
 
 if (not cache.FireServer or not cache.InvokeServerWithTimeout) then
-    warn("game updated (?)");
+    warn("game updated (1)");
 end;
+
 
 
 fire_server = function(...)
@@ -1364,11 +1371,11 @@ local function handle(self, Name, ...)
 end;
 
 if network and network.FireServer then
-    warn("nil.solutions | hooking network.FireServer...");
     old_fireserver = hookfunction(network.FireServer, newcclosure(function(self, Name, ...)
         return handle(self, Name, ...);
     end));
 end;
+
 
 
 local signal = modules.Name["Signal"];
