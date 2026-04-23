@@ -168,126 +168,7 @@ if not Data then
         };
     };
 end;
-local modules = {Name = {}, Id = {} };
-local framework = {};
-local network;
-local cache = { };
-local fire_server, invoke_server;
-local utilityids = {};
-local weaponids = {};
-local hooks = {};
-local modify = {};
-local old_fireserver;
-
-do
-    local critical_modules = {
-        "Network", "RoduxStore", "Signal", "WeaponMetadata", "WeaponIds", "UtilityIds",
-        "UtilityMetadata", "WeaponsInOrder", "MeleeWeaponClient", "RangedWeaponClient",
-        "RangedWeaponHandler", "DataHandler", "ParryHandlerClient", "JumpHandlerClient",
-        "WalkSpeedHandlerClient", "AutoRotateHandlerClient", "KnockbackHandler",
-        "HealthHandler", "StunHandlerClient", "RagdollableClient", "SoundHandler",
-        "CharacterUtil", "DefaultStaminaHandlerClient", "DashConstants", "JumpConstants",
-        "AirConstants", "ParryConstants", "PlatformHandlerClient", "ToolHandlerClient",
-        "CoreGuiHandlerClient", "EnvironmentCommunication", "MockPlayerHandler",
-        "KillStreakConfigs", "ModHandler", "AdminHandler", "EmotesInOrder",
-        "ItemAttachmentHandlerClient", "WaterHandler", "InstancePropsHandler",
-        "ClaymoreTrapPartClient", "OpenBearTrapPartClient", "RangedHitVisuals",
-        "VFXClient", "ToastNotificationActionsClient", "CaseMetadata",
-        "ClanRanksConfigs",
-    };
-
-    local criticalset = {};
-    for i = 1, #critical_modules do criticalset[critical_modules[i]] = true; end;
-
-    setthreadidentity(2);
-    local old_fenv = getfenv(1);
-    setfenv(1, getrenv());
-    
-    for _, child in pairs(repstorage:GetDescendants() or {}) do
-        if child:IsA("ModuleScript") and criticalset[child.Name] then
-            local success, module = pcall(require, child);
-            if success then
-                modules.Name[child.Name] = module;
-            end;
-        end;
-    end;
-    
-    network = modules.Name["Network"];
-    setfenv(1, old_fenv);
-    setthreadidentity(8);
-
-    for i, v in pairs(modules.Name["UtilityIds"] or {}) do 
-        utilityids[i:lower()] = v;
-    end;
-
-    for i, v in pairs(modules.Name["WeaponIds"] or {}) do 
-        weaponids[i:lower()] = v;
-    end;
-
-    for _, v in pairs(getgc() or {}) do
-        if type(v) == "function" then
-            local success_n, name = pcall(debug.info, v, "n");
-            if success_n and (name == "FireServer" or name == "InvokeServerWithTimeout") then
-                local success_s, source = pcall(debug.info, v, "s");
-                if success_s and source and source:find(".Vendor.Network") then
-                    cache[name] = v;
-                end;
-            end;
-        end;
-    end;
-
-    if (not cache.FireServer or not cache.InvokeServerWithTimeout) then
-        warn("game updated (1)");
-    end;
-
-    fire_server = function(...)
-        if cache.FireServer then
-            return cache.FireServer(network, ...);
-        end;
-        return network:FireServer(...);
-    end;
-
-    invoke_server = function(...)
-        if cache.InvokeServerWithTimeout then
-            return cache.InvokeServerWithTimeout(network, nil, ...);
-        end;
-        return network:InvokeServerWithTimeout(nil, ...);
-    end;
-end;
-
-local function handle(self, Name, ...)
-	local Args = { ... };
-
-	if modify[Name] then
-		local can_hook = modify[Name].Check(Name, unpack(Args));
-		if can_hook then
-			if typeof(can_hook) == "table" then
-				for i, v in pairs(can_hook or {}) do
-					Args[i] = v;
-				end;
-			else
-				if can_hook == "Blocked" then
-					return;
-				end;
-				for i, v in pairs(modify[Name].Args or {}) do
-					Args[i] = v;
-				end;
-			end;
-		end;
-	end;
-
-	local hook = hooks[Name] or hooks["*"];
-	if hook then
-		return hook(old_fireserver, self, Name, unpack(Args));
-	end;
-
-	return (cache.FireServer or old_fireserver)(self, Name, unpack(Args));
-end;
-
-old_fireserver = hookfunction(network.FireServer, newcclosure(function(self, Name, ...)
-	setstackhidden(debug.info(1, "f"), true);
-	return handle(self, Name, ...);
-end));
+local modules, framework, network, cache, fire_server, invoke_server, utilityids, weaponids, hooks, modify, old_fireserver;
 
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/linoria-fork/refs/heads/main/linoria.lua"))();
@@ -1366,7 +1247,132 @@ local OnHit = LPH_JIT(function(target_player, hit_part, damage, hit_type)
     trigger_effects();
 end);
 
+modules = {Name = {}, Id = {} };
+utilityids = {};
+weaponids = {};
+network = nil;
+cache = { };
+fire_server = nil;
+invoke_server = nil;
+hooks = {};
+modify = {};
+old_fireserver = nil;
+
+local critical_modules = {
+    "Network", "RoduxStore", "Signal", "WeaponMetadata", "WeaponIds", "UtilityIds",
+    "UtilityMetadata", "WeaponsInOrder", "MeleeWeaponClient", "RangedWeaponClient",
+    "RangedWeaponHandler", "DataHandler", "ParryHandlerClient", "JumpHandlerClient",
+    "WalkSpeedHandlerClient", "AutoRotateHandlerClient", "KnockbackHandler",
+    "HealthHandler", "StunHandlerClient", "RagdollableClient", "SoundHandler",
+    "CharacterUtil", "DefaultStaminaHandlerClient", "DashConstants", "JumpConstants",
+    "AirConstants", "ParryConstants", "PlatformHandlerClient", "ToolHandlerClient",
+    "CoreGuiHandlerClient", "EnvironmentCommunication", "MockPlayerHandler",
+    "KillStreakConfigs", "ModHandler", "AdminHandler", "EmotesInOrder",
+    "ItemAttachmentHandlerClient", "WaterHandler", "InstancePropsHandler",
+    "ClaymoreTrapPartClient", "OpenBearTrapPartClient", "RangedHitVisuals",
+    "VFXClient", "ToastNotificationActionsClient", "CaseMetadata",
+    "ClanRanksConfigs",
+};
+
+local criticalset = {};
+
+for i = 1, #critical_modules do 
+    criticalset[critical_modules[i]] = true; 
+end;
+
+setthreadidentity(2);
+for _, child in pairs(repstorage:GetDescendants() or {}) do
+    if child:IsA("ModuleScript") and criticalset[child.Name] then
+        local success, module = pcall(require, child);
+        if success then
+            modules.Name[child.Name] = module;
+        end;
+    end;
+end;
+setthreadidentity(8);
+
+for i, v in pairs(modules.Name["UtilityIds"] or {}) do 
+    utilityids[i:lower()] = v;
+end;
+
+for i, v in pairs(modules.Name["WeaponIds"] or {}) do 
+    weaponids[i:lower()] = v;
+end;
+
+network = modules.Name["Network"];
+
+for _, v in pairs(getgc() or {}) do
+    if type(v) == "function" then
+        local success_n, name = pcall(debug.info, v, "n");
+        if success_n and (name == "FireServer" or name == "InvokeServerWithTimeout") then
+            local success_s, source = pcall(debug.info, v, "s");
+            if success_s and source and source:find(".Vendor.Network") then
+                cache[name] = v;
+            end;
+        end;
+    end;
+end;
+
+if (not cache.FireServer or not cache.InvokeServerWithTimeout) then
+    warn("game updated (?)");
+end;
+
+
+fire_server = function(...)
+    if cache.FireServer then
+        return cache.FireServer(network, ...);
+    end;
+    return network:FireServer(...);
+end;
+
+invoke_server = function(...)
+    if cache.InvokeServerWithTimeout then
+        return cache.InvokeServerWithTimeout(network, nil, ...);
+    end;
+    return network:InvokeServerWithTimeout(nil, ...);
+end;
+
+framework = {};
+
+local function handle(self, Name, ...)
+	local Args = { ... };
+
+	if modify[Name] then
+		local can_hook = modify[Name].Check(Name, unpack(Args));
+		if can_hook then
+			if typeof(can_hook) == "table" then
+				for i, v in pairs(can_hook or {}) do
+					Args[i] = v;
+				end;
+			else
+				if can_hook == "Blocked" then
+					return;
+				end;
+				for i, v in pairs(modify[Name].Args or {}) do
+					Args[i] = v;
+				end;
+			end;
+		end;
+	end;
+
+	local hook = hooks[Name] or hooks["*"];
+	if hook then
+		return hook(old_fireserver, self, Name, unpack(Args));
+	end;
+
+	return (cache.FireServer or old_fireserver)(self, Name, unpack(Args));
+end;
+
+if network and network.FireServer then
+    warn("nil.solutions | hooking network.FireServer...");
+    old_fireserver = hookfunction(network.FireServer, newcclosure(function(self, Name, ...)
+        return handle(self, Name, ...);
+    end));
+end;
+
+
 local signal = modules.Name["Signal"];
+
 
 
 function framework:addhook(Name, Function) 
