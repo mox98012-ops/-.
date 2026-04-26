@@ -4,7 +4,6 @@ end;
 getgenv().nil_solutions = true;
 
 if (not game:IsLoaded()) then game.Loaded:Wait(); end;
-task.wait(1.5);
 
 if (game.GameId ~= 1390601379) then
     return; 
@@ -169,8 +168,8 @@ if not Data then
         };
     };
 end;
-local modules, framework, network, cache, fire_server, invoke_server, utilityids, weaponids, hooks, modify, old_fireserver;
 
+local modules, framework, network, cache, fire_server, invoke_server, utilityids, weaponids, hooks, modify, old_fireserver;
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/linoria-fork/refs/heads/main/linoria.lua"))();
 local savemanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/savemanager/refs/heads/main/linoria.lua"))();
@@ -268,6 +267,7 @@ local settings = {
     voidonparry = false;
     nnt = false;
     nut = false;
+    include_goop = false;
     nps = false;
     nps2 = false;
     noflash = false;
@@ -308,6 +308,49 @@ local settings = {
     last_void_tick = 0;
     avoid_walls = false;
 };
+
+local ff;
+
+local function update_ff()
+    if ff then
+        pcall(function()
+            ff:Destroy();
+        end);
+        ff = nil;
+    end;
+
+    if not settings.nut then
+        return;
+    end;
+
+    local char = localplayer.Character;
+    if not char then
+        return;
+    end;
+
+    ff = Instance.new("ForceField");
+    ff.Visible = false;
+
+    ff:GetPropertyChangedSignal("Visible"):Connect(function()
+        ff.Visible = false;
+    end);
+
+    ff.Parent = char;
+end;
+
+local function update_goop()
+    local gc = modules.Name["GoopConstants"]
+    if gc then
+        local old_readonly = isreadonly(gc)
+        setreadonly(gc, false)
+        if settings.nut and settings.include_goop then
+            gc.SLOW_MULTIPLIER = 1
+        else
+            gc.SLOW_MULTIPLIER = 0.35
+        end
+        setreadonly(gc, old_readonly)
+    end
+end;
 
 local teleport = function(CFrame) 
     game:GetService("TweenService"):Create(humanoidrootpart,TweenInfo.new(0),{CFrame = CFrame }):Play(); 
@@ -401,6 +444,7 @@ do
 		humanoidrootpart = char:WaitForChild("HumanoidRootPart");
 		primarypart = humanoidrootpart;
 		clientcframe = primarypart.CFrame;
+        update_ff();
 	end;
 
 	if localplayer.Character then
@@ -1248,8 +1292,6 @@ local OnHit = LPH_JIT(function(target_player, hit_part, damage, hit_type)
     trigger_effects();
 end);
 
-task.wait(2);
-
 modules = {Name = {}, Id = {} };
 utilityids = {};
 weaponids = {};
@@ -1274,7 +1316,8 @@ local critical_modules = {
     "ItemAttachmentHandlerClient", "WaterHandler", "InstancePropsHandler",
     "ClaymoreTrapPartClient", "OpenBearTrapPartClient", "RangedHitVisuals",
     "VFXClient", "ToastNotificationActionsClient", "CaseMetadata",
-    "ClanRanksConfigs",
+    "ClanRanksConfigs", "GoopSlowHandlerClient", "GoopPoolHitboxPartClient",
+    "GoopConstants",
 };
 
 local criticalset = {};
@@ -1293,9 +1336,8 @@ for _, child in pairs(repstorage:GetDescendants() or {}) do
         end;
     end;
 end;
+
 setthreadidentity(8);
-
-
 
 for i, v in pairs(modules.Name["UtilityIds"] or {}) do 
     utilityids[i:lower()] = v;
@@ -1307,9 +1349,6 @@ end;
 
 network = modules.Name["Network"];
 
-
-
-task.wait(0.5);
 for _, v in pairs(getgc() or {}) do
     if type(v) == "function" then
         local success_n, name = pcall(debug.info, v, "n");
@@ -1325,8 +1364,6 @@ end;
 if (not cache.FireServer or not cache.InvokeServerWithTimeout) then
     warn("game updated (1)");
 end;
-
-
 
 fire_server = function(...)
     if cache.FireServer then
@@ -1379,11 +1416,7 @@ if network and network.FireServer then
     end));
 end;
 
-
-
 local signal = modules.Name["Signal"];
-
-
 
 function framework:addhook(Name, Function) 
     hooks[Name] = Function;
@@ -2081,86 +2114,61 @@ local R6BodyParts = {
 local hbe_size = vector3_new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize);
 local hitbox_blast_size = Config.HitboxSize;
 
-local function update_hitbox(v, wanted_trans, hitbox_color, hbe_size, expand)
-    if not v:IsDescendantOf(game) then return false; end;
-    if v.Parent then
-        local to_expand = v.Parent:FindFirstChild(Config.HBEPart);
-        if to_expand and v.Weld and v.Weld.Part0 ~= to_expand then
-            v.Weld.Part0 = to_expand;
-        end;
-    end;
-    if v.Transparency ~= wanted_trans then v.Transparency = wanted_trans; end;
-    if v.Color ~= hitbox_color then v.Color = hitbox_color; end;
-    local effective_size = expand and hbe_size or vector3_new(0, 0, 0);
-    if v.Size ~= effective_size then v.Size = effective_size; end;
-    v:SetAttribute("IsCharacterHitbox", expand);
-    if not expand then
-        if not v:HasTag("RANGED_CASTER_IGNORE_LIST") then
-            v:AddTag("RANGED_CASTER_IGNORE_LIST");
-        end;
-    else
-        if v:HasTag("RANGED_CASTER_IGNORE_LIST") then
-            v:RemoveTag("RANGED_CASTER_IGNORE_LIST");
-        end;
-    end;
-    return true;
-end;
-
-local function on_hitbox_added(v)
-    local expand = Config.HitboxExpand;
-    local wanted_trans = (expand and Config.ShowHitbox) and 0.7 or 1;
-    if Config.HitboxSize ~= hitbox_blast_size then
-        hbe_size = vector3_new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize);
-        hitbox_blast_size = Config.HitboxSize;
-    end;
-    update_hitbox(v, wanted_trans, Config.HitboxColor, hbe_size, expand);
-end;
+local function apply_all_hitboxes() end
 
 local function apply_hitbox(Character)
-    if Character:FindFirstChild("hitbox") then return; end;
-    local expand = Config.HitboxExpand;
-    local hitbox = Instance.new("Part");
-    hitbox.Size = hbe_size;
-    hitbox.CanCollide = false;
-    hitbox.Transparency = (expand and Config.ShowHitbox) and 0.7 or 1;
-    hitbox.Name = "hitbox";
-    hitbox.Color = Config.HitboxColor;
-    hitbox:SetAttribute("IsCharacterHitbox", expand);
-    hitbox.Massless = true;
-    hitbox.CastShadow = false;
-    hitbox.Parent = Character;
-    if not expand then
-        hitbox:AddTag("RANGED_CASTER_IGNORE_LIST");
-    end;
-    local Weld = Instance.new("Weld");
-    Weld.Part0 = Character:WaitForChild("HumanoidRootPart");
-    Weld.Part1 = hitbox;
-    Weld.Parent = hitbox;
-    table.insert(hitboxes, hitbox);
-end;
+    if Character:FindFirstChild("FakeHitbox") then return; end;
+    local FakeHitbox = Instance.new("Part")
+    FakeHitbox.Size = vector3_new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize)
+    FakeHitbox.CanCollide = false
+    FakeHitbox.Transparency = (Config.HitboxExpand and Config.ShowHitbox) and 0.7 or 1
+    FakeHitbox.Name = "FakeHitbox"
+    FakeHitbox.Color = Config.HitboxColor
+    FakeHitbox:SetAttribute("IsCharacterHitbox", Config.HitboxExpand)
+    FakeHitbox.Massless = true
+    FakeHitbox.CastShadow = false
+    FakeHitbox.Parent = Character
+    FakeHitbox:AddTag("RANGED_CASTER_IGNORE_LIST")
+    local Weld = Instance.new("Weld")
+    Weld.Part0 = Character:WaitForChild("HumanoidRootPart")
+    Weld.Part1 = FakeHitbox
+    Weld.Parent = FakeHitbox
+    table.insert(hitboxes, FakeHitbox)
+end
 
-local function apply_all_hitboxes()
-    local expand = Config.HitboxExpand;
-    local show_hitbox = Config.ShowHitbox;
-    local hitbox_color = Config.HitboxColor;
-    local hitbox_sizen = Config.HitboxSize;
-    local wanted_trans = (expand and show_hitbox) and 0.7 or 1;
-    if hitbox_sizen ~= hitbox_blast_size then
-        hbe_size = vector3_new(hitbox_sizen, hitbox_sizen, hitbox_sizen);
-        hitbox_blast_size = hitbox_sizen;
-    end;
-    local i = #hitboxes;
-    while i > 0 do
-        local v = hitboxes[i];
-        if not update_hitbox(v, wanted_trans, hitbox_color, hbe_size, expand) then
-            table.remove(hitboxes, i);
-        end;
-        i = i - 1;
-    end;
-end;
+runservice.RenderStepped:Connect(LPH_JIT(function()
+    for _i = #hitboxes, 1, -1 do
+        local v = hitboxes[_i]
+        if not v:IsDescendantOf(game) then
+            table.remove(hitboxes, _i)
+            continue
+        end
+        local toExpand
+        if Config.HBEPart == "Random" then
+            toExpand = v.Parent:FindFirstChild(R6BodyParts[math_random(1, #R6BodyParts)])
+        else
+            toExpand = v.Parent:FindFirstChild(Config.HBEPart)
+        end
+        if toExpand and v.Weld.Part0 ~= toExpand then
+            v.Weld.Part0 = toExpand
+        end
+        v.Transparency = (Config.HitboxExpand and Config.ShowHitbox) and 0.7 or 1
+        v.Color = Config.HitboxColor
+        v.Size = vector3_new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize)
+        v:SetAttribute("IsCharacterHitbox", Config.HitboxExpand)
+        if not Config.HitboxExpand then
+            if not v:HasTag("RANGED_CASTER_IGNORE_LIST") then
+                v:AddTag("RANGED_CASTER_IGNORE_LIST")
+            end
+        else
+            if v:HasTag("RANGED_CASTER_IGNORE_LIST") then
+                v:RemoveTag("RANGED_CASTER_IGNORE_LIST")
+            end
+        end
+    end
+end))
 
 task_spawn(LPH_JIT(function()
-    task.wait(0.3);
     for _, v in pairs(PlayerCharacters:GetChildren() or {}) do
         if v ~= localplayer.Character then
             apply_hitbox(v);
@@ -2184,16 +2192,16 @@ if modules.Name["RangedHitVisuals"] and modules.Name["RangedHitVisuals"].default
     local old = modules.Name["RangedHitVisuals"].defaultHit;
     modules.Name["RangedHitVisuals"].defaultHit = LPH_JIT_MAX(function(player, tool, cfg, hitpart, hit_cframe, normal, material, cosmetic)
         local new_hit_cframe = hit_cframe;
-        if (Config.HitboxExpand and hitpart and hitpart.Name == "hitbox") then
-            local part = hitpart.Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart ) or hitpart.Parent:FindFirstChild("Torso");
-            if part then
-                local metadata = framework:getmetadata(tool.Name);
-                if metadata and metadata.speed then
-                    task.wait((hit_cframe.Position - part.Position).Magnitude / metadata.speed);
-                end;
-                new_hit_cframe = part.CFrame * cosmetic.CFrame.Rotation * cframe_new( math_random(-1,1) * (part.Size.X / 2), math_random(-1,1) * (part.Size.Y / 2), math_random(-1,1) * (part.Size.Z / 2) );
+    if Config.HitboxExpand and hitpart and hitpart.Name == "FakeHitbox" then
+        local realPart = hitpart.Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or hitpart.Parent:FindFirstChild("Torso")
+        if realPart then
+            local metadata = framework:getmetadata(tool.Name);
+            if metadata and metadata.speed then
+                task.wait((hit_cframe.Position - realPart.Position).Magnitude / metadata.speed);
             end;
+            new_hit_cframe = realPart.CFrame * cosmetic.CFrame.Rotation * cframe_new( (math_random() * math_random(-1, 1)) * (realPart.Size.X / 2), (math_random() * math_random(-1, 1)) * (realPart.Size.Y / 2), (math_random() * math_random(-1, 1)) * (realPart.Size.Z / 2) );
         end;
+    end;
         return old(player, tool, cfg, hitpart, new_hit_cframe, normal, material, cosmetic);
     end);
 end;
@@ -2205,9 +2213,11 @@ if modules.Name["RangedWeaponClient"] and modules.Name["RangedWeaponClient"].upd
         local character = ranged_data._character
         local tagged = collectionservice:GetTagged("RANGED_CASTER_IGNORE_LIST");
         table.insert(tagged, character);
-        if Config.Wallbang and Map then
-            table.insert(tagged, Map);
-            table.insert(tagged, Workspace.Terrain);
+        if not Config.HitboxExpand then
+            if Map then
+                table.insert(tagged, Map);
+                table.insert(tagged, Workspace.Terrain);
+            end;
         end;
         ranged_data._ignoreList = tagged;
         return tagged;
@@ -2283,7 +2293,7 @@ do
                 return {[1] = nil};
             end;
         end;
-        if Config.HitboxExpand and args[2] and args[2].Name == "hitbox" then
+        if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
             local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
             if part then 
                 return {
@@ -2297,7 +2307,7 @@ do
 
     framework:argmodify("MeleeFinish", {}, LPH_JIT_MAX(function(n,...)
         local args = {...}
-        if Config.HitboxExpand and args[2].Name == "hitbox" then
+        if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
             local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
             if part then
                 return {[2] = part};
@@ -2308,12 +2318,12 @@ do
 
     framework:argmodify("RangedHit",{}, LPH_JIT_MAX(function(n,...)
         local args = {...}
-        if Config.HitboxExpand and args[2].Name == "hitbox" then
-            local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso");
+        if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
+            local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
             if part then
                 return {
-                    [2] = part;
-                    [4] = part.Position;
+                    [2] = part,
+                    [4] = part.Position,
                     [5] = cframe_angles(args[5]:ToEulerAnglesYXZ()) * cframe_new( (math_random() * math_random(-1, 1)) * (part.Size.X / 2), (math_random() * math_random(-1, 1)) * (part.Size.Y / 2), (math_random() * math_random(-1, 1)) * (part.Size.Z / 2))
                 };
             end;
@@ -2326,7 +2336,7 @@ do
 
     framework:argmodify("RangedExplode",{}, LPH_JIT_MAX(function(n,...)
         local args = {...}
-        if Config.HitboxExpand and args[2].Name == "hitbox" then
+        if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
             local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
             if part then
                 return {
@@ -2371,6 +2381,29 @@ do
         end;
 		return oldfunc(...);
 	end));
+
+	local function hook_goop(modulename)
+		local mod = modules.Name[modulename]
+		if not mod then return end
+		if type(mod) == "table" and mod.new then
+			local old_new; old_new = hookfunction(mod.new, LPH_JIT_MAX(function(...)
+				if settings.nut and settings.include_goop then
+					return nil
+				end
+				return old_new(...)
+			end))
+		elseif type(mod) == "function" then
+			local old_func; old_func = hookfunction(mod, LPH_JIT_MAX(function(...)
+				if settings.nut and settings.include_goop then
+					return nil
+				end
+				return old_func(...)
+			end))
+		end
+	end
+
+	hook_goop("GoopSlowHandlerClient")
+	hook_goop("GoopPoolHitboxPartClient")
 
 	hook("HealthHandler", "getRealHealth", function(oldfunc, ...)
 		if settings.nhe then
@@ -3187,12 +3220,12 @@ do
     safe_add(effectsjunk:FindFirstChild("utility5Proxy"));
     safe_add(effectsjunk:FindFirstChild("utility7Proxy"));
     safe_add(effectsjunk:FindFirstChild("utility10Proxy"));
-    local pars_cache = effectsjunk:FindFirstChild("PartCache");
+    local parts_cache = effectsjunk:FindFirstChild("PartCache");
 
-    if pars_cache then
-        safe_add(pars_cache:FindFirstChild("Kunai"));
-        safe_add(pars_cache:FindFirstChild("Arrow"));
-        safe_add(pars_cache:FindFirstChild("Shuriken"));
+    if parts_cache then
+        safe_add(parts_cache:FindFirstChild("Kunai"));
+        safe_add(parts_cache:FindFirstChild("Arrow"));
+        safe_add(parts_cache:FindFirstChild("Shuriken"));
     end;
 
     if map then
@@ -3203,8 +3236,14 @@ do
         if part:GetAttribute("DamagePerSecond") then
             return true;
         end;
+        if part.Name == "GoopPool" or string.find(string.lower(part.Name), "goop") then
+            return "goop";
+        end;
         for root in pairs(targets or {}) do 
             if root and part:IsDescendantOf(root) then
+                if root.Name == "GoopPool" or string.find(string.lower(root.Name), "goop") then
+                    return "goop";
+                end;
                 return true;
             end;
         end;
@@ -3218,8 +3257,12 @@ do
             processed[part] = true;
             return;
         end;
+
+        local disable_type = should_disable(part);
+        if not disable_type then return; end;
+        if disable_type == "goop" and not settings.include_goop then return; end;
+
         processed[part] = true;
-        if not should_disable(part) then return; end;
         part.CanCollide = false;
         part.CanTouch = false;
         part.CanQuery = false;
@@ -4850,13 +4893,13 @@ do
         Rounding = 1;
         Compact = true;
         Callback = function(Value)
-            settings.void_out = Value
+            settings.void_out = Value;
         end;
     });
 
     task_spawn(LPH_JIT(function()
         while true do
-            task.wait()
+            task.wait();
             if settings.void_spam and settings.voidenabled then
                 local vin = settings.void_in or 0;
                 local vout = settings.void_out or 0;
@@ -5051,6 +5094,23 @@ exploit:AddToggle("nut", {
     Default = false;
     Callback = function(Value)
         settings.nut = Value;
+        update_goop();
+        update_ff();
+    end;
+});
+
+local nut_dep = exploit:AddDependencyBox();
+
+nut_dep:SetupDependencies({
+    {Toggles.nut, true};
+});
+
+nut_dep:AddToggle("include_goop", {
+    Text = "include goop";
+    Default = false;
+    Callback = function(Value)
+        settings.include_goop = Value;
+        update_goop();
     end;
 });
 
@@ -5085,57 +5145,6 @@ exploit:AddToggle("nkb", {
         settings.nkb = Toggles.nkb.Value;
     end;
 });
-
-do
-    local antifling_connections = {};
-    local collision_cache = {};
-    local function watch_hrp(player, hrp)
-        if antifling_connections[hrp] then return; end;
-        collision_cache[hrp] = hrp.CanCollide;
-        hrp.CanCollide = false;
-        antifling_connections[hrp] = hrp:GetPropertyChangedSignal("CanCollide"):Connect(function()
-            if settings.antifling and not hrp:FindFirstChildWhichIsA("WeldConstraint", true) then
-                hrp.CanCollide = false;
-            end;
-        end);
-    end;
-    local function watch_player(player)
-        if player == localplayer then return; end;
-        local function on_char(char)
-            local hrp = char:WaitForChild("HumanoidRootPart");
-            if not hrp:FindFirstChildWhichIsA("WeldConstraint", true) then
-                watch_hrp(player, hrp);
-            end;
-        end;
-        if player.Character then on_char(player.Character) end
-        antifling_connections[player] = player.CharacterAdded:Connect(on_char);
-    end;
-    local function stop_antifling()
-        for key, conn in pairs(antifling_connections or {}) do
-            conn:Disconnect();
-        end;
-        table.clear(antifling_connections);
-        for hrp, original in pairs(collision_cache or {}) do
-            if hrp and hrp.Parent then
-                hrp.CanCollide = original;
-            end;
-        end;
-        table.clear(collision_cache);
-    end;
-    exploit:AddToggle("antifling", {
-        Text = "anti fling";
-        Default = false;
-        Callback = function(Value)
-            settings.antifling = Value;
-            stop_antifling();
-            if Value then
-                for player in pairs(cachedplayers or {}) do
-                    watch_player(player);
-                end;
-            end;
-        end;
-    });
-end;
 
 exploit:AddToggle("antiswim", {
     Text = "anti swim";
@@ -9606,7 +9615,7 @@ do
 						if (aim_position - pos).Magnitude <= Classes.SilentAimRange.Value then
 							local new_vel = (aim_position - pos).Unit * projectile_speed;
 							
-							if caster and caster.SetVelocity and caster.StateInfo and caster.StateInfo.UpdateConnection then
+							if caster and caster.SetVelocity and caster.StateInfo then
 								caster:SetVelocity(new_vel);
 
 								if Classes.Wallbang.Value and caster.RayInfo then
@@ -9861,7 +9870,7 @@ do
 
 			if not (ranged.Name == "Longbow" or ranged.Name == "Crossbow" or ranged.Name == "Heavy Bow") then
 				task.delay(time_to_hit + 0.08, function()
-					if cast.UserData and cast.StateInfo and cast.StateInfo.UpdateConnection then
+					if cast.UserData and cast.StateInfo then
 						if Toggles.ShowLine.Value then
 							local part = Instance.new("Part");
 							part.Anchored = true;
