@@ -1776,6 +1776,9 @@ end;
 
 function framework:closest_characters_origin(Origin, Dist)
 	local folder = player_characters();
+    local target = nil;
+    local dis = Dist or 19;
+
 	for i, v in pairs(folder:GetChildren() or {}) do
 		local Player = players:GetPlayerFromCharacter(v);
 		if not Player then continue; end;
@@ -1788,7 +1791,7 @@ function framework:closest_characters_origin(Origin, Dist)
 		local humanoid = v:FindFirstChildOfClass("Humanoid");
 		if not hrp or not head or not humanoid or humanoid.Health <= 0 then continue; end;
 		local magnitude = (hrp.Position - Origin).Magnitude;
-		if magnitude < Dist then
+		if magnitude < dis then
 			dis = magnitude;
 			target = v;
 		end;
@@ -10809,14 +10812,16 @@ do
 						local new_params = RaycastParams.new();
 						new_params.IgnoreWater = old_params.IgnoreWater;
 						new_params.FilterType = Enum.RaycastFilterType.Exclude;
-						local ignore_list = {workspace.Terrain};
+						local ignore_list = {workspace.Terrain, LocalPlayer.Character};
 						if old_params.FilterDescendantsInstances then
 							for _, v in ipairs(old_params.FilterDescendantsInstances) do
-								table.insert(ignore_list, v);
+                                if not table.find(ignore_list, v) then
+								    table.insert(ignore_list, v);
+                                end;
 							end;
 						end;
 						for _, plr in pairs(game.Players:GetPlayers()) do
-							if plr.Character and plr.Character ~= target.Character then 
+							if plr.Character and plr.Character ~= target.Character and not table.find(ignore_list, plr.Character) then 
 								table.insert(ignore_list, plr.Character);
 							end;
 						end;
