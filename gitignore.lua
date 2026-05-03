@@ -10662,8 +10662,11 @@ do
 		local args = {...};
 		local caster = args[1];
 		
+        if not (caster and typeof(caster) == "table" and caster.StateInfo) then
+            return;
+        end;
+
 		local success, err = pcall(function()
-			if not (caster and caster.UserData and caster.StateInfo) then return end;
 
 			if not caster.UserData.pierce_hooked then
 				caster.UserData.pierce_hooked = true;
@@ -10684,7 +10687,7 @@ do
 				end;
 			end;
 
-            if not Classes.SilentAim.Value then return end;
+            if not Classes.SilentAim.Value then return; end;
 
 			local weapon, metadata = framework:get_ranged();
 			if not (weapon and metadata and caster.UserData.tool == weapon) then return end;
@@ -10734,8 +10737,13 @@ do
                                     Position = hit_part.Position;
                                     Normal = Vector3.yAxis;
                                 }, nil, caster.RayInfo.CosmeticBulletObject);
-                                caster:Terminate();
-                                return true; -- Signal to stop
+                                
+                                task.defer(function()
+                                    if caster and caster.Terminate then
+                                        caster:Terminate();
+                                    end;
+                                end);
+                                return true;
                             end;
 						end;
 
@@ -10745,6 +10753,7 @@ do
 		end);
 
         if success and err == true then return end;
+        if not (caster and typeof(caster) == "table" and caster.StateInfo) then return end;
 		return old_simulate_cast(...);
 	end;
 
@@ -10875,7 +10884,9 @@ do
 				continue;
 			end;
 
-            local target_player = players:FindFirstChild(nx(player))
+            local target_player_name = nx(player or {});
+            local target_player = target_player_name and players:FindFirstChild(target_player_name);
+
             if target_player and (should_skip_by_whitelist(target_player, "ragebot")) then
                 locked_target = nil;
                 continue;
@@ -10966,6 +10977,18 @@ do
 				localplayer:GetNetworkPing() * 1000,
 				projectile_gravity
 			);
+
+            if not Classes.Wallbang.Value then
+                local ray_params = RaycastParams.new();
+                ray_params.FilterType = Enum.RaycastFilterType.Exclude;
+                ray_params.FilterDescendantsInstances = {Character, workspace:FindFirstChild("EffectsJunk")};
+                local ray_result = workspace:Raycast(origin, final_posiiton - origin, ray_params);
+                if ray_result and not ray_result.Instance:IsDescendantOf(target_player.Character) then
+                    locked_target = nil;
+                    metadata.canShootBulletssss = true;
+                    continue;
+                end;
+            end;
 
 			local dir_vec = (final_posiiton - origin);
 			if dir_vec.Magnitude < 0.001 then dir_vec = vector3_new(0, 1, 0) end
