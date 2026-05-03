@@ -2767,6 +2767,7 @@ do
 
     aimbot_tab:AddToggle("aimbot_toggle", {
         Text = "aimbot";
+        Default = true;
         Callback = function(value)
             if value then
                 aimbot_enabled = true;
@@ -2777,7 +2778,7 @@ do
                         local key_pressed = Options.AimbotKeybind:GetState();
                         if key_pressed then
                             local mouse = localplayer:GetMouse();
-                            local fov_radius = Options.FOVCircleSize.Value or 500;
+                            local fov_radius = Options.FOVSize.Value or 500;
                             local hitpart_name = Options.AimbotHitPart.Value or "Head";
                             local needs_new_target = not locked_target or not locked_target.Character or not locked_target.Character:FindFirstChild("Humanoid") or locked_target.Character.Humanoid.Health <= 0;
                             local keybind_just_pressed = key_pressed and not keybind_state;
@@ -8347,7 +8348,6 @@ local function esp1()
                                 if BarOutline.Size ~= outlineSize then
                                     BarOutline.Size = outlineSize;
                                 end;
-
 
                                 if BarGradient.Rotation ~= gradRot then
                                     BarGradient.Rotation = gradRot;
