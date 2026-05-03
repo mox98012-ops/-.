@@ -6,7 +6,7 @@ getgenv().nil_solutions = true;
 if (not game:IsLoaded()) then game.Loaded:Wait(); end;
 
 if (game.GameId ~= 1390601379) then
-    return; 
+    return;
 end;
 
 local userinputservice = cloneref(game:GetService("UserInputService"));
@@ -27,7 +27,7 @@ local humanoid = character:WaitForChild("Humanoid");
 local camera = workspace.CurrentCamera;
 
 local vector3_new = Vector3.new;
-local _nx = next;
+local nx = next;
 local cframe_new = CFrame.new;
 local cframe_angles = CFrame.Angles;
 local drawing_new = Drawing.new;
@@ -169,15 +169,30 @@ if not Data then
     };
 end;
 
-local modules, framework, network, cache, fire_server, invoke_server, utilityids, weaponids, hooks, modify, old_fireserver;
-
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/linoria-fork/refs/heads/main/linoria.lua"))();
 local savemanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/xectray1/savemanager/refs/heads/main/linoria.lua"))();
 local thememanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/refs/heads/main/addons/ThemeManager.lua"))();
+
 setthreadidentity(8);
-local window = library:CreateWindow({Title = "                                                    nil.solutions - discord.gg/serenium     					<font color=\"#ff0000\">combat warriors</font>", Center = true, AutoShow = true, TabPadding = 8, MenuFadeTime = 0});
+
+local window = library:CreateWindow({
+    Title = "                                                    nil.solutions - discord.gg/serenium     					<font color=\"#ff0000\">combat warriors</font>",
+    Center = true,
+    AutoShow = true,
+    TabPadding = 8,
+    MenuFadeTime = 0
+});
+
 setthreadidentity(7);
-local tabs = {main = window:AddTab('main'), ranged = window:AddTab("ranged"); charactertab = window:AddTab("character"), misc = window:AddTab("misc"), visuals = window:AddTab("visuals"), settings = window:AddTab("settings")};
+
+local tabs = {
+    main = window:AddTab('main');
+    ranged = window:AddTab("ranged");
+    charactertab = window:AddTab("character");
+    misc = window:AddTab("misc");
+    visuals = window:AddTab("visuals");
+    settings = window:AddTab("settings")
+};
 
 main = tabs.main:AddLeftGroupbox("main");
 strafe_tab = tabs.main:AddLeftGroupbox("strafe");
@@ -338,20 +353,6 @@ local function update_ff()
     ff.Parent = char;
 end;
 
-local function update_goop()
-    local gc = modules.Name["GoopConstants"]
-    if gc then
-        local old_readonly = isreadonly(gc)
-        setreadonly(gc, false)
-        if settings.nut and settings.include_goop then
-            gc.SLOW_MULTIPLIER = 1
-        else
-            gc.SLOW_MULTIPLIER = 0.35
-        end
-        setreadonly(gc, old_readonly)
-    end
-end;
-
 local teleport = function(CFrame) 
     game:GetService("TweenService"):Create(humanoidrootpart,TweenInfo.new(0),{CFrame = CFrame }):Play(); 
 end;
@@ -375,7 +376,9 @@ local function should_skip_by_whitelist(player, skip_type)
     if type(types_raw) == "table" then
         types = types_raw;
     elseif type(types_raw) == "string" then
-        types = {[types_raw] = true};
+        types = {
+            [types_raw] = true
+        };
     end;
     
     if skip_type and not types[skip_type] then
@@ -383,8 +386,8 @@ local function should_skip_by_whitelist(player, skip_type)
     end;
 
     local raw = Options.global_whitelist_mode and Options.global_whitelist_mode.Value;
-    if not raw then return
-        false;
+    if not raw then
+        return false;
     end;
     
     local modes = {};
@@ -392,7 +395,9 @@ local function should_skip_by_whitelist(player, skip_type)
     if type(raw) == "table" then
         modes = raw;
     elseif type(raw) == "string" then
-        modes = {[raw] = true};
+        modes = {
+            [raw] = true
+        };
     end;
 
     if modes["whitelist"] and table.find(whitelist, player.Name) then
@@ -411,6 +416,7 @@ local function should_skip_by_whitelist(player, skip_type)
         local ok, clan_data = pcall(function()
             return framework:get_clan_data();
         end);
+
         if ok and clan_data and clan_data.members then
             local my_member = clan_data.members[tostring(localplayer.UserId)];
             if my_member and clan_data.members[tostring(player.UserId)] then
@@ -456,12 +462,14 @@ do
 	local mt = getrawmetatable(game);
 	local originalindex = mt.__index;
 	setreadonly(mt, false);
+
 	mt.__index = newcclosure(function(self, property)
 		if (not checkcaller() and self == primarypart and property == "CFrame" and isspoofing) then
 			return clientcframe;
 		end;
 		return originalindex(self, property);
 	end);
+
 	setreadonly(mt, true);
 
 	local looptypes = {
@@ -508,6 +516,7 @@ do
 
 		currentlooptype = looptype;
 		local event = looptypes[looptype] or runservice.Heartbeat;
+
 		connection = event:Connect(function()
 			if stopspoofing or executing then return; end;
 			if not (primarypart and primarypart.Parent) then return; end;
@@ -596,33 +605,40 @@ do
 
 	setrunning = function(logicname, booleanref, persistent)
 		local spoofdata = registeredspoofs[logicname];
-		if not spoofdata then
+		
+        if not spoofdata then
 			warn("invalid name: " .. tostring(logicname));
 			return;
 		end;
+
 		local function applystatus(s)
 			local status = s;
 			if typeofcache(s) == "function" then
 				status = s();
 			end;
-			if status == true then
+			
+            if status == true then
 				for _, v in ipairs(activespoofs) do
 					if v.name == logicname then
 						return;
 					end;
 				end;
-				table.insert(activespoofs, spoofdata);
-				if not currentactive then
+				
+                table.insert(activespoofs, spoofdata);
+				
+                if not currentactive then
 					currentactive = spoofdata;
 				else
 					if spoofdata.priority > currentactive.priority or (spoofdata.priority == currentactive.priority and spoofdata.timestamp < currentactive.timestamp) then
 						currentactive = spoofdata;
 					end;
 				end;
-				refreshconnection();
+				
+                refreshconnection();
 			else
 				local removedcurrent = false;
-				for i, v in ipairs(activespoofs) do
+				
+                for i, v in ipairs(activespoofs) do
 					if v.name == logicname then
 						if v == currentactive then
 							removedcurrent = true;
@@ -631,15 +647,18 @@ do
 						break;
 					end;
 				end;
-				if removedcurrent then
+				
+                if removedcurrent then
 					evaluatecurrent();
 				end;
-				refreshconnection();
+				
+                refreshconnection();
 			end;
 		end;
 
 		applystatus(booleanref);
-		if persistent then
+		
+        if persistent then
 			persistentloops[logicname] = persistentloops[logicname] or {};
 			persistentloops[logicname].paused = false;
 			persistentloops[logicname].getter = booleanref;
@@ -666,7 +685,8 @@ do
 		if not registeredspoofs[logicname] then
 			return false;
 		end;
-		for _, v in ipairs(activespoofs) do
+		
+        for _, v in ipairs(activespoofs) do
 			if v.name == logicname then
 				return true;
 			end;
@@ -678,9 +698,11 @@ do
 		stopspoofing = true;
 		isspoofing = false;
 		executing = false;
+        
 		if primarypart and clientcframe then
 			primarypart.CFrame = clientcframe;
 		end;
+
 		for name, _ in pairs(registeredspoofs) do
 			for _, v in ipairs(activespoofs) do
 				if v.name == name then
@@ -688,11 +710,14 @@ do
 					break;
 				end;
 			end;
-			if persistentloops[name] then
+			
+            if persistentloops[name] then
 				persistentloops[name].paused = true;
 			end;
 		end;
+
 		currentactive = nil;
+
 		if connection then
 			connection:Disconnect();
 			connection = nil;
@@ -950,6 +975,7 @@ hitdetection_impl.create_log = function(text)
     local nil_color = Color3.fromRGB(148, 131, 255);
     local text_size = 19;
     local text_font = 2;
+    
     local nil_label = drawing_new("Text");
     nil_label.Text = prefix_nil;
     nil_label.Size = text_size;
@@ -959,6 +985,7 @@ hitdetection_impl.create_log = function(text)
     nil_label.Visible = true;
     nil_label.Transparency = 0;
     nil_label.ZIndex = 15;
+    
     local label_dot = drawing_new("Text");
     label_dot.Text = prefix_dot;
     label_dot.Size = text_size;
@@ -968,6 +995,7 @@ hitdetection_impl.create_log = function(text)
     label_dot.Visible = true;
     label_dot.Transparency = 0;
     label_dot.ZIndex = 15;
+    
     local label_solutions = drawing_new("Text");
     label_solutions.Text = prefix_solutions;
     label_solutions.Size = text_size;
@@ -977,6 +1005,7 @@ hitdetection_impl.create_log = function(text)
     label_solutions.Visible = true;
     label_solutions.Transparency = 0;
     label_solutions.ZIndex = 15;
+    
     local label_rest = drawing_new("Text");
     label_rest.Text = rest_of_text;
     label_rest.Size = text_size;
@@ -986,19 +1015,30 @@ hitdetection_impl.create_log = function(text)
     label_rest.Visible = true;
     label_rest.Transparency = 0;
     label_rest.ZIndex = 15;
+    
     local target_x = screen.X / 2;
     local target_y = screen.Y - 180 - hitdetection_impl.yo_offset;
     local width = nil_label.TextBounds.X + label_dot.TextBounds.X + label_solutions.TextBounds.X + label_rest.TextBounds.X;
     local center_offset = width / 2;
+    
     local function set_position(current_x_axis)
         nil_label.Position = vector2_new(current_x_axis - center_offset, target_y);
         label_dot.Position = vector2_new(nil_label.Position.X + nil_label.TextBounds.X, target_y);
         label_solutions.Position = vector2_new(label_dot.Position.X + label_dot.TextBounds.X, target_y);
         label_rest.Position = vector2_new(label_solutions.Position.X + label_solutions.TextBounds.X, target_y);
     end;
+
     set_position(target_x - 30);
-    table.insert(hitdetection_impl.Labels, {nil_label, label_dot, label_solutions, label_rest});
+
+    table.insert(hitdetection_impl.Labels, {
+        nil_label,
+        label_dot,
+        label_solutions,
+        label_rest
+    });
+
     hitdetection_impl.yo_offset = hitdetection_impl.yo_offset + 22;
+
     task_spawn(LPH_JIT(function()
         local slide_steps = 10;
         for i = 1, slide_steps do
@@ -1011,7 +1051,9 @@ hitdetection_impl.create_log = function(text)
             set_position(current_x_axis);
             task.wait(0.015);
         end;
-        task.wait(1.6)
+
+        task.wait(1.6);
+
         for i = 1, 10 do
             local trans = 1 - (i / 10);
             nil_label.Transparency = trans;
@@ -1020,6 +1062,7 @@ hitdetection_impl.create_log = function(text)
             label_rest.Transparency = trans;
             task.wait(0.04);
         end;
+
         nil_label.Visible = false;
         label_dot.Visible = false;
         label_solutions.Visible = false;
@@ -1028,15 +1071,18 @@ hitdetection_impl.create_log = function(text)
         label_dot:Remove();
         label_solutions:Remove();
         label_rest:Remove();
-        for i, v in ipairs(hitdetection_impl.Labels or {}) do
+
+        for i, v in ipairs(hitdetection_impl.Labels) do
             if v[1] == nil_label then
                 table.remove(hitdetection_impl.Labels, i);
                 break;
             end;
         end;
+
         if #hitdetection_impl.Labels == 0 then 
             hitdetection_impl.yo_offset = 0;
         end;
+
         if hitdetection_impl.yo_offset > 300 then 
             hitdetection_impl.yo_offset = 0;
         end;
@@ -1067,14 +1113,19 @@ hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, dama
         local clone = target_character:Clone();
         clone.Name = "clone";
         local clone_humanoid = clone:FindFirstChildOfClass("Humanoid");
+        
         if clone_humanoid then 
             clone_humanoid:Destroy();
         end;
+        
         local hrp = clone:FindFirstChild("HumanoidRootPart");
+        
         if hrp then 
             hrp:Destroy();
         end;
+        
         local is_neon = effect_type == "Clone (Neon)";
+        
         local function property_collision(v)
             if v:IsA("BasePart") then
                 v.CanCollide = false;
@@ -1091,6 +1142,7 @@ hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, dama
                 end;
             end;
         end;
+        
         for _, v in pairs(clone:GetDescendants() or {}) do
             if v:IsA("BasePart") then
                 property_collision(v);
@@ -1114,6 +1166,7 @@ hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, dama
                 v:Destroy(); 
             end;
         end;
+        
         for _, v in pairs(target_character:GetDescendants() or {}) do
             if v:IsA("BasePart") then
                 local clone_part = clone:FindFirstChild(v.Name, true);
@@ -1122,14 +1175,17 @@ hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, dama
                 end;
             end;
         end;
+        
         local lp_character = localplayer.Character;
         if lp_character and lp_character:FindFirstChild("HumanoidRootPart") then
             local root = lp_character.HumanoidRootPart;
             clone:PivotTo(target_character:GetPivot() + vector3_new(root.CFrame.LookVector.X * 1.5, 0, root.CFrame.LookVector.Z * 1.5));
         end;
+        
         clone.DescendantAdded:Connect(function(v) 
             property_collision(v); 
         end);
+
         clone.Parent = workspace.Terrain;
         target_character.Archivable = false;
         game:GetService("Debris"):AddItem(clone, 2);
@@ -1137,6 +1193,7 @@ hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, dama
         local attachment = Instance.new("Attachment");
         attachment.Parent = part;
         attachment.WorldPosition = part.Position;
+        
         local function create_emitter(name, orientation)
             local p = Instance.new("ParticleEmitter");
             p.Name = name;
@@ -1160,6 +1217,7 @@ hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, dama
             p.Parent = attachment;
             return p;
         end;
+        
         local p1 = create_emitter("Particle1", Enum.ParticleOrientation.VelocityPerpendicular);
         local p2 = create_emitter("Particle2", Enum.ParticleOrientation.FacingCamera);
         p1:Emit(1);
@@ -1192,8 +1250,10 @@ hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, dama
         if target_part.Name == "hitbox" then 
             target_part = target_part.Parent:FindFirstChild("Head") or target_part.Parent:FindFirstChild("Torso") or target_part.Parent:FindFirstChild("HumanoidRootPart") or target_part; 
         end;
+        
         local world_pivot = target_part.Position + vector3_new(math_random(-10, 10) / 10, 2, math_random(-10, 10) / 10);
         local float_offset = vector3_new(math_random(-5, 5) / 10, 3, 0);
+        
         local function create_label()
             local l = drawing_new("Text");
             l.Text = damage_text;
@@ -1206,16 +1266,21 @@ hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, dama
             l.Transparency = 1;
             l.ZIndex = 20;
             return l;
+        
         end;
+        
         local label1 = create_label()
         local label2 = create_label()
+        
         task_spawn(LPH_JIT(function()
             local start_time = tick();
             local duration = 0.8;
+            
             while tick() - start_time < duration do
                 local elapsed = tick() - start_time;
                 local current_pivot = world_pivot + (float_offset * math_sin((elapsed / duration) * (math.pi / 2)));
                 local screen_position, on_screen = camera:WorldToViewportPoint(current_pivot);
+                
                 if on_screen then
                     label1.Visible = true;
                     label2.Visible = true;
@@ -1243,6 +1308,7 @@ hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, dama
                 end;
                 runservice.RenderStepped:Wait();
             end;
+
             label1.Visible = false;
             label2.Visible = false;
             label1:Remove();
@@ -1252,23 +1318,30 @@ hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, dama
 end);
 
 local last_hits = {};
+
 local OnHit = LPH_JIT(function(target_player, hit_part, damage, hit_type)
     if not target_player then return; end;
     if not Toggles or not Toggles.HitDetectionEnabled or not Toggles.HitDetectionEnabled.Value then return; end;
     local selected_type = Options.HitDetectionType and Options.HitDetectionType.Value or "Both";
+    
     if selected_type ~= "Both" and hit_type and selected_type ~= hit_type then return; end;
+    
     if hit_part and hit_part.Name == "hitbox" and hit_part.Parent then 
         hit_part = hit_part.Parent:FindFirstChild("Head") or hit_part.Parent:FindFirstChild("Torso");
     end;
+
     local now = tick();
+
     local hitId = tostring(target_player.UserId);
     if last_hits[hitId] and now - last_hits[hitId] < 0.12 then return; end;
     last_hits[hitId] = now;
+
     local function trigger_effects()
         if Options.HitSound and Options.HitSound.Value ~= "None" then
             local volume = Options.HitSoundVolume and Options.HitSoundVolume.Value or 1;
             hitdetection_impl.play_sound(Options.HitSound.Value, volume);
         end;
+
         if Options.HitEffects and Options.HitEffects.Value and hit_part then
             local color = Options.HitEffectColor and Options.HitEffectColor.Value or Color3.new(1,1,1);
             for effect_type, enabled in pairs(Options.HitEffects.Value or {}) do
@@ -1281,27 +1354,21 @@ local OnHit = LPH_JIT(function(target_player, hit_part, damage, hit_type)
                 end;
             end;
         end;
+
         if Toggles.HitLogs and Toggles.HitLogs.Value then
             local part_name = hit_part and hit_part.Name or "Unknown";
             local headshot = part_name == "Head";
             local display_damage = damage or 0;
             local damage_text = string.format("%.0f", display_damage);
-            hitdetection_impl.create_log( "nil.solutions | hit " .. target_player.Name .. " for " .. damage_text .. " damage (" .. (headshot and "head" or part_name) .. ")" );
+            hitdetection_impl.create_log("nil.solutions | hit " .. target_player.Name .. " for " .. damage_text .. " damage (" .. (headshot and "head" or part_name) .. ")" );
         end;
     end;
     trigger_effects();
 end);
 
-modules = {Name = {}, Id = {} };
-utilityids = {};
-weaponids = {};
-network = nil;
-cache = { };
-fire_server = nil;
-invoke_server = nil;
-hooks = {};
-modify = {};
-old_fireserver = nil;
+local modules = {Name = {}, Id = {} };
+local utilityids = {};
+local weaponids = {};
 
 local critical_modules = {
     "Network", "RoduxStore", "Signal", "WeaponMetadata", "WeaponIds", "UtilityIds",
@@ -1328,7 +1395,7 @@ end;
 
 setthreadidentity(2);
 
-for _, child in pairs(repstorage:GetDescendants() or {}) do
+for _, child in pairs(repstorage:GetDescendants()) do
     if child:IsA("ModuleScript") and criticalset[child.Name] then
         local success, module = pcall(require, child);
         if success then
@@ -1347,14 +1414,15 @@ for i, v in pairs(modules.Name["WeaponIds"] or {}) do
     weaponids[i:lower()] = v;
 end;
 
-network = modules.Name["Network"];
+local network = modules.Name["Network"];
 
-for _, v in pairs(getgc() or {}) do
+local cache = {};
+for _, v in pairs(getgc()) do
     if type(v) == "function" then
-        local success_n, name = pcall(debug.info, v, "n");
-        if success_n and (name == "FireServer" or name == "InvokeServerWithTimeout") then
-            local success_s, source = pcall(debug.info, v, "s");
-            if success_s and source and source:find(".Vendor.Network") then
+        local name = debug.info(v, "n");
+        if (name == "FireServer" or name == "InvokeServerWithTimeout" or name == "BindEvents") then
+            local source = debug.info(v, "s");
+            if source and source:find(".Vendor.Network") then
                 cache[name] = v;
             end;
         end;
@@ -1365,25 +1433,35 @@ if (not cache.FireServer or not cache.InvokeServerWithTimeout) then
     warn("game updated (1)");
 end;
 
-fire_server = function(...)
-    if cache.FireServer then
+local fire_server = function(...)
+    if (cache.FireServer) then
         return cache.FireServer(network, ...);
     end;
     return network:FireServer(...);
 end;
 
-invoke_server = function(...)
-    if cache.InvokeServerWithTimeout then
+local invoke_server = function(...)
+    if (cache.InvokeServerWithTimeout) then
         return cache.InvokeServerWithTimeout(network, nil, ...);
     end;
     return network:InvokeServerWithTimeout(nil, ...);
 end;
 
-framework = {};
+local bind_events = function(events, ...)
+    if (cache.BindEvents) then
+        return cache.BindEvents(network, events, ...);
+    end;
+    return network:BindEvents(events, ...);
+end;
+
+local framework = {};
+local modify = {};
+local hooks = {};
+local old_fireserver;
 
 local function handle(self, Name, ...)
 	local Args = { ... };
-
+    
 	if modify[Name] then
 		local can_hook = modify[Name].Check(Name, unpack(Args));
 		if can_hook then
@@ -1395,7 +1473,7 @@ local function handle(self, Name, ...)
 				if can_hook == "Blocked" then
 					return;
 				end;
-				for i, v in pairs(modify[Name].Args or {}) do
+				for i, v in pairs(modify[Name].Args) do
 					Args[i] = v;
 				end;
 			end;
@@ -1417,6 +1495,20 @@ if network and network.FireServer then
 end;
 
 local signal = modules.Name["Signal"];
+
+local function update_goop()
+    local gc = modules.Name["GoopConstants"];
+    if gc then
+        local old_readonly = isreadonly(gc);
+        setreadonly(gc, false);
+        if settings.nut and settings.include_goop then
+            gc.SLOW_MULTIPLIER = 1;
+        else
+            gc.SLOW_MULTIPLIER = 0.35;
+        end;
+        setreadonly(gc, old_readonly);
+    end;
+end;
 
 function framework:addhook(Name, Function) 
     hooks[Name] = Function;
@@ -1464,7 +1556,7 @@ function framework:get_weapon(Player)
 	if not Player then return; end;
 	local Character = Player.Character or Player.CharacterAdded:Wait();
 	if not Character then return; end;
-	for i, v in pairs(Character:GetChildren() or {}) do
+	for i, v in pairs(Character:GetChildren()) do
 		if not v:IsA("Tool") then continue; end;
 		if v:GetAttribute("ItemType") == "weapon" and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")] and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")].class:lower():match("melee") then return
             v, modules.Name["MeleeWeaponClient"].getObj(v);
@@ -1478,7 +1570,7 @@ function framework:get_ranged(Player)
 	if not Player then return; end;
 	local Character = Player.Character or Player.CharacterAdded:Wait();
 	if not Character then return; end;
-	for i, v in pairs(Character:GetChildren() or {}) do
+	for i, v in pairs(Character:GetChildren()) do
 		if not v:IsA("Tool") then continue; end;
 		if v:GetAttribute("ItemType") == "weapon" and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")] and modules.Name["WeaponMetadata"][v:GetAttribute("ItemId")].class:lower():match("ranged") then
             return v, modules.Name["RangedWeaponClient"].getObj(v);
@@ -1511,6 +1603,7 @@ function framework:in_menu(Player)
 end;
 
 local cachedplayers = {};
+
 local function update_cached()
     local lp = localplayer;
     local cache = cachedplayers;
@@ -1544,7 +1637,7 @@ function framework:get_closest(Distance, Priority, check_function)
     local Distance = Distance or math.huge;
     local check_function = check_function or n;
     local ClosestPlayers = {};
-    for v, _ in pairs(cachedplayers or {}) do
+    for v, _ in pairs(cachedplayers) do
         if v == localplayer then continue; end;
         if Ignored and table.find(Ignored, v.Name) then continue; end;
         local check_success, check_result = pcall(check_function, v)
@@ -2010,20 +2103,24 @@ do
     local originaldelay = nil;
     local stamina = nil;
     local keepalive_connection = nil;
+    
     local ok, s = pcall(function()
         return modules.Name["DefaultStaminaHandlerClient"].getDefaultStamina();
     end);
+
     if ok and s then
         stamina = s;
         originalregen = stamina.gainPerSecond;
         originaldelay = stamina.gainDelay;
     end;
+
     local function stop_keepalive()
         if keepalive_connection then
             keepalive_connection:Disconnect();
             keepalive_connection = nil;
         end;
     end;
+    
     local function start_keepalive()
         stop_keepalive();
         keepalive_connection = runservice.Heartbeat:Connect(LPH_JIT(function()
@@ -2034,6 +2131,7 @@ do
             end;
         end));
     end;
+    
     local function apply_multiplier()
         if applied or not stamina then return; end;
         local multiplier = 1e6 / stamina._baseMaxStamina;
@@ -2042,6 +2140,7 @@ do
         applied = true;
         start_keepalive();
     end;
+    
     local function remove_multiplier()
         if not applied or not stamina then return; end;
         stamina:removeMaxStaminaMultiplier(appliedmultiplier);
@@ -2050,6 +2149,7 @@ do
         appliedmultiplier = nil;
         stop_keepalive();
     end;
+    
     local function apply_regen()
         if not stamina then return; end;
         local wantedregen = stamregentoggle and (stamregenrate or originalregen) or originalregen;
@@ -2061,6 +2161,7 @@ do
             stamina.gainDelay = wanteddelay;
         end;
     end;
+    
     local function restore_regen()
         if not stamina then return; end;
         if stamina.gainPerSecond ~= originalregen then
@@ -2070,6 +2171,7 @@ do
             stamina.gainDelay = originaldelay;
         end;
     end;
+    
     stamina_sett_changed = function()
         if not stamina then return; end;
         if not stamenabled then
@@ -2085,7 +2187,6 @@ do
         apply_regen();
     end;
 end;
-
 
 local Map = workspace:FindFirstChild("Map");
 
@@ -2114,67 +2215,97 @@ local R6BodyParts = {
 local hbe_size = vector3_new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize);
 local hitbox_blast_size = Config.HitboxSize;
 
-local function apply_all_hitboxes() end
+local function update_hitbox(v, wanted_trans, hitbox_color, hbe_size, expand)
+    if not v:IsDescendantOf(game) then return false; end;
+    if v.Parent then
+        local to_expand = v.Parent:FindFirstChild(Config.HBEPart);
+        if to_expand and v.Weld and v.Weld.Part0 ~= to_expand then
+            v.Weld.Part0 = to_expand;
+        end;
+    end;
+    if v.Transparency ~= wanted_trans then
+        v.Transparency = wanted_trans;
+    end;
+    if v.Color ~= hitbox_color then
+        v.Color = hitbox_color;
+    end;
+    local effective_size = expand and hbe_size or vector3_new(0, 0, 0);
+    if v.Size ~= effective_size then
+        v.Size = effective_size;
+    end;
+    v:SetAttribute("IsCharacterHitbox", expand);
+    if not expand then
+        if not v:HasTag("RANGED_CASTER_IGNORE_LIST") then
+            v:AddTag("RANGED_CASTER_IGNORE_LIST");
+        end;
+    else
+        if v:HasTag("RANGED_CASTER_IGNORE_LIST") then
+            v:RemoveTag("RANGED_CASTER_IGNORE_LIST");
+        end;
+    end;
+    return true;
+end;
+
+local function on_hitbox_added(v)
+    local expand = Config.HitboxExpand;
+    local wanted_trans = (expand and Config.ShowHitbox) and 0.7 or 1;
+    if Config.HitboxSize ~= hitbox_blast_size then
+        hbe_size = vector3_new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize);
+        hitbox_blast_size = Config.HitboxSize;
+    end;
+    update_hitbox(v, wanted_trans, Config.HitboxColor, hbe_size, expand);
+end;
 
 local function apply_hitbox(Character)
-    if Character:FindFirstChild("FakeHitbox") then return; end;
-    local FakeHitbox = Instance.new("Part")
-    FakeHitbox.Size = vector3_new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize)
-    FakeHitbox.CanCollide = false
-    FakeHitbox.Transparency = (Config.HitboxExpand and Config.ShowHitbox) and 0.7 or 1
-    FakeHitbox.Name = "FakeHitbox"
-    FakeHitbox.Color = Config.HitboxColor
-    FakeHitbox:SetAttribute("IsCharacterHitbox", Config.HitboxExpand)
-    FakeHitbox.Massless = true
-    FakeHitbox.CastShadow = false
-    FakeHitbox.Parent = Character
-    FakeHitbox:AddTag("RANGED_CASTER_IGNORE_LIST")
-    local Weld = Instance.new("Weld")
-    Weld.Part0 = Character:WaitForChild("HumanoidRootPart")
-    Weld.Part1 = FakeHitbox
-    Weld.Parent = FakeHitbox
-    table.insert(hitboxes, FakeHitbox)
-end
+    if Character:FindFirstChild("hitbox") then return; end;
+    local expand = Config.HitboxExpand;
+    local hitbox = Instance.new("Part");
+    hitbox.Size = hbe_size;
+    hitbox.CanCollide = false;
+    hitbox.Transparency = (expand and Config.ShowHitbox) and 0.7 or 1;
+    hitbox.Name = "hitbox";
+    hitbox.Color = Config.HitboxColor;
+    hitbox:SetAttribute("IsCharacterHitbox", expand);
+    hitbox.Massless = true;
+    hitbox.CastShadow = false;
+    hitbox.Parent = Character;
+    if not expand then
+        hitbox:AddTag("RANGED_CASTER_IGNORE_LIST");
+    end;
+    local Weld = Instance.new("Weld");
+    Weld.Part0 = Character:WaitForChild("HumanoidRootPart");
+    Weld.Part1 = hitbox;
+    Weld.Parent = hitbox;
+    table.insert(hitboxes, hitbox);
+end;
 
-runservice.RenderStepped:Connect(LPH_JIT(function()
-    for _i = #hitboxes, 1, -1 do
-        local v = hitboxes[_i]
-        if not v:IsDescendantOf(game) then
-            table.remove(hitboxes, _i)
-            continue
-        end
-        local toExpand
-        if Config.HBEPart == "Random" then
-            toExpand = v.Parent:FindFirstChild(R6BodyParts[math_random(1, #R6BodyParts)])
-        else
-            toExpand = v.Parent:FindFirstChild(Config.HBEPart)
-        end
-        if toExpand and v.Weld.Part0 ~= toExpand then
-            v.Weld.Part0 = toExpand
-        end
-        v.Transparency = (Config.HitboxExpand and Config.ShowHitbox) and 0.7 or 1
-        v.Color = Config.HitboxColor
-        v.Size = vector3_new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize)
-        v:SetAttribute("IsCharacterHitbox", Config.HitboxExpand)
-        if not Config.HitboxExpand then
-            if not v:HasTag("RANGED_CASTER_IGNORE_LIST") then
-                v:AddTag("RANGED_CASTER_IGNORE_LIST")
-            end
-        else
-            if v:HasTag("RANGED_CASTER_IGNORE_LIST") then
-                v:RemoveTag("RANGED_CASTER_IGNORE_LIST")
-            end
-        end
-    end
-end))
+local function apply_all_hitboxes()
+    local expand = Config.HitboxExpand;
+    local show_hitbox = Config.ShowHitbox;
+    local hitbox_color = Config.HitboxColor;
+    local hitbox_sizen = Config.HitboxSize;
+    local wanted_trans = (expand and show_hitbox) and 0.7 or 1;
+    if hitbox_sizen ~= hitbox_blast_size then
+        hbe_size = vector3_new(hitbox_sizen, hitbox_sizen, hitbox_sizen);
+        hitbox_blast_size = hitbox_sizen;
+    end;
+    local i = #hitboxes;
+    while i > 0 do
+        local v = hitboxes[i];
+        if not update_hitbox(v, wanted_trans, hitbox_color, hbe_size, expand) then
+            table.remove(hitboxes, i);
+        end;
+        i = i - 1;
+    end;
+end;
 
 task_spawn(LPH_JIT(function()
-    for _, v in pairs(PlayerCharacters:GetChildren() or {}) do
+    for _, v in pairs(PlayerCharacters:GetChildren()) do
         if v ~= localplayer.Character then
             apply_hitbox(v);
         end;
     end;
-    for player in pairs(cachedplayers or {}) do
+    for player in pairs(cachedplayers) do
         if player ~= localplayer then
             if player.Character then
                 apply_hitbox(player.Character);
@@ -2192,7 +2323,7 @@ if modules.Name["RangedHitVisuals"] and modules.Name["RangedHitVisuals"].default
     local old = modules.Name["RangedHitVisuals"].defaultHit;
     modules.Name["RangedHitVisuals"].defaultHit = LPH_JIT_MAX(function(player, tool, cfg, hitpart, hit_cframe, normal, material, cosmetic)
         local new_hit_cframe = hit_cframe;
-    if Config.HitboxExpand and hitpart and hitpart.Name == "FakeHitbox" then
+    if Config.HitboxExpand and hitpart and hitpart.Name == "hitbox" then
         local realPart = hitpart.Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or hitpart.Parent:FindFirstChild("Torso")
         if realPart then
             local metadata = framework:getmetadata(tool.Name);
@@ -2293,7 +2424,7 @@ do
                 return {[1] = nil};
             end;
         end;
-        if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
+        if Config.HitboxExpand and args[2] and args[2].Name == "hitbox" then
             local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
             if part then 
                 return {
@@ -2307,7 +2438,7 @@ do
 
     framework:argmodify("MeleeFinish", {}, LPH_JIT_MAX(function(n,...)
         local args = {...}
-        if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
+        if Config.HitboxExpand and args[2] and args[2].Name == "hitbox" then
             local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
             if part then
                 return {[2] = part};
@@ -2318,7 +2449,7 @@ do
 
     framework:argmodify("RangedHit",{}, LPH_JIT_MAX(function(n,...)
         local args = {...}
-        if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
+        if Config.HitboxExpand and args[2] and args[2].Name == "hitbox" then
             local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
             if part then
                 return {
@@ -2336,7 +2467,7 @@ do
 
     framework:argmodify("RangedExplode",{}, LPH_JIT_MAX(function(n,...)
         local args = {...}
-        if Config.HitboxExpand and args[2] and args[2].Name == "FakeHitbox" then
+        if Config.HitboxExpand and args[2] and args[2].Name == "hitbox" then
             local part = args[2].Parent:FindFirstChild(Config.HBEPart == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Config.HBEPart) or args[2].Parent:FindFirstChild("Torso")
             if part then
                 return {
@@ -2383,27 +2514,27 @@ do
 	end));
 
 	local function hook_goop(modulename)
-		local mod = modules.Name[modulename]
-		if not mod then return end
+		local mod = modules.Name[modulename];
+		if not mod then return; end;
 		if type(mod) == "table" and mod.new then
 			local old_new; old_new = hookfunction(mod.new, LPH_JIT_MAX(function(...)
 				if settings.nut and settings.include_goop then
-					return nil
-				end
-				return old_new(...)
-			end))
+					return nil;
+				end;
+				return old_new(...);
+			end));
 		elseif type(mod) == "function" then
 			local old_func; old_func = hookfunction(mod, LPH_JIT_MAX(function(...)
 				if settings.nut and settings.include_goop then
-					return nil
-				end
-				return old_func(...)
-			end))
-		end
-	end
+					return nil;
+				end;
+				return old_func(...);
+			end));
+		end;
+	end;
 
-	hook_goop("GoopSlowHandlerClient")
-	hook_goop("GoopPoolHitboxPartClient")
+	hook_goop("GoopSlowHandlerClient");
+	hook_goop("GoopPoolHitboxPartClient");
 
 	hook("HealthHandler", "getRealHealth", function(oldfunc, ...)
 		if settings.nhe then
@@ -2586,8 +2717,7 @@ if localplayer.Character then
     connect(localplayer.Character);
 end;
 
-setfenv(1, getrenv());
-network:BindEvents({
+bind_events({
     CreateAntiCheatNotification = function(data)
         if data.punishType == "rectified" and settings.fno and humanoidrootpart then
             repeat
@@ -2603,7 +2733,6 @@ network:BindEvents({
         end;
     end;
 });
-setfenv(1, cenv);
 
 local activeloops = {};
 local function updatefeature(togglename, keyname, setter)
@@ -2626,7 +2755,7 @@ do
     local main_ranged = tabs.ranged:AddRightTabbox();
     local silent_tab = main_ranged:AddTab("silent aim");
     local aimbot_tab = main_ranged:AddTab("aimbot");
-    local ragebotsection = tabs.ranged:AddRightGroupbox("ragebot");
+    local ragebotsection = tabs.ranged:AddLeftGroupbox("ragebot");
     setthreadidentity(7);
 
     players.PlayerRemoving:Connect(function(player)
@@ -2655,7 +2784,7 @@ do
                             if Toggles.AutoSelect.Value or needs_new_target or (not Toggles.AutoSelect.Value and keybind_just_pressed) then
                                 local closest_target = nil;
                                 local closest_distance = math.huge;
-                                for player,_ in pairs(cachedplayers or {}) do
+                                for player,_ in pairs(cachedplayers) do
                                     if player and player.Parent and player ~= localplayer and player.Character then
                                         local humanoid = player.Character:FindFirstChild("Humanoid");
                                         local hrp = player.Character:FindFirstChild("HumanoidRootPart");
@@ -3104,7 +3233,7 @@ do
     });
 
     strafe_dep:AddDropdown("strafe_extra", {
-        Values = {"bait parry", "avoid walls"};
+        Values = {"bait parry", "avoid walls", "use prediction and weld"};
         Default = 0;
         Multi = true;
         Text = "settings";
@@ -3458,7 +3587,7 @@ do
 		if (now - last_slash) < (cooldown - buffer) then return; end;
 		local karange = Classes.KillAuraRange.Value;
 		local closest = framework:get_closest_ka(karange, true);
-		if not closest or not _nx(closest or {}) then return; end;
+		if not closest or not nx(closest) then return; end;
 		KADebounce = true;
 		if not Classes.PlayAnimation.Value then
 			local hitboxes = meleehitboxes(metadata);
@@ -3472,8 +3601,8 @@ do
 			local issingle = Classes.KillAuraType.Value == "single person";
 			task.defer(LPH_JIT(function()
 				local ok, err = pcall(function()
-					for i, hitbox in pairs(hitboxes or {}) do
-						for player, data in pairs(closest or {}) do
+					for i, hitbox in pairs(hitboxes) do
+						for player, data in pairs(closest) do
 							if data.Health == 0 then continue; end;
 							local character = player.Character;
 							if not character or not framework:Check(character) then continue; end;
@@ -3555,8 +3684,8 @@ framework:BindToRenderStep(LPH_JIT(function()
 		if not HumanoidRootPart then return end;
 		local Closest = framework:get_closest(15, true);
 		local CurrentTool = Character:FindFirstChildOfClass("Tool");
-		if _nx(Closest or {}) then
-			local TargetPlayer = players:FindFirstChild(_nx(Closest or {}));
+		if nx(Closest or {}) then
+			local TargetPlayer = players:FindFirstChild(nx(Closest or {}));
 			if TargetPlayer and TargetPlayer.Character and TargetPlayer.Character:FindFirstChild("HumanoidRootPart") then
 				if settings.BeartrapEnemy and CurrentTool and CurrentTool.Name == "Bear Trap" then
                     local target_root = TargetPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -3614,7 +3743,9 @@ do
                 do_loopspawn();
             end;
         end);
+
         local char_children = char:GetChildren();
+
         for _ = 1, #char_children do
             local child = char_children[_];
             child:GetAttributeChangedSignal("ParryShieldId"):Connect(function()
@@ -3623,6 +3754,7 @@ do
                 end;
             end);
         end;
+
         if framework:in_menu(localplayer) then
             do_loopspawn();
         end;
@@ -3635,6 +3767,7 @@ do
 			revive_conn:disconnect();
 			revive_conn = nil;
 		end;
+
 		revive_conn = store.changed:connect(function(newState)
 			if not settings.ar then return; end;
 			if newState.down and newState.down.isDowned then
@@ -3666,6 +3799,7 @@ do
             end;
         end);
     end;
+
     localplayer.CharacterAdded:Connect(function(char)
         humanoid = char:WaitForChild("Humanoid");
         bind_fastrespawn(char);
@@ -3683,6 +3817,7 @@ do
 
     local stompthrottle = 0;
     local glorythrottle = 0;
+    local glory_debounce = {};
     local cachedstomptool = nil;
     local cachedstompmeta = nil;
     local stomptoolttick = 0;
@@ -3705,7 +3840,7 @@ do
                 local metadata = cachedstompmeta;
                 if metadata and metadata._cooldownProgressTimer:getValue() > 0.75 then
                     local closest = framework:get_closest(s.stompshoverange, true);
-                    if closest and _nx(closest or {}) then
+                    if closest and nx(closest or {}) then
                         local slashdata = metadata._itemConfig.slashMetadata[metadata._currSlashCount];
                         local hitbox = slashdata.getHitboxInfo(metadata.tool);
                         local hitboxes = metadata:getHitboxesToUseFromHitboxParts(hitbox.hitboxPartsToUse);
@@ -3742,16 +3877,24 @@ do
             end;
         end;
 
-        if s.autoglory and now - glorythrottle >= math.max(0.05, s.glorydelay or 0) then
+        if (s.autoglory and now - glorythrottle >= (s.glorydelay or 0.1)) then
             glorythrottle = now;
             local closest = framework:get_closest(s.gloryrange, true);
             local tool = framework:get_weapon();
-            if tool and closest and _nx(closest or {}) then
-                local targetplayer = players:FindFirstChild(_nx(closest or {}));
+            if tool and closest and nx(closest) then
+                local targetplayer = players:FindFirstChild(nx(closest));
                 if targetplayer and targetplayer.Character then
                     local thum = targetplayer.Character:FindFirstChild("Humanoid");
-                    if thum and thum.Health <= 20 then
-                        fire_server("StartGloryKill", tool, targetplayer.Character, cframe_new(), vector3_new());
+                    if thum then
+                        if thum.Health <= 20 and not glory_debounce[targetplayer.Name] then
+                            glory_debounce[targetplayer.Name] = true;
+                            task.delay(s.autodelay, function()
+                                if glory_debounce then
+                                    glory_debounce[targetplayer.Name] = nil;
+                                end;
+                            end);
+                            fire_server("StartGloryKill", tool, targetplayer.Character, targetplayer.Character:GetPivot(), localplayer.Character:GetPivot());
+                        end;
                     end;
                 end;
             end;
@@ -3787,6 +3930,7 @@ do
         end;
 
         local in_forgiveness = (os.clock() - (settings.last_parry_tick or 0) < 3);
+        
         if settings.strafe_void_spam or (is_baiting and not in_forgiveness) then
             local now = os.clock();
             local vin = settings.strafe_void_in or 0;
@@ -3796,8 +3940,12 @@ do
                 vin = settings.bait_random_vin or 0.25;
                 vout = settings.bait_random_vout or 0.25;
             else
-            if vin == 0 then vin = 0.01; end;
-            if vout == 0 then vout = 0.01; end;
+                if vin == 0 then
+                    vin = 0.01;
+                end;
+                if vout == 0 then
+                    vout = 0.01;
+                end;
             end;
             if settings.is_voiding then
                 if now - (settings.last_void_tick or 0) >= vout then
@@ -3820,22 +3968,30 @@ do
                 return cframe_new(target_root.Position.X + math_random(-5, 5), math_random(-1000, 0), target_root.Position.Z + math_random(-5, 5));
             end;
         end;
+
 		local predicted_cframe = target_root.CFrame;
+
 		if (Toggles.strafe_prediction and Toggles.strafe_prediction.Value) then
 			local vel = target_root.AssemblyLinearVelocity;
 			local base = Options.strafe_pred_base and Options.strafe_pred_base.Value or 0;
 			local mult = Options.strafe_pred_mult and Options.strafe_pred_mult.Value or 1;
 			predicted_cframe = predicted_cframe + vector3_new(vel.X * mult, vel.Y * base, vel.Z * mult);
+			if extra["use prediction and weld"] then
+				sethiddenproperty(hrp, "PhysicsRepRootPart", target_root);
+			end;
 		else
 			sethiddenproperty(hrp, "PhysicsRepRootPart", target_root);
 		end;
+
 		local function apply_look(pos)
 			if Toggles.strafe_look and Toggles.strafe_look.Value then
 				return cframe_new(pos, predicted_cframe.Position);
 			end;
 			return cframe_new(pos, pos + predicted_cframe.LookVector);
 		end;
+
         local pos;
+
 		if (Toggles.strafe_random_toggle and Toggles.strafe_random_toggle.Value) then
 			local range = Options.random_range and Options.random_range.Value or 5;
 			local nx = math.noise(random_t, 1.7) * range * 2;
@@ -4653,10 +4809,12 @@ do
 
     local noanim_connection = nil;
     local charanim_connection = nil;
+
     local function apply_no_anims(char)
         if noanim_connection then
 			noanim_connection:Disconnect();
 		end;
+
         local hum = char:WaitForChild("Humanoid");
         local animator = hum:FindFirstChildOfClass("Animator");
         if not animator then return; end;
@@ -4665,6 +4823,7 @@ do
                 track:Stop();
             end;
         end;
+
         noanim_connection = animator.AnimationPlayed:Connect(function(track)
             if track.Animation ~= spin_animation then
                 track:Stop();
@@ -5610,12 +5769,14 @@ misc:AddToggle("include_position", {
 	Default = false;
 	Callback = function(v)
 		local maxhistory = 10
+
 		local function connect(Character)
 			ignorerespawn = true;
 			poshistory = {};
 			notowner = true;
 			hasteleported = false;
 			toolonloss = nil;
+
 			if humanoid then
 				if deathconn then
                     deathconn:Disconnect();
@@ -5624,17 +5785,23 @@ misc:AddToggle("include_position", {
                     ignorerespawn = true; 
                 end);
 			end;
+
 			task.delay(0.25, function()
                 ignorerespawn = false;
             end);
 		end;
+
 		if v and settings.fno then
 			if deathconnection then return; end;
 			deathconnection = localplayer.CharacterAdded:Connect(connect);
 			if character then
                 connect(character);
             end;
-			if positionconnection then positionconnection:Disconnect(); end;
+
+			if positionconnection then
+                positionconnection:Disconnect();
+            end;
+
 			positionconnection = runservice.Heartbeat:Connect(LPH_JIT(function()
 				if ignorerespawn then return; end;
 				if not character then return; end;
@@ -6076,8 +6243,7 @@ do
     end;
 end;
 
-setfenv(1, getrenv());
-network:BindEvents({
+bind_events({
     KilledPlayer = function(statData)
 		local KillSayStuff = Data.KillSayStuff;
 		local MockHandler = modules.Name["MockPlayerHandler"];
@@ -6143,7 +6309,7 @@ network:BindEvents({
 		end;
 	end;
 });
-setfenv(1, cenv);
+
 setthreadidentity(8);
 
 local CachedPlayers = {};
@@ -6243,6 +6409,7 @@ auto:AddToggle('spam_bio_repair', {
                     child:Destroy();
                 end;
             end);
+
             task_spawn(LPH_JIT(function()
                 local stomp = {Torso = workspace; };
                 while Toggles.spam_bio_repair.Value do
@@ -6368,6 +6535,149 @@ server_gb:AddButton({
     end;
 });
 
+local Skyboxes = {
+    None = {};
+    ["stormy"] = {
+        SkyboxUp = "http://www.roblox.com/asset/?id=18703232671";
+        SkyboxBk = "http://www.roblox.com/asset/?id=18703245834";
+        SkyboxLf = "http://www.roblox.com/asset/?id=18703237556";
+        SkyboxDn = "http://www.roblox.com/asset/?id=18703243349";
+        SkyboxFt = "http://www.roblox.com/asset/?id=18703240532";
+        SkyboxRt = "http://www.roblox.com/asset/?id=18703235430";
+    };
+    ["blue space"] = {
+        SkyboxLf = "rbxassetid://15536114370";
+        SkyboxUp = "rbxassetid://15536117282";
+        SkyboxRt = "rbxassetid://15536118762";
+        SkyboxFt = "rbxassetid://15536116141";
+        SkyboxDn = "rbxassetid://15536112543";
+        SkyboxBk = "rbxassetid://15536110634";
+    };
+    ["pink"] = {
+        SkyboxUp = "rbxassetid://12216108877";
+        SkyboxLf = "rbxassetid://12216110170";
+        SkyboxRt = "rbxassetid://12216110471";
+        SkyboxFt = "rbxassetid://12216109489";
+        SkyboxBk = "rbxassetid://12216109205";
+        SkyboxDn = "rbxassetid://12216109875";
+    };
+    ["black storm"] = {
+        SkyboxLf = "rbxassetid://15502507918";
+        SkyboxUp = "rbxassetid://15502511911";
+        SkyboxRt = "rbxassetid://15502509398";
+        SkyboxFt = "rbxassetid://15502510289";
+        SkyboxDn = "rbxassetid://15502508460";
+        SkyboxBk = "rbxassetid://15502511288";
+    };
+    ["realistic"] = {
+        SkyboxUp = "rbxassetid://653719321";
+        SkyboxDn = "rbxassetid://653718790";
+        SkyboxLf = "rbxassetid://653719190";
+        SkyboxFt = "rbxassetid://653719067";
+        SkyboxRt = "rbxassetid://653718931";
+        SkyboxBk = "rbxassetid://653719502";
+    };
+};
+
+local WeatherPresets = {
+    ["rain"] = {
+        Speed = NumberRange.new(60, 60);
+        LockedToPart = true;
+        Rate = 600;
+        Texture = "rbxassetid://1822883048";
+        EmissionDirection = Enum.NormalId.Bottom;
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.25, 0.78),
+            NumberSequenceKeypoint.new(0.75, 0.78),
+            NumberSequenceKeypoint.new(1, 1)
+        });
+        Lifetime = NumberRange.new(0.8, 0.8);
+        LightEmission = 0.05;
+        LightInfluence = 0.9;
+        Orientation = Enum.ParticleOrientation.FacingCameraWorldUp;
+        Size = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 10),
+            NumberSequenceKeypoint.new(1, 10)
+        });
+    };
+    ["snow"] = {
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0.74),
+            NumberSequenceKeypoint.new(0.97, 0.77),
+            NumberSequenceKeypoint.new(1, 1)
+        });
+        Texture = "http://www.roblox.com/asset/?id=99851851";
+        SpreadAngle = Vector2.new(50, 50);
+        Speed = NumberRange.new(30, 30);
+        LightEmission = 0.5;
+        Rate = 1000;
+        EmissionDirection = Enum.NormalId.Bottom;
+        Size = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0.33),
+            NumberSequenceKeypoint.new(0.55, 0.40),
+            NumberSequenceKeypoint.new(1, 0.33)
+        });
+    };
+    ["light rain"] = {
+        LockedToPart = true;
+        Rate = 500;
+        LightInfluence = 0.3;
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0),
+            NumberSequenceKeypoint.new(0.44, 0),
+            NumberSequenceKeypoint.new(1, 0)
+        });
+        Texture = "rbxasset://textures/particles/sparkles_main.dds";
+        Speed = NumberRange.new(30, 50);
+        Lifetime = NumberRange.new(9, 9);
+        LightEmission = 0.5;
+        Brightness = 2;
+        EmissionDirection = Enum.NormalId.Bottom;
+        Orientation = Enum.ParticleOrientation.FacingCameraWorldUp;
+        Size = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0.2),
+            NumberSequenceKeypoint.new(1, 0.2)
+        });
+    };
+};
+
+local weather_part, weather_emitter;
+
+local function destroy_weather()
+    if weather_part then
+        weather_part:Destroy();
+        weather_part = nil;
+        weather_emitter = nil;
+    end;
+end;
+
+local function create_weather(weather_type)
+    destroy_weather();
+    
+    local preset = WeatherPresets[weather_type];
+    if not preset then return; end;
+
+    weather_part = Instance.new("Part");
+    weather_part.Size = Vector3.new(40, 40, 85);
+    weather_part.CanCollide = false;
+    weather_part.Massless = true;
+    weather_part.CastShadow = false;
+    weather_part.Transparency = 1;
+    weather_part.Anchored = true;
+    weather_part.Name = "weather_part";
+    weather_part.Parent = workspace;
+
+    weather_emitter = Instance.new("ParticleEmitter");
+    for prop, val in pairs(preset) do
+        weather_emitter[prop] = val;
+    end;
+
+    local color = Classes.WeatherColor.Value or Color3.new(1, 1, 1);
+    weather_emitter.Color = ColorSequence.new(color);
+    weather_emitter.Parent = weather_part;
+end;
+
 local visuals = tabs.visuals;
 local crosshairsection = visuals:AddRightGroupbox("crosshair");
 
@@ -6437,6 +6747,7 @@ crosshairsection:AddSlider("CrosshairSpinSpeed", {
 local on_tool_equipped;
 local clean_weapon_chams;
 local apply_weapon_chams;
+
 local weaponchamssection = visuals:AddRightGroupbox("weapon chams");
 
 weaponchamssection:AddToggle("WeaponChamsEnabled", {
@@ -6449,7 +6760,9 @@ weaponchamssection:AddToggle("WeaponChamsEnabled", {
             clean_weapon_chams();
         else
             local existing = character and character:FindFirstChildOfClass("Tool");
-            if existing then on_tool_equipped(existing); end;
+            if existing then
+                on_tool_equipped(existing);
+            end;
         end;
     end;
 }):AddColorPicker("WeaponChamsColor", {
@@ -6523,46 +6836,10 @@ local original_atmosphere = {
     Haze = Lighting.atmosphere.Haze;
 };
 
-local Skyboxes = {
-    None = {};
-    Nebula = {
-        SkyboxBk = "rbxassetid://159454299";
-        SkyboxDn = "rbxassetid://159454296";
-        SkyboxFt = "rbxassetid://159454293";
-        SkyboxLf = "rbxassetid://159454286";
-        SkyboxRt = "rbxassetid://159454300";
-        SkyboxUp = "rbxassetid://159454288";
-    };
-    Vaporwave = {
-        SkyboxBk = "rbxassetid://1417494030",
-        SkyboxDn = "rbxassetid://1417494146",
-        SkyboxFt = "rbxassetid://1417494253";
-        SkyboxLf = "rbxassetid://1417494402";
-        SkyboxRt = "rbxassetid://1417494499";
-        SkyboxUp = "rbxassetid://1417494643";
-    };
-    Clouds = {
-        SkyboxBk = "rbxassetid://570557514";
-        SkyboxDn = "rbxassetid://570557775";
-        SkyboxFt = "rbxassetid://570558157";
-        SkyboxLf = "rbxassetid://570551248";
-        SkyboxRt = "rbxassetid://570557727";
-        SkyboxUp = "rbxassetid://570558036";
-    };
-    Twilight = {
-        SkyboxBk = "rbxassetid://2649648296";
-        SkyboxDn = "rbxassetid://2649648296";
-        SkyboxFt = "rbxassetid://2649648296";
-        SkyboxLf = "rbxassetid://2649648296";
-        SkyboxRt = "rbxassetid://2649648296";
-        SkyboxUp = "rbxassetid://2649648296";
-    };
-};
 
 lightingsection:AddToggle("Ambience", {
     Text = "world ambience";
 	Default = false;
-	Tooltip = "Changes ambience";
 }):AddColorPicker("AmbienceColor", {
     Default = Color3.new(1, 1, 1);
 	Title = "Ambience Color";
@@ -6572,7 +6849,6 @@ lightingsection:AddToggle("Ambience", {
 lightingsection:AddToggle("ColorCorrection", {
     Text = "color correction";
 	Default = false;
-	Tooltip = "Changes Color Correction";
 }):AddColorPicker("ColorCorrectionColor", {
     Default = Color3.new(1, 1, 1);
 	Title = "Color Correction Color";
@@ -6629,9 +6905,19 @@ hitdetectionsection:AddSlider("HitSoundVolume", {
 lightingsection:AddDropdown("Skybox", {
     Text = "skybox";
 	Default = "None";
-	Values = {"None", "Nebula", "Vaporwave", "Clouds", "Twilight"};
+	Values = {"None", "stormy", "blue space", "pink", "black storm", "realistic"};
 	Tooltip = "Changes Skybox";
 });
+
+lightingsection:AddDropdown("LightingMode", {
+    Text = "lighting mode";
+    Default = "Future";
+    Values = {"Compatibility", "ShadowMap", "Voxel", "Future"};
+    Callback = function(value)
+        pcall(function() Lighting.Technology = Enum.Technology[value]; end);
+    end;
+});
+
 
 lightingsection:AddToggle("ClockTime", {
     Text = "clock time";
@@ -6664,11 +6950,11 @@ lightingsection:AddToggle("clip_camera", {
 		local target_val_camoff = 0.25;
 		local value_to_set = Value and target_value_noclip or target_val_camoff;
 		local modified = false;
-		for _, v in pairs(getgc() or {}) do
+		for _, v in pairs(getgc()) do
 			if type(v) == "function" and getfenv(v).script == popper then
 				local rv = gc(v);
 				if type(rv) == "table" then
-					for i, v1 in pairs(rv or {}) do
+					for i, v1 in pairs(rv) do
 						if tonumber(v1) == target_value_noclip or tonumber(v1) == target_val_camoff then
 							if tonumber(v1) ~= value_to_set then
 								sc(v, i, value_to_set);
@@ -6706,7 +6992,6 @@ lightingsection:AddSlider("Time", {
 	Max = 24;
 	Rounding = 0;
 	Compact = true;
-	Tooltip = "The time for Clock Time";
 });
 
 lightingsection:AddSlider("FOVLighting", {
@@ -6756,42 +7041,79 @@ lightingsection:AddSlider("MaxZoomVal", {
 });
 
 lightingsection1:AddToggle("Fog", {
-    Text = "fog";
+    Text = "atmosphere";
 	Default = false;
 }):AddColorPicker("FogColor", {
     Default = Color3.new(1, 1, 1);
-	Title = "fog Color";
+	Title = "atmosphere color";
 	Transparency = 0;
+}):AddColorPicker("DecayColor", {
+    Default = Color3.fromRGB(120, 120, 120);
+    Title = "decay color";
+    Transparency = 0;
 });
 
 lightingsection1:AddSlider("Density", {
     Text = "density";
-	Default = 1;
+	Default = 0.35;
 	Min = 0;
 	Max = 1;
 	Rounding = 2;
 	Compact = true;
-	Tooltip = "Fog Density";
+	Tooltip = "Atmosphere Density";
 });
 
 lightingsection1:AddSlider("Glare", {
     Text = "glare";
-	Default = 0;
+	Default = 10;
 	Min = 0;
 	Max = 10;
-	Rounding = 0;
+	Rounding = 2;
 	Compact = true;
-	Tooltip = "Fog Glare";
+	Tooltip = "Atmosphere Glare";
 });
 
 lightingsection1:AddSlider("Haze", {
     Text = "haze";
-	Default = 0;
+	Default = 1;
 	Min = 0;
 	Max = 10;
-	Rounding = 0;
+	Rounding = 2;
 	Compact = true;
-	Tooltip = "Fog Haze";
+	Tooltip = "Atmosphere Haze";
+});
+
+lightingsection1:AddSlider("AtmosphereOffset", {
+    Text = "offset";
+    Default = 0;
+    Min = 0;
+    Max = 1;
+    Rounding = 2;
+    Compact = true;
+    Tooltip = "Atmosphere Offset";
+});
+
+lightingsection1:AddDropdown("Weather", {
+    Text = "weather";
+    Default = "None";
+    Values = {"None", "rain", "snow", "light rain"};
+    Callback = function(value)
+        if value == "None" then
+            destroy_weather();
+        else
+            create_weather(value);
+        end;
+    end;
+});
+
+lightingsection1:AddLabel("weather color"):AddColorPicker("WeatherColor", {
+    Default = Color3.new(1, 1, 1);
+    Title = "weather color";
+    Callback = function(color)
+        if weather_emitter then
+            weather_emitter.Color = ColorSequence.new(color);
+        end;
+    end;
 });
 
 local FOVConnection; FOVConnection = camera:GetPropertyChangedSignal("FieldOfView"):Connect(function()
@@ -6806,15 +7128,28 @@ end);
 
 local ColorCorrection = Lighting:FindFirstChildOfClass("ColorCorrectionEffect") or Instance.new("ColorCorrectionEffect");
 ColorCorrection.Parent = Lighting;
-local OldCorrection = ColorCorrection.TintColor;
-local OldAmbience = Lighting.OutdoorAmbient;
-local OldAmbience2 = Lighting.Ambient;
-local OldDiffuse = Lighting.EnvironmentDiffuseScale;
-local OldDiffuse2 = Lighting.EnvironmentSpecularScale;
-local OldBrightness = Lighting.Brightness;
-local OldExposure = Lighting.ExposureCompensation;
-local OldClock = Lighting.ClockTime;
-local OldZoom = localplayer.CameraMaxZoomDistance;
+OldCorrection = ColorCorrection.TintColor;
+OldAmbience = Lighting.OutdoorAmbient;
+OldAmbience2 = Lighting.Ambient;
+OldDiffuse = Lighting.EnvironmentDiffuseScale;
+OldDiffuse2 = Lighting.EnvironmentSpecularScale;
+OldBrightness = Lighting.Brightness;
+OldExposure = Lighting.ExposureCompensation;
+OldClock = Lighting.ClockTime;
+OldZoom = localplayer.CameraMaxZoomDistance;
+OldTechnology = Lighting.Technology;
+
+SkyObj = Lighting:FindFirstChildOfClass("Sky");
+local OldSky = SkyObj and {
+    SkyboxBk = SkyObj.SkyboxBk,
+    SkyboxDn = SkyObj.SkyboxDn,
+    SkyboxFt = SkyObj.SkyboxFt,
+    SkyboxLf = SkyObj.SkyboxLf,
+    SkyboxRt = SkyObj.SkyboxRt,
+    SkyboxUp = SkyObj.SkyboxUp,
+    SunTextureId = SkyObj.SunTextureId,
+    MoonTextureId = SkyObj.MoonTextureId,
+} or nil;
 
 if Map then
 	Map.ChildAdded:Connect(function(map)
@@ -6837,81 +7172,84 @@ end;
 
 OldCorrection = ColorCorrection.TintColor;
 
-local water_parts = nil;
-local part_watchers = {};
+do
+    local water_parts = nil;
+    local part_watchers = {};
 
-local function get_water_parts()
-    if water_parts then 
-        return water_parts;
-    end;
-    water_parts = {};
-    local map_object = workspace:FindFirstChild("Map")
-    if not map_object then
-        return water_parts;
-    end;
-    for _, v in ipairs(map_object:GetDescendants() or {}) do
-        if v:IsA("BasePart") and v.Name == "WaterArea" then
-            table.insert(water_parts, v);
+    local function get_water_parts()
+        if water_parts then 
+            return water_parts;
         end;
-    end;
-    map_object.DescendantAdded:Connect(LPH_JIT(function(v)
-        if v:IsA("BasePart") and v.Name == "WaterArea" then
-            table.insert(water_parts, v);
-            if Toggles.walkonwater.Value then
-                v.CanCollide = true;
+        water_parts = {};
+        local map_object = workspace:FindFirstChild("Map")
+        if not map_object then
+            return water_parts;
+        end;
+        for _, v in ipairs(map_object:GetDescendants() or {}) do
+            if v:IsA("BasePart") and v.Name == "WaterArea" then
+                table.insert(water_parts, v);
             end;
         end;
-    end));
-    return water_parts;
-end;
-
-local function set_water_collision(state)
-    local wp = get_water_parts();
-    for i = 1, #wp do
-        local v = wp[i];
-        if v and v.Parent then
-            v.CanCollide = state;
-        end;
-    end;
-end;
-
-local function stop_water()
-    for _, c in pairs(part_watchers or {}) do 
-        c:Disconnect();
-    end;
-    table.clear(part_watchers);
-    set_water_collision(false);
-end;
-
-local function start_water()
-    stop_water();
-    set_water_collision(true);
-    local wp = get_water_parts()
-    for i = 1, #wp do
-        local v = wp[i]
-        if v and v.Parent then
-            table.insert(part_watchers, v:GetPropertyChangedSignal("CanCollide"):Connect(function()
-                if Toggles.walkonwater.Value and not v.CanCollide then
+        map_object.DescendantAdded:Connect(LPH_JIT(function(v)
+            if v:IsA("BasePart") and v.Name == "WaterArea" then
+                table.insert(water_parts, v);
+                if Toggles.walkonwater.Value then
                     v.CanCollide = true;
                 end;
-            end));
+            end;
+        end));
+        return water_parts;
+    end;
+
+    local function set_water_collision(state)
+        local wp = get_water_parts();
+        for i = 1, #wp do
+            local v = wp[i];
+            if v and v.Parent then
+                v.CanCollide = state;
+            end;
         end;
     end;
-end;
 
-Toggles.walkonwater:OnChanged(function()
-    if Toggles.walkonwater.Value then
-        start_water();
-    else
-        stop_water();
+    local function stop_water()
+        for _, c in pairs(part_watchers or {}) do 
+            c:Disconnect();
+        end;
+        table.clear(part_watchers);
+        set_water_collision(false);
     end;
-end);
 
-if Toggles.walkonwater.Value then 
-    start_water();
+    local function start_water()
+        stop_water();
+        set_water_collision(true);
+        local wp = get_water_parts()
+        for i = 1, #wp do
+            local v = wp[i]
+            if v and v.Parent then
+                table.insert(part_watchers, v:GetPropertyChangedSignal("CanCollide"):Connect(function()
+                    if Toggles.walkonwater.Value and not v.CanCollide then
+                        v.CanCollide = true;
+                    end;
+                end));
+            end;
+        end;
+    end;
+
+    Toggles.walkonwater:OnChanged(function()
+        if Toggles.walkonwater.Value then
+            start_water();
+        else
+            stop_water();
+        end;
+    end);
+
+    if Toggles.walkonwater.Value then 
+        start_water();
+    end;
 end;
 
-local ragdolling = false;
+ragdolling = false;
+
 framework:BindToRenderStep(LPH_JIT_MAX(function()
     local canragdoll = Toggles.ragdoll.Value;
     if not localplayer.Character then return; end;
@@ -6936,21 +7274,42 @@ framework:BindToRenderStep(LPH_JIT_MAX(function()
             ragdolling = false;
         end;
     end;
+    
+    if weather_part and weather_part.Parent then
+        weather_part.CFrame = CFrame.new(camera.CFrame.Position + Vector3.new(0, 20, 0));
+    end;
+
+    if Classes.Skybox.Value ~= "None" then
+        local Sky = Lighting:FindFirstChildOfClass("Sky");
+        if Sky then
+            local preset = Skyboxes[Classes.Skybox.Value];
+            if preset then
+                for prop, val in pairs(preset) do
+                    if Sky[prop] ~= val then
+                        Sky[prop] = val;
+                    end;
+                end;
+            end;
+        end;
+    end;
+
     framework:GetSessionData():getState().fallDamageClient.isDisabled = settings.nfd or settings.loopkillall;
 end), nil, Enum.RenderPriority.Last);
+
 local function ensure_atmosphere()
     if not Lighting:FindFirstChild("atmosphere") then
         local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere", Lighting);
         atmosphere.Name = "atmosphere";
     end;
 end;
+
 local function apply_fog()
     ensure_atmosphere();
     if Classes.Fog.Value then
         Lighting.atmosphere.Density = Classes.Density.Value;
-        Lighting.atmosphere.Decay = Classes.FogColor.Value or Color3.new(1, 1, 1);
+        Lighting.atmosphere.Decay = Classes.DecayColor.Value or Color3.fromRGB(120, 120, 120);
         Lighting.atmosphere.Color = Classes.FogColor.Value or Color3.new(1, 1, 1);
-        Lighting.atmosphere.Offset = 0;
+        Lighting.atmosphere.Offset = Classes.AtmosphereOffset.Value;
         Lighting.atmosphere.Glare = Classes.Glare.Value;
         Lighting.atmosphere.Haze = Classes.Haze.Value;
     else
@@ -6959,19 +7318,28 @@ local function apply_fog()
 		end;
     end;
 end;
+
 local function apply_skybox()
     local Sky = Lighting:FindFirstChildOfClass("Sky");
     if not Sky then return; end;
     local skyboxval = Classes.Skybox.Value;
-    local Skybox = Skyboxes[skyboxval];
-    if Skybox then
-		for i, v in pairs(Skybox or {}) do
-			Sky[i] = v;
-		end;
-	end;
+    if skyboxval == "None" and OldSky then
+        for i, v in pairs(OldSky) do
+            Sky[i] = v;
+        end;
+    else
+        local Skybox = Skyboxes[skyboxval];
+        if Skybox then
+            for i, v in pairs(Skybox) do
+                Sky[i] = v;
+            end;
+        end;
+    end;
     _lastskybox = skyboxval;
 end;
-local fov_conn;
+
+fov_conn = nil;
+
 local function bind_fov()
     if fov_conn then fov_conn:Disconnect();
 		fov_conn = nil;
@@ -6994,12 +7362,16 @@ Classes.FOVLighting:OnChanged(function()
         camera.FieldOfView = Classes.FOVLighting.Value;
     end;
 end);
+
 Classes.Fog:OnChanged(apply_fog);
 Classes.Density:OnChanged(apply_fog);
 Classes.FogColor:OnChanged(apply_fog);
+Classes.DecayColor:OnChanged(apply_fog);
 Classes.Glare:OnChanged(apply_fog);
 Classes.Haze:OnChanged(apply_fog);
+Classes.AtmosphereOffset:OnChanged(apply_fog);
 Classes.Skybox:OnChanged(apply_skybox);
+
 local function apply_ambience()
     if Classes.Ambience.Value then
         Lighting.OutdoorAmbient = Classes.AmbienceColor.Value or Color3.new(1, 1, 1);
@@ -7009,16 +7381,21 @@ local function apply_ambience()
         Lighting.Ambient = OldAmbience2;
     end;
 end;
+
 Classes.Ambience:OnChanged(apply_ambience);
 Classes.AmbienceColor:OnChanged(apply_ambience);
+
 local function apply_zoom()
     localplayer.CameraMaxZoomDistance = Classes.MaxZoom.Value and Classes.MaxZoomVal.Value or OldZoom;
 end;
+
 Classes.MaxZoom:OnChanged(apply_zoom);
 Classes.MaxZoomVal:OnChanged(apply_zoom);
+
 local function apply_clock()
     Lighting.ClockTime = Classes.ClockTime.Value and Classes.Time.Value or OldClock;
 end;
+
 Classes.ClockTime:OnChanged(apply_clock);
 Classes.Time:OnChanged(apply_clock);
 local function apply_colorcorrection()
@@ -7030,13 +7407,17 @@ local function apply_colorcorrection()
         ColorCorrection.TintColor = OldCorrection;
     end;
 end;
+
 Classes.ColorCorrection:OnChanged(apply_colorcorrection);
 Classes.ColorCorrectionColor:OnChanged(apply_colorcorrection);
+
 local function apply_brightness()
     Lighting.Brightness = Classes.Brightness.Value and Classes.BrightnessValue.Value or OldBrightness;
 end;
+
 Classes.Brightness:OnChanged(apply_brightness);
 Classes.BrightnessValue:OnChanged(apply_brightness);
+
 local function apply_environmental()
     if Classes.Environmental.Value then
         Lighting.EnvironmentDiffuseScale = Classes.EnvironmentValue.Value;
@@ -7046,18 +7427,23 @@ local function apply_environmental()
         Lighting.EnvironmentSpecularScale = OldDiffuse2;
     end;
 end;
+
 Classes.Environmental:OnChanged(apply_environmental);
 Classes.EnvironmentValue:OnChanged(apply_environmental);
+
 local function apply_exposure()
     Lighting.ExposureCompensation = Classes.Exposure.Value and Classes.ExposureValue.Value or OldExposure;
 end;
+
 Classes.Exposure:OnChanged(apply_exposure);
 Classes.ExposureValue:OnChanged(apply_exposure);
+
 local function esp1()
     local GetService = game.GetService
     local Service = function(Name) 
         return cloneref(GetService(game, Name));
     end;
+
     local Players = Service("Players")
     local Instance_new = Instance.new
     local Color3_fromRGB = Color3.fromRGB
@@ -7120,52 +7506,167 @@ local function esp1()
     local WaitForChild = game.WaitForChild
     local FindFirstChildWhichIsA = game.FindFirstChildWhichIsA
     local IsA = game.IsA
+
     ESP = {
         Settings = {
-        Enabled = false, LocalPlayer = false, Font = "Tahoma", FontSize = 12, FontType = "lowercase", MaxDistance = 1000, BoundingBox = {
-        Enabled = false, DynamicBox = false, IncludeAccessories = false, Rotation = 90, Color = {Color3_fromRGB(105, 187, 245), Color3_fromRGB(105, 187, 245)}, Transparency = {0, 0}, Glow = {
-        Enabled = false, Rotation = 90, Color = {Color3_fromRGB(105, 187, 245), Color3_fromRGB(105, 187, 245)}, Transparency = {0.75, 0.75}, }, Fill = {
-        Enabled = false, Rotation = 90, Color = {Color3_fromRGB(105, 187, 245), Color3_fromRGB(105, 187, 245)}, Transparency = {1, 0.5}, }, }, Bars = {
-        HealthBar = {
-        Enabled = false, Position = "Left", Color = {Color3_fromRGB(131, 245, 78), Color3_fromRGB(255, 255, 0), Color3_fromRGB(252, 71, 77)}, Type = function(Player, TargetInfo)
-                            return TargetInfo.HealthBarValue or 1
-                        end, Text = {
-                            Enabled = false, FollowBar = true, Ending = "", Position = "Left", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, Type = function(Player, TargetInfo)
-                                local health = TargetInfo.LastHealth or 100
-                                local maxHealth = TargetInfo.LastMaxHealth or 100
-                                return health, health ~= maxHealth
-                            end, }, }, ArmorBar = {
-                                Enabled = false, Position = "Bottom", Color = {Color3_fromRGB(52, 131, 235), Color3_fromRGB(52, 131, 235), Color3_fromRGB(52, 131, 235)}, Type = function(Player, TargetInfo)
-                            return TargetInfo.HealthBarValue or 1
-                        end, Text = {
-                            Enabled = false, FollowBar = true, Ending = "%", Position = "Left", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, Type = function(Player, TargetInfo)
-                                local health = TargetInfo.LastHealth or 100
-                                local maxHealth = TargetInfo.LastMaxHealth or 100
-                                return health, health ~= maxHealth
-                            end, }, }, }, Name = {
-                                Enabled = false, UseDisplay = false, Position = "Top", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, }, Distance = {
-                                Enabled = false, Ending = "st", Position = "Bottom", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, }, Weapon = {
-                                Enabled = false, Position = "Bottom", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, }, Flags = {
-                                Enabled = false, Position = "Right", Color = Color3_fromRGB(255, 255, 255), Transparency = 0, Type = function(Player, TargetInfo)
-                        local currentTick = os_clock()
-                        if currentTick - TargetInfo.FlagsDelay < 0.25 then return TargetInfo.CachedFlagsString or "" end
-                        TargetInfo.FlagsDelay = currentTick
-                        local Flags = {}
-                        if not IsA(Player, "Player") then
-                            TargetInfo.CachedFlagsString = ""
-                            return ""
-                        end
-                        local Character = Player.Character
-                        local Humanoid = Character and Character:FindFirstChild("Humanoid")
-                        if not Humanoid then
-                            TargetInfo.CachedFlagsString = ""
-                            return ""
-                        end
-                        if Humanoid.MoveDirection.Magnitude > 0 then table.insert(Flags, "moving") end
-                        if Humanoid.Jump then table.insert(Flags, "jumping") end
-                        TargetInfo.CachedFlagsString = table_concat(Flags, "\n")
-                        return TargetInfo.CachedFlagsString
-                    end }, }, Connections = {}, Errors = {}, Objects = {}, Targets = {}, Utilities = {}, Folder = "ESP", Font = nil, Holder = nil, }
+            Enabled = false,
+            LocalPlayer = false,
+            Font = "Tahoma",
+            FontSize = 12,
+            FontType = "lowercase",
+            MaxDistance = 1000,
+            BoundingBox = {
+                Enabled = false,
+                DynamicBox = false,
+                IncludeAccessories = false,
+                Rotation = 90,
+                MovingRotation = 0,
+                RotationSpeed = 0,
+                Color = {
+                    Color3_fromRGB(105, 187, 245),
+                    Color3_fromRGB(105, 187, 245)
+                },
+                Transparency = {0, 0},
+                Glow = {
+                    Enabled = false,
+                    Rotation = 90,
+                    MovingRotation = 0,
+                    RotationSpeed = 0,
+                    Color = {
+                        Color3_fromRGB(105, 187, 245),
+                        Color3_fromRGB(105, 187, 245)
+                    },
+                    Transparency = {0.75, 0.75},
+                },
+                Fill = {
+                    Enabled = false,
+                    Rotation = 90,
+                    MovingRotation = 0,
+                    RotationSpeed = 0,
+                    Color = {
+                        Color3_fromRGB(105, 187, 245),
+                        Color3_fromRGB(105, 187, 245)
+                    },
+                    Transparency = {1, 0.5},
+                },
+            },
+            Bars = {
+                HealthBar = {
+                    Enabled = false,
+                    Position = "Left",
+                    MovingRotation = 0,
+                    RotationSpeed = 0,
+                    Color = {
+                        Color3_fromRGB(131, 245, 78),
+                        Color3_fromRGB(255, 255, 0),
+                        Color3_fromRGB(252, 71, 77)
+                    },
+                    Type = function(Player, TargetInfo)
+                        return TargetInfo.HealthBarValue or 1
+                    end,
+                    Text = {
+                        Enabled = false,
+                        FollowBar = true,
+                        Ending = "",
+                        Position = "Left",
+                        Color = Color3_fromRGB(255, 255, 255),
+                        Transparency = 0,
+                        Type = function(Player, TargetInfo)
+                            local health = TargetInfo.LastHealth or 100
+                            local maxHealth = TargetInfo.LastMaxHealth or 100
+                            return health, health ~= maxHealth
+                        end,
+                    },
+                },
+                ArmorBar = {
+                    Enabled = false,
+                    Position = "Bottom",
+                    Color = {
+                        Color3_fromRGB(52, 131, 235),
+                        Color3_fromRGB(52, 131, 235),
+                        Color3_fromRGB(52, 131, 235)
+                    },
+                    Type = function(Player, TargetInfo)
+                        return TargetInfo.HealthBarValue or 1
+                    end,
+                    Text = {
+                        Enabled = false,
+                        FollowBar = true,
+                        Ending = "%",
+                        Position = "Left",
+                        Color = Color3_fromRGB(255, 255, 255),
+                        Transparency = 0,
+                        Type = function(Player, TargetInfo)
+                            local health = TargetInfo.LastHealth or 100
+                            local maxHealth = TargetInfo.LastMaxHealth or 100
+                            return health, health ~= maxHealth
+                        end,
+                    },
+                },
+            },
+            Name = {
+                Enabled = false,
+                UseDisplay = false,
+                Position = "Top",
+                Color = Color3_fromRGB(255, 255, 255),
+                Transparency = 0,
+            },
+            Distance = {
+                Enabled = false,
+                Ending = "st",
+                Position = "Bottom",
+                Color = Color3_fromRGB(255, 255, 255),
+                Transparency = 0,
+            },
+            Weapon = {
+                Enabled = false,
+                Position = "Bottom",
+                Color = Color3_fromRGB(255, 255, 255),
+                Transparency = 0,
+            },
+            Flags = {
+                Enabled = false,
+                Position = "Right",
+                Color = Color3_fromRGB(255, 255, 255),
+                Transparency = 0,
+                Type = function(Player, TargetInfo)
+                    local currentTick = os_clock()
+                    if currentTick - TargetInfo.FlagsDelay < 0.25 then
+                        return TargetInfo.CachedFlagsString or ""
+                    end
+                    TargetInfo.FlagsDelay = currentTick
+                    local Flags = {}
+                    if not IsA(Player, "Player") then
+                        TargetInfo.CachedFlagsString = ""
+                        return ""
+                    end
+                    local Character = Player.Character
+                    local Humanoid = Character and Character:FindFirstChild("Humanoid")
+                    if not Humanoid then
+                        TargetInfo.CachedFlagsString = ""
+                        return ""
+                    end
+                    if Humanoid.MoveDirection.Magnitude > 0 then
+                        table.insert(Flags, "moving")
+                    end
+                    if Humanoid.Jump then
+                        table.insert(Flags, "jumping")
+                    end
+                    TargetInfo.CachedFlagsString = table_concat(Flags, "\n")
+                    return TargetInfo.CachedFlagsString
+                end
+            },
+        },
+        Connections = {},
+        Errors = {},
+        Objects = {},
+        Targets = {},
+        Utilities = {},
+        Folder = "ESP",
+        Font = nil,
+        Holder = nil,
+    }
+
     local Client = Players.LocalPlayer
     local Camera = FindFirstChildWhichIsA(Workspace, "Camera")
     local Viewport = Camera.ViewportSize
@@ -7178,126 +7679,217 @@ local function esp1()
     local math_abs = math.abs
     local math_floor = math_floor
     local Utility = {}
-    local FontsToDownload = {
-        ["Tahoma"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/main/zekton_rg.ttf"}, ["Minecraftia"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/refs/heads/main/Minecraftia.ttf"}, ["Silkscreen"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/refs/heads/main/Silkscreen.ttf"}, }
-    do
-        if not isfolder(FolderLocation) then
-            makefolder(FolderLocation);
-        end;
-        if not isfolder(FolderLocation .. "\\Fonts") then
-            makefolder(FolderLocation .. "\\Fonts");
-        end;
-    end;
-    do
-        if not Fonts then
-            Fonts = {
-                Loaded = {};
-            };
-        end;
-        local function loadfonts()
-            for name, table in pairs(FontsToDownload or {}) do
-                if not isfile(FolderLocation .. "\\Fonts\\" .. name .. ".ttf") then
-                    local ok, data = pcall(game.HttpGet, game, table.Link);
-                    if ok and data then writefile(FolderLocation .. "\\Fonts\\" .. name .. ".ttf", data); end;
-                end;
-                if not isfile(FolderLocation .. "\\Fonts\\" .. name .. ".font") then
-                    local cfg = {
-                        name = name, faces = {{
-                        name = "Regular", weight = 9e9, style = "normal", assetId = getcustomasset(FolderLocation .. "\\Fonts\\" .. name .. ".ttf") }} };
-                    writefile(FolderLocation .. "\\Fonts\\" .. name .. ".font", httpservice:JSONEncode(cfg));
-                end;
-            end;
-            for _, fontpath in pairs(listfiles(FolderLocation .. "\\Fonts") or {}) do
-                local name = string_match(fontpath, FolderLocation .. "\\Fonts\\(.+)%.font");
-                if name and not Fonts.Loaded[name] then Fonts.Loaded[name] = Font_new(getcustomasset(fontpath), Enum.FontWeight.Regular); end;
-            end;
-        end;
-        task_spawn(loadfonts);
-    end
+
+	local FontsToDownload = {
+		["Tahoma"] = {
+			Link = "https://github.com/xectray1/tahoma/raw/refs/heads/main/fs-tahoma-8px.otf";
+			Ext = ".otf";
+		},
+		["Minecraftia"] = {
+			Link = "https://github.com/LuckyHub1/LuckyHub/raw/refs/heads/main/Minecraftia.ttf";
+			Ext = ".ttf";
+		},
+		["Silkscreen"] = {
+			Link = "https://github.com/LuckyHub1/LuckyHub/raw/refs/heads/main/Silkscreen.ttf";
+			Ext = ".ttf";
+		},
+	};
+	
+	do
+		if not isfolder(FolderLocation) then
+			makefolder(FolderLocation);
+		end;
+		if not isfolder(FolderLocation .. "\\Fonts") then
+			makefolder(FolderLocation .. "\\Fonts");
+		end;
+	end;
+	
+	do
+		local Fonts = getgenv().Fonts;
+		if not Fonts then
+			getgenv().Fonts = {
+				Loaded = {}
+			};
+			Fonts = getgenv().Fonts;
+		end;
+
+		if not isfolder(FolderLocation .. "\\Fonts") then
+			makefolder(FolderLocation .. "\\Fonts");
+		end;
+
+		local function loadfonts()
+			for name, tbl in FontsToDownload do
+				local ext = tbl.Ext or ".ttf";
+				local fullpath = FolderLocation .. "\\Fonts\\" .. name .. ext;
+
+				if not isfile(fullpath) then
+					local ok, data = pcall(game.HttpGet, game, tbl.Link);
+					if ok and data then
+						writefile(fullpath, data);
+					end;
+				end;
+
+				if not isfile(FolderLocation .. "\\Fonts\\" .. name .. ".font") then
+					local cfg = {
+						name = name,
+						faces = {{
+							name = "Regular",
+							weight = 400,
+							style = "normal",
+							assetId = getcustomasset(fullpath)
+						}}
+					};
+					writefile(FolderLocation .. "\\Fonts\\" .. name .. ".font", httpservice:JSONEncode(cfg));
+				end;
+			end
+
+			for _, fontpath in listfiles(FolderLocation .. "\\Fonts") do
+				local name = fontpath:match("([^\\/]+)%.font$");
+				if name and not Fonts.Loaded[name] then
+					Fonts.Loaded[name] = Font_new(getcustomasset(fontpath), Enum.FontWeight.Regular);
+				end;
+			end;
+			ESP.Font = Fonts.Loaded[esp_settings.Font] or Font.fromEnum(Enum.Font.SourceSans);
+		end;
+		loadfonts();
+	end;
+    
     do
         function Utility.AddConnection(Signal, Function)
             local Connection = Signal:Connect(function(...)
-                local Args = {...}
-                local Success, Message = pcall(function() coroutine_wrap(Function)(table_unpack(Args)) end)
+                local Args = {...};
+
+                local Success, Message = pcall(function()
+                    coroutine_wrap(Function)(table_unpack(Args));
+                end);
+
                 if not Success and not ESPErrors[Message] then
-                    local ErrorMessage = string_format("[ERROR] | An error has occured:\n%s", Message)
-                    warn(ErrorMessage)
-                    ESPErrors[Message] = Message
-                    if ConnectionsTable[Connection] then ConnectionsTable[Connection] = nil end
-                    return Connection and Connection:Disconnect()
-                end
-            end)
-            if Connection and ConnectionsTable then table.insert(ConnectionsTable, Connection) end
-            return Connection
-        end
+                    local ErrorMessage = string_format("[ERROR] | An error has occured:\n%s", Message);
+                    warn(ErrorMessage);
+                    ESPErrors[Message] = Message;
+                    if ConnectionsTable[Connection] then
+                        ConnectionsTable[Connection] = nil;
+                    end;
+                    return Connection and Connection:Disconnect();
+                end;
+            end);
+
+            if Connection and ConnectionsTable then
+                table.insert(ConnectionsTable, Connection);
+            end;
+            return Connection;
+        end;
+
         function Utility.CreateObject(Type, Properties, Hidden)
-            local isHidden = Hidden or false
-            local Object = Instance_new(Type)
-            for Index, Value in pairs(Properties or {}) do Object[Index] = Value end
-            table.insert(ObjectsTable, Object)
-            return Object
-        end
+            local isHidden = Hidden or false;
+            local Object = Instance_new(Type);
+            for Index, Value in pairs(Properties) do
+                Object[Index] = Value;
+            end;
+            table.insert(ObjectsTable, Object);
+            return Object;
+        end;
+
         function Utility.CalculateBox(Target, RootPart, Parts)
-            local MinX, MinY, MaxX, MaxY = 9000, 9000, -9000, -9000
-            local BoxWidth, BoxHeight = 0, 0
-            local Position, OnScreen = WorldToViewportPoint(Camera, RootPart.Position)
+            local MinX, MinY, MaxX, MaxY = 9000, 9000, -9000, -9000;
+            local BoxWidth, BoxHeight = 0, 0;
+            local Position, OnScreen = WorldToViewportPoint(Camera, RootPart.Position);
             if esp_settings.BoundingBox.DynamicBox then
-                for _, Part in pairs(Parts or {}) do
+                for _, Part in pairs(Parts) do
                     if Part.ClassName ~= "HumanoidRootPart" and (Part:IsA("BasePart")) then
-                        local Size = Part.Size / 2
-                        local CFrame = Part.CFrame
-                        local Top, TopOnScreen = WorldToViewportPoint(Camera, (CFrame * cframe_new(0, Size.Y, 0)).Position)
-                        local Bottom, BottomOnScreen = WorldToViewportPoint(Camera, (CFrame * cframe_new(0, -Size.Y, 0)).Position)
+                        local Size = Part.Size / 2;
+                        local CFrame = Part.CFrame;
+                        local Top, TopOnScreen = WorldToViewportPoint(Camera, (CFrame * cframe_new(0, Size.Y, 0)).Position);
+                        local Bottom, BottomOnScreen = WorldToViewportPoint(Camera, (CFrame * cframe_new(0, -Size.Y, 0)).Position);
                         if TopOnScreen or BottomOnScreen then
-                            local Height = math_abs(Top.Y - Bottom.Y)
-                            local Width = Height * (Size.X / Size.Y)
-                            local Center = (Top + Bottom) / 2
-                            MinX = math_min(MinX, Center.X - Width)
-                            MinY = math_min(MinY, Center.Y - Height)
-                            MaxX = math_max(MaxX, Center.X + Width)
-                            MaxY = math_max(MaxY, Center.Y + Height)
-                        end
-                    end
-                end
-                BoxWidth, BoxHeight = MaxX - MinX, MaxY - MinY
+                            local Height = math_abs(Top.Y - Bottom.Y);
+                            local Width = Height * (Size.X / Size.Y);
+                            local Center = (Top + Bottom) / 2;
+                            MinX = math_min(MinX, Center.X - Width);
+                            MinY = math_min(MinY, Center.Y - Height);
+                            MaxX = math_max(MaxX, Center.X + Width);
+                            MaxY = math_max(MaxY, Center.Y + Height);
+                        end;
+                    end;
+                end;
+                BoxWidth, BoxHeight = MaxX - MinX, MaxY - MinY;
             else
-                local BaseFOV = 70
-                local FOVScale = math.tan(math.rad(BaseFOV / 2)) / math.tan(math.rad(Camera.FieldOfView / 2))
-                local Scale = (RootPart.Size.Y * Camera.ViewportSize.Y) / (Position.Z * 2) * FOVScale
-                BoxWidth, BoxHeight = 3 * Scale, 4.5 * Scale
-                MinX, MinY = Position.X - (BoxWidth / 2), Position.Y - (BoxHeight / 2)
-            end
-            return BoxWidth, BoxHeight, MinX, MinY, OnScreen
-        end
+                local BaseFOV = 70;
+                local FOVScale = math.tan(math.rad(BaseFOV / 2)) / math.tan(math.rad(Camera.FieldOfView / 2));
+                local Scale = (RootPart.Size.Y * Camera.ViewportSize.Y) / (Position.Z * 2) * FOVScale;
+                BoxWidth, BoxHeight = 3 * Scale, 4.5 * Scale;
+                MinX, MinY = Position.X - (BoxWidth / 2), Position.Y - (BoxHeight / 2);
+            end;
+            return BoxWidth, BoxHeight, MinX, MinY, OnScreen;
+        end;
         function Utility.GetFontType(Text)
-            local FontType = string_lower(esp_settings.FontType)
+            local FontType = string_lower(esp_settings.FontType);
             if FontType == "uppercase" then
-                return string_upper(Text)
+                return string_upper(Text);
             elseif FontType == "lowercase" then
-                return string_lower(Text)
+                return string_lower(Text);
             else
-                return Text
-            end
-        end
-    end
-    Utility.AddConnection(Camera:GetPropertyChangedSignal("ViewportSize"), function() Viewport = Camera.ViewportSize end)
+                return Text;
+            end;
+        end;
+    end;
+
+    Utility.AddConnection(Camera:GetPropertyChangedSignal("ViewportSize"), function()
+        Viewport = Camera.ViewportSize;
+    end);
+
     do
-        ESP.Font = Fonts.Loaded[esp_settings.Font]
+        ESP.Font = ESP.Font or Font.fromEnum(Enum.Font.SourceSans);
         ESP.Holder = Utility.CreateObject("ScreenGui", {
-            Name = "\n", ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets, ZIndexBehavior = Enum.ZIndexBehavior.Global, ResetOnSpawn = false, DisplayOrder = 1, IgnoreGuiInset = true, Parent = gethui() })
+            Name = "\n",
+            ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets,
+            ZIndexBehavior = Enum.ZIndexBehavior.Global,
+            ResetOnSpawn = false,
+            DisplayOrder = 1,
+            IgnoreGuiInset = true,
+            Parent = gethui()
+        });
+
         function ESP.AddTarget(Target)
             if ESP.Targets[Target] then return end
             local TargetInfo = {
-                Objects = {}, CharacterObjects = {}, CharacterConnection = nil, HealthConnection = nil, ToolConnection = {Added = nil, Removed = nil}, CurrentTool = Utility.GetFontType("none"), TargetName = Utility.GetFontType(esp_settings.Name.UseDisplay and (IsA(Target, "Player") and Target.DisplayName or Target.Name) or Target.Name), DistanceEnding = Utility.GetFontType(esp_settings.Distance.Ending), HealthBarValue = 1, LastHealth = 100, LastMaxHealth = 100, FlagsDelay = 0, CachedFlagsString = "", LastTick = os_clock(), LastLazyUpdate = 0, LastDistanceText = "", LastDistanceValue = -1, }
-            local Objects = TargetInfo.Objects
-            local LastTick = TargetInfo.LastTick
-            local ToolConnection = TargetInfo.ToolConnection
-            local CharacterObjects = TargetInfo.CharacterObjects
-            local ESPFont = ESP.Font
-            local ESPFontSize = esp_settings.FontSize
-            local ESPHolder = ESP.Holder
+                Objects = {},
+                CharacterObjects = {},
+                CharacterConnection = nil,
+                HealthConnection = nil,
+                ToolConnection = {
+                    Added = nil,
+                    Removed = nil
+                },
+                CurrentTool = Utility.GetFontType("none"),
+                TargetName = Utility.GetFontType(esp_settings.Name.UseDisplay and (IsA(Target, "Player") and Target.DisplayName or Target.Name) or Target.Name),
+                DistanceEnding = Utility.GetFontType(esp_settings.Distance.Ending),
+                HealthBarValue = 1,
+                LastHealth = 100,
+                LastMaxHealth = 100,
+                FlagsDelay = 0,
+                CachedFlagsString = "",
+                LastTick = os_clock(),
+                LastLazyUpdate = 0,
+                LastDistanceText = "",
+                LastDistanceValue = -1,
+            };
+
+            local Objects = TargetInfo.Objects;
+            local LastTick = TargetInfo.LastTick;
+            local ToolConnection = TargetInfo.ToolConnection;
+            local CharacterObjects = TargetInfo.CharacterObjects;
+            local ESPFont = ESP.Font;
+            local ESPFontSize = esp_settings.FontSize;
+            local ESPHolder = ESP.Holder;
+
             local TextAlignments = {
-                ["Left"] = "Right", ["Right"] = "Left", ["Top"] = "Center", ["Bottom"] = "Center", }
+                ["Left"] = "Right",
+                ["Right"] = "Left",
+                ["Top"] = "Center",
+                ["Bottom"] = "Center",
+            }
+
             CharacterObjects.Character = IsA(Target, "Player") and Target.Character or Target
             CharacterObjects.Children = CharacterObjects.Character and CharacterObjects.Character:GetChildren()
             CharacterObjects.Descendants = CharacterObjects.Character and CharacterObjects.Character:GetDescendants()
@@ -7305,54 +7897,101 @@ local function esp1()
                 CharacterObjects.HumanoidRootPart = CharacterObjects.Character and CharacterObjects.Character:FindFirstChild("HumanoidRootPart") or nil
                 CharacterObjects.Humanoid = CharacterObjects.Character and CharacterObjects.Character:FindFirstChildWhichIsA("Humanoid") or nil
             end
+
             do
                 function TargetInfo.Init()
                     if #Objects > 0 then return end
                     if IsA(Target, "Player") then
                         TargetInfo.CharacterConnection = Utility.AddConnection(Target.CharacterAdded, function(Character)
-                            CharacterObjects.Character = Character
-                            CharacterObjects.HumanoidRootPart = Character:WaitForChild("HumanoidRootPart", 10)
-                            local Humanoid = Character:WaitForChild("Humanoid", 10)
-                            CharacterObjects.Humanoid = Humanoid
-                            CharacterObjects.Children = Character:GetChildren()
-                            CharacterObjects.Descendants = Character:GetDescendants()
-                            if TargetInfo.HealthConnection then TargetInfo.HealthConnection:Disconnect() end
+                            CharacterObjects.Character = Character;
+                            CharacterObjects.HumanoidRootPart = Character:WaitForChild("HumanoidRootPart", 10);
+                            local Humanoid = Character:WaitForChild("Humanoid", 10);
+                            CharacterObjects.Humanoid = Humanoid;
+                            CharacterObjects.Children = Character:GetChildren();
+                            CharacterObjects.Descendants = Character:GetDescendants();
+
+                            if TargetInfo.HealthConnection then
+                                TargetInfo.HealthConnection:Disconnect();
+                            end;
+
                             if Humanoid then
-                                TargetInfo.LastHealth = Humanoid.Health
-                                TargetInfo.LastMaxHealth = Humanoid.MaxHealth
-                                TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth
+                                TargetInfo.LastHealth = Humanoid.Health;
+                                TargetInfo.LastMaxHealth = Humanoid.MaxHealth;
+                                TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth;
                                 TargetInfo.HealthConnection = Utility.AddConnection(Humanoid.HealthChanged, function(Health)
-                                    TargetInfo.LastHealth = Health
-                                    TargetInfo.LastMaxHealth = Humanoid.MaxHealth
-                                    TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth
-                                end)
-                            end
-                            if ToolConnection.Added then ToolConnection.Added:Disconnect() end
-                            if ToolConnection.Removed then ToolConnection.Removed:Disconnect() end
+                                    TargetInfo.LastHealth = Health;
+                                    TargetInfo.LastMaxHealth = Humanoid.MaxHealth;
+                                    TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth;
+                                end);
+                            end;
+
+                            if ToolConnection.Added then
+                                ToolConnection.Added:Disconnect();
+                            end;
+
+                            if ToolConnection.Removed then
+                                ToolConnection.Removed:Disconnect();
+                            end;
+
                             TargetInfo.CurrentTool = Utility.GetFontType("none")
                             local existingTool = Character:FindFirstChildWhichIsA("Tool")
-                            if existingTool then TargetInfo.CurrentTool = Utility.GetFontType(existingTool.Name) end
-                            ToolConnection.Added = Utility.AddConnection(Character.ChildAdded, function(Child) if IsA(Child, "Tool") then TargetInfo.CurrentTool = Utility.GetFontType(Child.Name) end end)
-                            ToolConnection.Removed = Utility.AddConnection(Character.ChildRemoved, function(Child) if IsA(Child, "Tool") then TargetInfo.CurrentTool = Utility.GetFontType("none") end end)
-                        end)
+
+                            if existingTool then
+                                TargetInfo.CurrentTool = Utility.GetFontType(existingTool.Name);
+                            end;
+
+                            ToolConnection.Added = Utility.AddConnection(Character.ChildAdded, function(Child)
+                                if IsA(Child, "Tool") then
+                                    TargetInfo.CurrentTool = Utility.GetFontType(Child.Name);
+                                end;
+                            end);
+
+                            ToolConnection.Removed = Utility.AddConnection(Character.ChildRemoved, function(Child)
+                                if IsA(Child, "Tool") then
+                                    TargetInfo.CurrentTool = Utility.GetFontType("none");
+                                end;
+                            end);
+                        end);
+
                         if CharacterObjects.Character then
-                            local Humanoid = CharacterObjects.Character:FindFirstChildWhichIsA("Humanoid")
+                            local Humanoid = CharacterObjects.Character:FindFirstChildWhichIsA("Humanoid");
                             if Humanoid then
-                                TargetInfo.LastHealth = Humanoid.Health
-                                TargetInfo.LastMaxHealth = Humanoid.MaxHealth
-                                TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth
-                                if TargetInfo.HealthConnection then TargetInfo.HealthConnection:Disconnect() end
+                                TargetInfo.LastHealth = Humanoid.Health;
+                                TargetInfo.LastMaxHealth = Humanoid.MaxHealth;
+                                TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth;
+
+                                if TargetInfo.HealthConnection then
+                                    TargetInfo.HealthConnection:Disconnect();
+                                end;
+
                                 TargetInfo.HealthConnection = Utility.AddConnection(Humanoid.HealthChanged, function(Health)
-                                    TargetInfo.LastHealth = Health
-                                    TargetInfo.LastMaxHealth = Humanoid.MaxHealth
-                                    TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth
-                                end)
-                            end
-                            TargetInfo.CurrentTool = Utility.GetFontType("none")
-                            local existingTool = CharacterObjects.Character:FindFirstChildWhichIsA("Tool")
-                            if existingTool then TargetInfo.CurrentTool = Utility.GetFontType(existingTool.Name) end
-                            ToolConnection.Added = Utility.AddConnection(CharacterObjects.Character.ChildAdded, function(Child) if IsA(Child, "Tool") then TargetInfo.CurrentTool = Utility.GetFontType(Child.Name) end end)
-                            ToolConnection.Removed = Utility.AddConnection(CharacterObjects.Character.ChildRemoved, function(Child) if IsA(Child, "Tool") then TargetInfo.CurrentTool = Utility.GetFontType("none") end end) end end
+                                    TargetInfo.LastHealth = Health;
+                                    TargetInfo.LastMaxHealth = Humanoid.MaxHealth;
+                                    TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth;
+                                end);
+                            end;
+
+                            TargetInfo.CurrentTool = Utility.GetFontType("none");
+                            local existingTool = CharacterObjects.Character:FindFirstChildWhichIsA("Tool");
+
+                            if existingTool then
+                                TargetInfo.CurrentTool = Utility.GetFontType(existingTool.Name);
+                            end;
+
+                            ToolConnection.Added = Utility.AddConnection(CharacterObjects.Character.ChildAdded, function(Child)
+                                if IsA(Child, "Tool") then
+                                    TargetInfo.CurrentTool = Utility.GetFontType(Child.Name);
+                                end;
+                            end);
+
+                            ToolConnection.Removed = Utility.AddConnection(CharacterObjects.Character.ChildRemoved, function(Child)
+                                if IsA(Child, "Tool") then
+                                    TargetInfo.CurrentTool = Utility.GetFontType("none");
+                                end;
+                            end);
+                        end;
+                    end;
+
                     Objects["TargetHolder"] = Utility.CreateObject("Frame", {Parent = ESPHolder, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
                     Objects["TopHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, AnchorPoint = Vector2_new(0, 1), Position = UDim2_new(0, -2, 0, -5), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 4, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
                     Objects["BottomHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, -2, 1, 3), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 4, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
@@ -7379,10 +8018,10 @@ local function esp1()
                         Utility.CreateObject("UIListLayout", {Parent = Objects["BottomBarHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 1), VerticalAlignment = Enum.VerticalAlignment.Bottom, SortOrder = Enum.SortOrder.LayoutOrder})
                         Utility.CreateObject("UIPadding", {Parent = Objects["BottomBarHolder"], PaddingTop = UDim_new(0, 2)})
                         Objects["LeftBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = Objects["LeftHolder"], AutomaticSize = Enum.AutomaticSize.X, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                        Utility.CreateObject("UIListLayout", {Parent = Objects["LeftBarHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Right, Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder})
+                        Utility.CreateObject("UIListLayout", {Parent = Objects["LeftBarHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Right, VerticalAlignment = Enum.VerticalAlignment.Bottom, Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder})
                         Utility.CreateObject("UIPadding", {Parent = Objects["LeftBarHolder"], PaddingRight = UDim_new(0, 1)})
                         Objects["RightBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = Objects["RightHolder"], AutomaticSize = Enum.AutomaticSize.X, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                        Utility.CreateObject("UIListLayout", {Parent = Objects["RightBarHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Left, Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder})
+                        Utility.CreateObject("UIListLayout", {Parent = Objects["RightBarHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Left, VerticalAlignment = Enum.VerticalAlignment.Bottom, Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder})
                         Utility.CreateObject("UIPadding", {Parent = Objects["RightBarHolder"], PaddingLeft = UDim_new(0, -3)})
                     end
                     do
@@ -7407,7 +8046,7 @@ local function esp1()
                     end
                     do
                         for BarName, Bar in pairs(esp_settings.Bars or {}) do
-                            Objects[BarName .. "Outline"] = Utility.CreateObject("Frame", {Parent = Objects[Bar.Position .. "BarHolder"], ZIndex = 5, LayoutOrder = 0, Visible = true, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(0, 0, 0)})
+                            Objects[BarName .. "Outline"] = Utility.CreateObject("Frame", {Parent = Objects[Bar.Position .. "BarHolder"], ZIndex = 5, LayoutOrder = 0, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(0, 0, 0)})
                             Utility.CreateObject("UIStroke", {Parent = Objects[BarName .. "Outline"], Thickness = 1, LineJoinMode = Enum.LineJoinMode.Miter})
                             Objects[BarName] = Utility.CreateObject("Frame", {Parent = Objects[BarName .. "Outline"], ZIndex = 6, LayoutOrder = 0, Visible = true, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
                             Objects[BarName .. "Gradient"] = Utility.CreateObject("UIGradient", {Parent = Objects[BarName], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}})
@@ -7427,322 +8066,625 @@ local function esp1()
                     end
                     ESP.Targets[Target] = TargetInfo
                 end
+
                 local lastonscreen = false;
                 local lastboxwidth = 0;
                 local lastboxheight = 0;
                 local lastboxposx = 0;
                 local lastboxposy = 0;
                 local lastupdatetick = 0;
+
                 function TargetInfo.Update()
+                    local currentTick = os_clock();
+                    local deltaTime = currentTick - lastupdatetick;
+                    lastupdatetick = currentTick;
+
                     if (not esp_settings.LocalPlayer) and Target == Client then
-                        if Objects["TargetHolder"].Visible then Objects["TargetHolder"].Visible = false; end;
+                        if Objects["TargetHolder"].Visible then
+                            Objects["TargetHolder"].Visible = false;
+                        end;
                         return;
                     end;
+
                     if not CharacterObjects.Character then
                         if Objects["TargetHolder"].Visible then Objects["TargetHolder"].Visible = false; end;
                         return;
                     end;
+
                     if IsA(Target, "Player") then
                         if not CharacterObjects.HumanoidRootPart then
                             CharacterObjects.HumanoidRootPart = FindFirstChild(CharacterObjects.Character, "HumanoidRootPart");
-                            if Objects["TargetHolder"].Visible then Objects["TargetHolder"].Visible = false; end;
+                            if Objects["TargetHolder"].Visible then
+                                Objects["TargetHolder"].Visible = false;
+                            end;
                             return;
                         end;
+
                         if not CharacterObjects.Humanoid then
                             CharacterObjects.Humanoid = FindFirstChildWhichIsA(CharacterObjects.Character, "Humanoid");
-                            if Objects["TargetHolder"].Visible then Objects["TargetHolder"].Visible = false; end;
+                            if Objects["TargetHolder"].Visible then
+                                Objects["TargetHolder"].Visible = false;
+                            end;
                             return;
                         end;
                     else
                         if not CharacterObjects.HumanoidRootPart then
                             CharacterObjects.HumanoidRootPart = IsA(Target, "BasePart") and Target or CharacterObjects.Character.PrimaryPart;
                             if not CharacterObjects.HumanoidRootPart then
-                                if Objects["TargetHolder"].Visible then Objects["TargetHolder"].Visible = false; end;
+                                if Objects["TargetHolder"].Visible then
+                                    Objects["TargetHolder"].Visible = false;
+                                end;
                                 return;
                             end;
                         end;
                     end;
+
                     local rootpos = CharacterObjects.HumanoidRootPart.Position;
                     local distance = (Camera.CFrame.Position - rootpos).Magnitude;
                     if distance > esp_settings.MaxDistance then
-                        if Objects["TargetHolder"].Visible then Objects["TargetHolder"].Visible = false; end;
+                        if Objects["TargetHolder"].Visible then
+                            Objects["TargetHolder"].Visible = false;
+                        end;
                         lastonscreen = false;
                         return;
                     end;
+
                     local bodyparts = nil;
                     if esp_settings.BoundingBox.DynamicBox then
                         bodyparts = esp_settings.BoundingBox.IncludeAccessories and CharacterObjects.Descendants or CharacterObjects.Children;
-                        if IsA(Target, "BasePart") then bodyparts = {Target}; end;
+                        if IsA(Target, "BasePart") then
+                            bodyparts = {Target};
+                        end;
                     end;
+
                     local boxwidth, boxheight, boxposx, boxposy, onscreen = Utility.CalculateBox(Target, CharacterObjects.HumanoidRootPart, bodyparts);
                     if not onscreen then
-                        if Objects["TargetHolder"].Visible then Objects["TargetHolder"].Visible = false; end;
+                        if Objects["TargetHolder"].Visible then
+                            Objects["TargetHolder"].Visible = false;
+                        end;
                         lastonscreen = false;
                         return;
                     end;
+
                     local bw = math_floor(boxwidth);
                     local bh = math_floor(boxheight);
                     local bx = math_floor(boxposx);
                     local by = math_floor(boxposy);
+                    
                     local TargetHolder = Objects["TargetHolder"];
-                    if not TargetHolder.Visible then TargetHolder.Visible = true; end;
+
+                    if not TargetHolder.Visible then
+                        TargetHolder.Visible = true;
+                    end;
+
                     if bx ~= lastboxposx or by ~= lastboxposy or bw ~= lastboxwidth or bh ~= lastboxheight then
                         local BoxSize = UDim2_fromOffset(bw, bh);
                         local BoxPosition = UDim2_fromOffset(bx, by);
-                        if TargetHolder.Position ~= BoxPosition then TargetHolder.Position = BoxPosition; end;
-                        if TargetHolder.Size ~= BoxSize then TargetHolder.Size = BoxSize; end;
+
+                        if TargetHolder.Position ~= BoxPosition then
+                            TargetHolder.Position = BoxPosition;
+                        end;
+
+                        if TargetHolder.Size ~= BoxSize then
+                            TargetHolder.Size = BoxSize;
+                        end;
+
                         lastboxwidth = bw; lastboxheight = bh; lastboxposx = bx; lastboxposy = by;
                     end;
+
                     local BoxWidth, BoxHeight, BoxPositionX, BoxPositionY = boxwidth, boxheight, boxposx, boxposy;
                     local BoxSize = UDim2_fromOffset(bw, bh);
                     local BoxOutline, BoxInline, BoxFill, BoxGlow = Objects["BoxOutline"], Objects["BoxInline"], Objects["BoxFill"], Objects["BoxGlow"]; do
-                        local BoxEnabled, BoxColor, BoxTransparency, BoxRotation = esp_settings.BoundingBox.Enabled, esp_settings.BoundingBox.Color, esp_settings.BoundingBox.Transparency, esp_settings.BoundingBox.Rotation;
+                        local BoxEnabled, BoxColor, BoxTransparency, BoxRotation = esp_settings.BoundingBox.Enabled, esp_settings.BoundingBox.Color, esp_settings.BoundingBox.Transparency, esp_settings.BoundingBox.Rotation + esp_settings.BoundingBox.MovingRotation + (os_clock() * esp_settings.BoundingBox.RotationSpeed);
                         if BoxEnabled then
-                            if not BoxOutline.Parent.Visible then BoxOutline.Parent.Visible = true end
+                            if not BoxOutline.Parent.Visible then
+                                BoxOutline.Parent.Visible = true;
+                            end;
+
                             local CachedBoxSize = UDim2_fromOffset(BoxWidth, BoxHeight)
-                            if BoxOutline.Parent.Size ~= CachedBoxSize then BoxOutline.Parent.Size = CachedBoxSize end
-                            if not BoxInline.Parent.Visible then BoxInline.Parent.Visible = true end
-                            local InlineSize = UDim2_fromOffset(BoxWidth + 2, BoxHeight + 2)
-                            if BoxInline.Parent.Size ~= InlineSize then BoxInline.Parent.Size = InlineSize end
+                            if BoxOutline.Parent.Size ~= CachedBoxSize then
+                                BoxOutline.Parent.Size = CachedBoxSize;
+                            end;
+
+                            if not BoxInline.Parent.Visible then
+                                BoxInline.Parent.Visible = true;
+                            end;
+
+                            local InlineSize = UDim2_fromOffset(BoxWidth + 2, BoxHeight + 2);
+
+                            if BoxInline.Parent.Size ~= InlineSize then
+                                BoxInline.Parent.Size = InlineSize;
+                            end
+                            
                             local BoxInlineGradient, BoxOutlineGradient = Objects["BoxInlineGradient"], Objects["BoxOutlineGradient"]; do
                                 if TargetInfo.LastBoxColor1 ~= BoxColor[1] or TargetInfo.LastBoxColor2 ~= BoxColor[2] then
-                                    TargetInfo.LastBoxColor1 = BoxColor[1]
-                                    TargetInfo.LastBoxColor2 = BoxColor[2]
-                                    BoxInlineGradient.Color = ColorSequence_new{ColorSequenceKeypoint_new(0, BoxColor[1]), ColorSequenceKeypoint_new(1, BoxColor[2])}
-                                end
+                                    TargetInfo.LastBoxColor1 = BoxColor[1];
+                                    TargetInfo.LastBoxColor2 = BoxColor[2];
+                                    BoxInlineGradient.Color = ColorSequence_new{
+                                        ColorSequenceKeypoint_new(0, BoxColor[1]), ColorSequenceKeypoint_new(1, BoxColor[2])
+                                    };
+                                end;
+
                                 if TargetInfo.LastBoxTrans1 ~= BoxTransparency[1] or TargetInfo.LastBoxTrans2 ~= BoxTransparency[2] then
-                                    TargetInfo.LastBoxTrans1 = BoxTransparency[1]
-                                    TargetInfo.LastBoxTrans2 = BoxTransparency[2]
-                                    local transSeq = NumberSequence_new{NumberSequenceKeypoint_new(0, BoxTransparency[1]), NumberSequenceKeypoint_new(1, BoxTransparency[2])}
-                                    BoxInlineGradient.Transparency = transSeq
-                                    BoxOutlineGradient.Transparency = transSeq
+                                    TargetInfo.LastBoxTrans1 = BoxTransparency[1];
+                                    TargetInfo.LastBoxTrans2 = BoxTransparency[2];
+                                    local transSeq = NumberSequence_new{
+                                        NumberSequenceKeypoint_new(0, BoxTransparency[1]), NumberSequenceKeypoint_new(1, BoxTransparency[2])
+                                    };
+                                    BoxInlineGradient.Transparency = transSeq;
+                                    BoxOutlineGradient.Transparency = transSeq;
+                                end;
+
+                                if BoxInlineGradient.Rotation ~= BoxRotation then
+                                    BoxInlineGradient.Rotation = BoxRotation;
                                 end
-                                if BoxInlineGradient.Rotation ~= BoxRotation then BoxInlineGradient.Rotation = BoxRotation end
-                                if BoxOutlineGradient.Rotation ~= BoxRotation then BoxOutlineGradient.Rotation = BoxRotation end
-                            end
-                            local BoxGlowGradient = Objects["BoxGlowGradient"]; do
-                                local BoxGlowEnabled, BoxGlowColor, BoxGlowTransparency, BoxGlowRotation = esp_settings.BoundingBox.Glow.Enabled, esp_settings.BoundingBox.Glow.Color, esp_settings.BoundingBox.Glow.Transparency, esp_settings.BoundingBox.Glow.Rotation
+
+                                if BoxOutlineGradient.Rotation ~= BoxRotation then
+                                    BoxOutlineGradient.Rotation = BoxRotation;
+                                end;
+                            end;
+
+                            local BoxGlowGradient = Objects["BoxGlowGradient"];
+                            do
+                                local BoxGlowEnabled, BoxGlowColor, BoxGlowTransparency, BoxGlowRotation = esp_settings.BoundingBox.Glow.Enabled, esp_settings.BoundingBox.Glow.Color, esp_settings.BoundingBox.Glow.Transparency, esp_settings.BoundingBox.Glow.Rotation + esp_settings.BoundingBox.Glow.MovingRotation + (os_clock() * esp_settings.BoundingBox.Glow.RotationSpeed)
                                 if BoxGlowEnabled then
-                                    if BoxGlow.ImageTransparency ~= 0 then BoxGlow.ImageTransparency = 0 end
-                                    if BoxGlowGradient.Rotation ~= BoxGlowRotation then BoxGlowGradient.Rotation = BoxGlowRotation end
+                                    if BoxGlow.ImageTransparency ~= 0 then
+                                        BoxGlow.ImageTransparency = 0;
+                                    end;
+                                    if BoxGlowGradient.Rotation ~= BoxGlowRotation then
+                                        BoxGlowGradient.Rotation = BoxGlowRotation;
+                                    end;
+
                                     if TargetInfo.LastGlowColor1 ~= BoxGlowColor[1] or TargetInfo.LastGlowColor2 ~= BoxGlowColor[2] then
-                                        TargetInfo.LastGlowColor1 = BoxGlowColor[1]
-                                        TargetInfo.LastGlowColor2 = BoxGlowColor[2]
-                                        BoxGlowGradient.Color = ColorSequence_new{ColorSequenceKeypoint_new(0, BoxGlowColor[1]), ColorSequenceKeypoint_new(1, BoxGlowColor[2])}
+                                        TargetInfo.LastGlowColor1 = BoxGlowColor[1];
+                                        TargetInfo.LastGlowColor2 = BoxGlowColor[2];
+                                        BoxGlowGradient.Color = ColorSequence_new{
+                                            ColorSequenceKeypoint_new(0, BoxGlowColor[1]), ColorSequenceKeypoint_new(1, BoxGlowColor[2])
+                                        };
                                     end
+
                                     if TargetInfo.LastGlowTrans1 ~= BoxGlowTransparency[1] or TargetInfo.LastGlowTrans2 ~= BoxGlowTransparency[2] then
-                                        TargetInfo.LastGlowTrans1 = BoxGlowTransparency[1]
-                                        TargetInfo.LastGlowTrans2 = BoxGlowTransparency[2]
-                                        BoxGlowGradient.Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, BoxGlowTransparency[1]), NumberSequenceKeypoint_new(1, BoxGlowTransparency[2])}
-                                    end
+                                        TargetInfo.LastGlowTrans1 = BoxGlowTransparency[1];
+                                        TargetInfo.LastGlowTrans2 = BoxGlowTransparency[2];
+                                        BoxGlowGradient.Transparency = NumberSequence_new{
+                                            NumberSequenceKeypoint_new(0, BoxGlowTransparency[1]), NumberSequenceKeypoint_new(1, BoxGlowTransparency[2])
+                                        };
+                                    end;
                                 else
-                                    if BoxGlow.ImageTransparency ~= 1 then BoxGlow.ImageTransparency = 1 end
+                                    if BoxGlow.ImageTransparency ~= 1 then
+                                        BoxGlow.ImageTransparency = 1;
+                                    end;
+                                end;
+                            end;
+
+                            local BoxFillGradient = Objects["BoxFillGradient"];
+                            do
+                                local BoxFillColor, BoxFillTransparency, BoxFillRotation = esp_settings.BoundingBox.Fill.Color, esp_settings.BoundingBox.Fill.Transparency, esp_settings.BoundingBox.Fill.Rotation + esp_settings.BoundingBox.Fill.MovingRotation + (os_clock() * esp_settings.BoundingBox.Fill.RotationSpeed)
+                                if BoxFill.Visible ~= esp_settings.BoundingBox.Fill.Enabled then
+                                    BoxFill.Visible = esp_settings.BoundingBox.Fill.Enabled;
+                                end;
+                                if BoxFill.Size ~= CachedBoxSize then
+                                    BoxFill.Size = CachedBoxSize;
                                 end
-                            end
-                            local BoxFillGradient = Objects["BoxFillGradient"]; do
-                                local BoxFillColor, BoxFillTransparency, BoxFillRotation = esp_settings.BoundingBox.Fill.Color, esp_settings.BoundingBox.Fill.Transparency, esp_settings.BoundingBox.Fill.Rotation
-                                if BoxFill.Visible ~= esp_settings.BoundingBox.Fill.Enabled then BoxFill.Visible = esp_settings.BoundingBox.Fill.Enabled end
-                                if BoxFill.Size ~= CachedBoxSize then BoxFill.Size = CachedBoxSize end
-                                if BoxFillGradient.Rotation ~= BoxFillRotation then BoxFillGradient.Rotation = BoxFillRotation end
+                                if BoxFillGradient.Rotation ~= BoxFillRotation then
+                                    BoxFillGradient.Rotation = BoxFillRotation;
+                                end
                                 if TargetInfo.LastFillColor1 ~= BoxFillColor[1] or TargetInfo.LastFillColor2 ~= BoxFillColor[2] then
-                                    TargetInfo.LastFillColor1 = BoxFillColor[1]
-                                    TargetInfo.LastFillColor2 = BoxFillColor[2]
-                                    BoxFillGradient.Color = ColorSequence_new{ColorSequenceKeypoint_new(0, BoxFillColor[1]), ColorSequenceKeypoint_new(1, BoxFillColor[2])}
-                                end
+                                    TargetInfo.LastFillColor1 = BoxFillColor[1];
+                                    TargetInfo.LastFillColor2 = BoxFillColor[2];
+                                    BoxFillGradient.Color = ColorSequence_new{
+                                        ColorSequenceKeypoint_new(0, BoxFillColor[1]), ColorSequenceKeypoint_new(1, BoxFillColor[2])
+                                    }
+                                end;
                                 if TargetInfo.LastFillTrans1 ~= BoxFillTransparency[1] or TargetInfo.LastFillTrans2 ~= BoxFillTransparency[2] then
-                                    TargetInfo.LastFillTrans1 = BoxFillTransparency[1]
-                                    TargetInfo.LastFillTrans2 = BoxFillTransparency[2]
-                                    BoxFillGradient.Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, BoxFillTransparency[1]), NumberSequenceKeypoint_new(1, BoxFillTransparency[2])}
-                                end
-                            end
+                                    TargetInfo.LastFillTrans1 = BoxFillTransparency[1];
+                                    TargetInfo.LastFillTrans2 = BoxFillTransparency[2];
+                                    BoxFillGradient.Transparency = NumberSequence_new{
+                                        NumberSequenceKeypoint_new(0, BoxFillTransparency[1]), NumberSequenceKeypoint_new(1, BoxFillTransparency[2])
+                                    };
+                                end;
+                            end;
                         else
-                            if BoxGlow.ImageTransparency ~= 1 then BoxGlow.ImageTransparency = 1 end
-                            if BoxOutline.Parent.Visible then BoxOutline.Parent.Visible = false end
-                            if BoxInline.Parent.Visible then BoxInline.Parent.Visible = false end
-                            if BoxFill.Visible then BoxFill.Visible = false end
-                        end
-                    end
-                    for BarName, BarInfo in pairs(esp_settings.Bars or {}) do
+                            if BoxGlow.ImageTransparency ~= 1 then
+                                BoxGlow.ImageTransparency = 1;
+                            end;
+
+                            if BoxOutline.Parent.Visible then
+                                BoxOutline.Parent.Visible = false;
+                            end;
+                            if BoxInline.Parent.Visible then
+                                BoxInline.Parent.Visible = false;
+                            end
+                            if BoxFill.Visible then
+                                BoxFill.Visible = false;
+                            end;
+                        end;
+                    end;
+
+                    for BarName, BarInfo in pairs(esp_settings.Bars) do
                         local Bar, BarOutline, BarGradient = Objects[BarName], Objects[BarName .. "Outline"], Objects[BarName .. "Gradient"]; do
                             local BarEnabled, BarColor, BarTransparency = BarInfo.Enabled, BarInfo.Color, BarInfo.Transparency
                             local Position = BarInfo.Position
                             local NewParent = Objects[Position .. "BarHolder"]
                             if BarEnabled and IsA(Target, "Player") then
                                 local BarValue = BarInfo.Type(Target, TargetInfo)
-                                if not NewParent.Visible then NewParent.Visible = true end
-                                local isVertical = (Position == "Left" or Position == "Right")
-                                local barSize = isVertical and UDim2_new(0, 1, BarValue, 0) or UDim2_new(BarValue, 0, 0, 1)
-                                local outlineSize = isVertical and UDim2_new(0, 1, 1, 0) or UDim2_new(1, 0, 0, 1)
-                                local gradRot = isVertical and 90 or -180
-                                local gradOff = isVertical and Vector2_new(0, BarValue - 1) or Vector2_new(1 - BarValue, 0)
-                                local barAnchor = isVertical and Vector2_new(0, 1) or Vector2_new(0, 0)
-                                local barPos = isVertical and UDim2_new(0, 0, 1, 0) or UDim2_new(0, 0, 0, 0)
-                                if Bar.AnchorPoint ~= barAnchor then Bar.AnchorPoint = barAnchor end
-                                if Bar.Position ~= barPos then Bar.Position = barPos end
-                                if Bar.Size ~= barSize then Bar.Size = barSize end
-                                if BarOutline.Parent ~= NewParent then BarOutline.Parent = NewParent end
-                                if BarOutline.Size ~= outlineSize then BarOutline.Size = outlineSize end
-                                if BarGradient.Rotation ~= gradRot then BarGradient.Rotation = gradRot end
-                                if BarGradient.Offset ~= gradOff then BarGradient.Offset = gradOff end
+                                if not NewParent.Visible then
+                                    NewParent.Visible = true;
+                                end;
+
+                                local visualBarValue = TargetInfo[BarName .. "VisualValue"] or BarValue;
+                                visualBarValue = visualBarValue + (BarValue - visualBarValue) * math.clamp(deltaTime * 5, 0, 1);
+                                TargetInfo[BarName .. "VisualValue"] = visualBarValue;
+
+                                local isVertical = (Position == "Left" or Position == "Right");
+                                local barSize = isVertical and UDim2_new(0, 1, visualBarValue, 0) or UDim2_new(visualBarValue, 0, 0, 1);
+                                local outlineSize = barSize;
+                                local gradRot = (isVertical and 90 or -180) + BarInfo.MovingRotation + (os_clock() * BarInfo.RotationSpeed);
+                                local gradOff = isVertical and Vector2_new(0, visualBarValue - 1) or Vector2_new(1 - visualBarValue, 0);
+                                local barAnchor = isVertical and Vector2_new(0, 1) or Vector2_new(0, 0);
+                                local barPos = isVertical and UDim2_new(0, 0, 1, 0) or UDim2_new(0, 0, 0, 0);
+
+                                if not BarOutline.Visible then
+                                    BarOutline.Visible = true;
+                                end;
+
+                                if Bar.AnchorPoint ~= barAnchor then
+                                    Bar.AnchorPoint = barAnchor;
+                                end;
+
+                                if Bar.Position ~= barPos then
+                                    Bar.Position = barPos;
+                                end;
+
+                                if Bar.Size ~= UDim2_new(1, 0, 1, 0) then
+                                    Bar.Size = UDim2_new(1, 0, 1, 0);
+                                end;
+
+                                if BarOutline.Parent ~= NewParent then
+                                    BarOutline.Parent = NewParent;
+                                end;
+
+                                if BarOutline.Size ~= outlineSize then
+                                    BarOutline.Size = outlineSize;
+                                end;
+
+
+                                if BarGradient.Rotation ~= gradRot then
+                                    BarGradient.Rotation = gradRot;
+                                end;
+
+                                if BarGradient.Offset ~= gradOff then
+                                    BarGradient.Offset = gradOff;
+                                end;
+
                                 if TargetInfo[BarName.."LastColor1"] ~= BarColor[1] or TargetInfo[BarName.."LastColor2"] ~= BarColor[2] or TargetInfo[BarName.."LastColor3"] ~= BarColor[3] then
-                                    TargetInfo[BarName.."LastColor1"] = BarColor[1]
-                                    TargetInfo[BarName.."LastColor2"] = BarColor[2]
-                                    TargetInfo[BarName.."LastColor3"] = BarColor[3]
+                                    TargetInfo[BarName.."LastColor1"] = BarColor[1];
+                                    TargetInfo[BarName.."LastColor2"] = BarColor[2];
+                                    TargetInfo[BarName.."LastColor3"] = BarColor[3];
                                     BarGradient.Color = ColorSequence_new{
-                                        ColorSequenceKeypoint_new(0, BarColor[1]), ColorSequenceKeypoint_new(0, BarColor[2]), ColorSequenceKeypoint_new(1, BarColor[3]) }
-                                end
+                                        ColorSequenceKeypoint_new(0, BarColor[1]), ColorSequenceKeypoint_new(0, BarColor[2]), ColorSequenceKeypoint_new(1, BarColor[3])
+                                    };
+                                end;
                             else
-                                if NewParent.Visible then NewParent.Visible = false end
-                            end
-                        end
-                        local BarText = Objects[BarName .. "Text"]; do
-                            local BarTextEnabled, BarTextColor, BarTextTransparency = BarInfo.Text.Enabled, BarInfo.Text.Color, BarInfo.Text.Transparency
-                            local TextPosition = BarInfo.Text.Position
+                                if NewParent.Visible then
+                                    NewParent.Visible = false;
+                                end;
+                            end;
+                        end;
+
+                        local BarText = Objects[BarName .. "Text"];
+                        do
+                            local BarTextEnabled, BarTextColor, BarTextTransparency = BarInfo.Text.Enabled, BarInfo.Text.Color, BarInfo.Text.Transparency;
+                            local TextPosition = BarInfo.Text.Position;
                             if BarTextEnabled and IsA(Target, "Player") then
-                                local TextValue, TextVisible = BarInfo.Text.Type(Target, TargetInfo)
-                                local newText = tostring(math_floor(TextValue)) .. BarInfo.Text.Ending
-                                if BarText.Text ~= newText then BarText.Text = newText end
-                                if BarText.TextColor3 ~= BarTextColor then BarText.TextColor3 = BarTextColor end
-                                if BarText.TextTransparency ~= BarTextTransparency then BarText.TextTransparency = BarTextTransparency end
-                                if BarText.UIStroke.Transparency ~= BarTextTransparency then BarText.UIStroke.Transparency = BarTextTransparency end
+                                local TextValue, TextVisible = BarInfo.Text.Type(Target, TargetInfo);
+                                local newText = tostring(math_floor(TextValue)) .. BarInfo.Text.Ending;
+                                
+                                if BarText.Text ~= newText then
+                                    BarText.Text = newText;
+                                end;
+                                
+                                if BarText.TextColor3 ~= BarTextColor then
+                                    BarText.TextColor3 = BarTextColor;
+                                end;
+                                
+                                if BarText.TextTransparency ~= BarTextTransparency then
+                                    BarText.TextTransparency = BarTextTransparency;
+                                end;
+                                
+                                if BarText.UIStroke.Transparency ~= BarTextTransparency then
+                                    BarText.UIStroke.Transparency = BarTextTransparency;
+                                end;
+                                
                                 if BarInfo.Text.FollowBar then
-                                    if BarText.Visible ~= TextVisible then BarText.Visible = TextVisible end
-                                    if BarText.Parent ~= Bar then BarText.Parent = Bar end
-                                    if BarText.ZIndex ~= 10 then BarText.ZIndex = 10 end
-                                    local align = (BarInfo.Position == "Left" or BarInfo.Position == "Right") and Enum.TextXAlignment.Center or Enum.TextXAlignment.Right
-                                    local anchor = (BarInfo.Position == "Left" or BarInfo.Position == "Right") and Vector2_new(0.5, 0) or Vector2_new(0, 0.5)
-                                    if BarText.TextXAlignment ~= align then BarText.TextXAlignment = align end
-                                    if BarText.AnchorPoint ~= anchor then BarText.AnchorPoint = anchor end
-                                end
+                                    if BarText.Visible ~= TextVisible then
+                                        BarText.Visible = TextVisible;
+                                    end;
+                                    
+                                    if BarText.Parent ~= Bar then
+                                        BarText.Parent = Bar;
+                                    end;
+                                    
+                                    if BarText.ZIndex ~= 10 then
+                                        BarText.ZIndex = 10;
+                                    end;
+                                    
+                                    local align = (BarInfo.Position == "Left" or BarInfo.Position == "Right") and Enum.TextXAlignment.Center or Enum.TextXAlignment.Right;
+                                    local anchor = (BarInfo.Position == "Left" or BarInfo.Position == "Right") and Vector2_new(0.5, 0) or Vector2_new(0, 0.5);
+                                    
+                                    if BarText.TextXAlignment ~= align then
+                                        BarText.TextXAlignment = align;
+                                    end;
+
+                                    if BarText.AnchorPoint ~= anchor then
+                                        BarText.AnchorPoint = anchor;
+                                    end;
+                                end;
+
                                 if not BarInfo.Text.FollowBar then
-                                    if not BarText.Visible then BarText.Visible = true end
-                                    local newParent = Objects[TextPosition .. "TextHolder"]
-                                    if BarText.Parent ~= newParent then BarText.Parent = newParent end
+                                    if not BarText.Visible then
+                                        BarText.Visible = true;
+                                    end;
+
+                                    local newParent = Objects[TextPosition .. "TextHolder"];
+                                    if BarText.Parent ~= newParent then
+                                        BarText.Parent = newParent;
+                                    end;
+
                                     local align = TextAlignments[TextPosition]
-                                    if BarText.TextXAlignment ~= align then BarText.TextXAlignment = align end
-                                    if BarText.AnchorPoint ~= Vector2_new(0, 0) then BarText.AnchorPoint = Vector2_new(0, 0) end
-                                end
+                                    if BarText.TextXAlignment ~= align then
+                                        BarText.TextXAlignment = align;
+                                    end;
+
+                                    if BarText.AnchorPoint ~= Vector2_new(0, 0) then
+                                        BarText.AnchorPoint = Vector2_new(0, 0);
+                                    end;
+                                end;
                             else
-                                if BarText.Visible then BarText.Visible = false end
-                            end
-                        end
-                    end
-                    local NameText = Objects["TargetName"]; do
+                                if BarText.Visible then
+                                    BarText.Visible = false;
+                                end;
+                            end;
+                        end;
+                    end;
+
+                    local NameText = Objects["TargetName"];
+                    do
+                        if NameText.FontFace ~= ESP.Font then
+                            NameText.FontFace = ESP.Font;
+                        end;
                         local NameEnabled, NameColor, NameTransparency = esp_settings.Name.Enabled, esp_settings.Name.Color, esp_settings.Name.Transparency
                         if NameEnabled then
                             TargetInfo.TargetName = Utility.GetFontType(esp_settings.Name.UseDisplay and (IsA(Target, "Player") and Target.DisplayName or Target.Name) or Target.Name)
                             local newText = TargetInfo.TargetName
                             local newParent = Objects[esp_settings.Name.Position .. "TextHolder"]
-                            if not NameText.Visible then NameText.Visible = true end
-                            if NameText.Text ~= newText then NameText.Text = newText end
-                            if NameText.TextXAlignment ~= TextAlignments[esp_settings.Name.Position] then NameText.TextXAlignment = TextAlignments[esp_settings.Name.Position] end
-                            if NameText.Parent ~= newParent then NameText.Parent = newParent end
-                            if NameText.TextColor3 ~= NameColor then NameText.TextColor3 = NameColor end
-                            if NameText.TextTransparency ~= NameTransparency then NameText.TextTransparency = NameTransparency end
-                            if NameText.UIStroke.Transparency ~= NameTransparency then NameText.UIStroke.Transparency = NameTransparency end
+                            if not NameText.Visible then
+                                NameText.Visible = true;
+                            end;
+
+                            if NameText.Text ~= newText then
+                                NameText.Text = newText;
+                            end;
+
+                            if NameText.TextXAlignment ~= TextAlignments[esp_settings.Name.Position] then
+                                NameText.TextXAlignment = TextAlignments[esp_settings.Name.Position];
+                            end;
+
+                            if NameText.Parent ~= newParent then
+                                NameText.Parent = newParent;
+                            end;
+
+                            if NameText.TextColor3 ~= NameColor then
+                                NameText.TextColor3 = NameColor;
+                            end;
+
+                            if NameText.TextTransparency ~= NameTransparency then
+                                NameText.TextTransparency = NameTransparency;
+                            end;
+                            
+                            if NameText.UIStroke.Transparency ~= NameTransparency then
+                                NameText.UIStroke.Transparency = NameTransparency;
+                            end;
                         else
-                            if NameText.Visible then NameText.Visible = false end
-                        end
-                    end
+                            if NameText.Visible then
+                                NameText.Visible = false;
+                            end;
+                        end;
+                    end;
+
                     local DistanceText = Objects["Distance"]; do
+                        if DistanceText.FontFace ~= ESP.Font then
+                            DistanceText.FontFace = ESP.Font;
+                        end;
                         local DistanceEnabled, DistanceColor, DistanceTransparency = esp_settings.Distance.Enabled, esp_settings.Distance.Color, esp_settings.Distance.Transparency;
                         if DistanceEnabled then
                             local roundeddistance = math_floor(distance);
+
                             if TargetInfo.LastDistanceValue ~= roundeddistance then
                                 TargetInfo.LastDistanceValue = roundeddistance;
                                 TargetInfo.LastDistanceText = tostring(roundeddistance) .. TargetInfo.DistanceEnding;
-                            end
-                            local newText = TargetInfo.LastDistanceText
-                            local newParent = Objects[esp_settings.Distance.Position .. "TextHolder"]
-                            if not DistanceText.Visible then DistanceText.Visible = true end
-                            if DistanceText.TextXAlignment ~= TextAlignments[esp_settings.Distance.Position] then DistanceText.TextXAlignment = TextAlignments[esp_settings.Distance.Position] end
-                            if DistanceText.Parent ~= newParent then DistanceText.Parent = newParent end
-                            if DistanceText.TextColor3 ~= DistanceColor then DistanceText.TextColor3 = DistanceColor end
-                            if DistanceText.TextTransparency ~= DistanceTransparency then DistanceText.TextTransparency = DistanceTransparency end
-                            if DistanceText.UIStroke.Transparency ~= DistanceTransparency then DistanceText.UIStroke.Transparency = DistanceTransparency end
-                            if DistanceText.Text ~= newText then DistanceText.Text = newText end
+                            end;
+
+                            local newText = TargetInfo.LastDistanceText;
+                            local newParent = Objects[esp_settings.Distance.Position .. "TextHolder"];
+                            
+                            if not DistanceText.Visible then
+                                DistanceText.Visible = true;
+                            end;
+
+                            if DistanceText.TextXAlignment ~= TextAlignments[esp_settings.Distance.Position] then
+                                DistanceText.TextXAlignment = TextAlignments[esp_settings.Distance.Position];
+                            end;
+
+                            if DistanceText.Parent ~= newParent then
+                                DistanceText.Parent = newParent;
+                            end;
+
+                            if DistanceText.TextColor3 ~= DistanceColor then
+                                DistanceText.TextColor3 = DistanceColor;
+                            end;
+
+                            if DistanceText.TextTransparency ~= DistanceTransparency then
+                                DistanceText.TextTransparency = DistanceTransparency;
+                            end;
+
+                            if DistanceText.UIStroke.Transparency ~= DistanceTransparency then
+                                DistanceText.UIStroke.Transparency = DistanceTransparency;
+                            end;
+
+                            if DistanceText.Text ~= newText then
+                                DistanceText.Text = newText;
+                            end;
                         else
-                            if DistanceText.Visible then DistanceText.Visible = false end
-                        end
-                    end
-                    local WeaponText = Objects["Weapon"]; do
+                            if DistanceText.Visible then
+                                DistanceText.Visible = false;
+                            end;
+                        end;
+                    end;
+
+                    local WeaponText = Objects["Weapon"];
+                    do
                         local WeaponEnabled, WeaponColor, WeaponTransparency = esp_settings.Weapon.Enabled, esp_settings.Weapon.Color, esp_settings.Weapon.Transparency
                         if IsA(Target, "Player") and WeaponEnabled then
                             local newText = TargetInfo.CurrentTool
-                            local newParent = Objects[esp_settings.Weapon.Position .. "TextHolder"]
-                            if not WeaponText.Visible then WeaponText.Visible = true end
-                            if WeaponText.TextXAlignment ~= TextAlignments[esp_settings.Weapon.Position] then WeaponText.TextXAlignment = TextAlignments[esp_settings.Weapon.Position] end
-                            if WeaponText.Parent ~= newParent then WeaponText.Parent = newParent end
-                            if WeaponText.TextColor3 ~= WeaponColor then WeaponText.TextColor3 = WeaponColor end
-                            if WeaponText.TextTransparency ~= WeaponTransparency then WeaponText.TextTransparency = WeaponTransparency end
-                            if WeaponText.UIStroke.Transparency ~= WeaponTransparency then WeaponText.UIStroke.Transparency = WeaponTransparency end
-                            if WeaponText.Text ~= newText then WeaponText.Text = newText end
+                            local newParent = Objects[esp_settings.Weapon.Position .. "TextHolder"];
+                            if not WeaponText.Visible then
+                                WeaponText.Visible = true;
+                            end;
+
+                            if WeaponText.TextXAlignment ~= TextAlignments[esp_settings.Weapon.Position] then
+                                WeaponText.TextXAlignment = TextAlignments[esp_settings.Weapon.Position];
+                            end;
+
+                            if WeaponText.Parent ~= newParent then
+                                WeaponText.Parent = newParent;
+                            end;
+                            
+                            if WeaponText.TextColor3 ~= WeaponColor then
+                                WeaponText.TextColor3 = WeaponColor;
+                            end;
+
+                            if WeaponText.TextTransparency ~= WeaponTransparency then
+                                WeaponText.TextTransparency = WeaponTransparency;
+                            end;
+
+                            if WeaponText.UIStroke.Transparency ~= WeaponTransparency then
+                                WeaponText.UIStroke.Transparency = WeaponTransparency;
+                            end;
+
+                            if WeaponText.Text ~= newText then
+                                WeaponText.Text = newText;
+                            end;
                         else
-                            if WeaponText.Visible then WeaponText.Visible = false end
-                        end
-                    end
-                    local FlagsText = Objects["Flags"]; do
+                            if WeaponText.Visible then
+                                WeaponText.Visible = false;
+                            end;
+                        end;
+                    end;
+
+                    local FlagsText = Objects["Flags"];
+                    do
                         local FlagsEnabled, FlagsColor, FlagsTransparency = esp_settings.Flags.Enabled, esp_settings.Flags.Color, esp_settings.Flags.Transparency
                         if FlagsEnabled then
                             local newText = esp_settings.Flags.Type(Target, TargetInfo)
                             local newParent = Objects[esp_settings.Flags.Position .. "TextHolder"]
-                            if not FlagsText.Visible then FlagsText.Visible = true end
-                            if FlagsText.TextXAlignment ~= TextAlignments[esp_settings.Flags.Position] then FlagsText.TextXAlignment = TextAlignments[esp_settings.Flags.Position] end
-                            if FlagsText.Parent ~= newParent then FlagsText.Parent = newParent end
-                            if FlagsText.TextColor3 ~= FlagsColor then FlagsText.TextColor3 = FlagsColor end
-                            if FlagsText.TextTransparency ~= FlagsTransparency then FlagsText.TextTransparency = FlagsTransparency end
-                            if FlagsText.UIStroke.Transparency ~= FlagsTransparency then FlagsText.UIStroke.Transparency = FlagsTransparency end
-                            if FlagsText.Text ~= newText then FlagsText.Text = newText end
+                            
+                            if not FlagsText.Visible then
+                                FlagsText.Visible = true;
+                            end;
+
+                            if FlagsText.TextXAlignment ~= TextAlignments[esp_settings.Flags.Position] then
+                                FlagsText.TextXAlignment = TextAlignments[esp_settings.Flags.Position];
+                            end;
+
+                            if FlagsText.Parent ~= newParent then
+                                FlagsText.Parent = newParent;
+                            end;
+
+                            if FlagsText.TextColor3 ~= FlagsColor then
+                                FlagsText.TextColor3 = FlagsColor;
+                            end;
+
+                            if FlagsText.TextTransparency ~= FlagsTransparency then
+                                FlagsText.TextTransparency = FlagsTransparency;
+                            end;
+
+                            if FlagsText.UIStroke.Transparency ~= FlagsTransparency then
+                                FlagsText.UIStroke.Transparency = FlagsTransparency;
+                            end;
+
+                            if FlagsText.Text ~= newText then
+                                FlagsText.Text = newText;
+                            end;
                         else
-                            if FlagsText.Visible then FlagsText.Visible = false end
-                        end
-                    end
-                end
+                            if FlagsText.Visible then
+                                FlagsText.Visible = false;
+                            end;
+                        end;
+                    end;
+                end;
+
                 function TargetInfo.Remove()
-                    for _, Object in pairs(Objects or {}) do Object:Destroy() end
+                    for _, Object in pairs(Objects) do
+                        Object:Destroy();
+                    end;
                     if TargetInfo.CharacterConnection then
-                        TargetInfo.CharacterConnection:Disconnect()
-                        TargetInfo.CharacterConnection = nil
-                    end
+                        TargetInfo.CharacterConnection:Disconnect();
+                        TargetInfo.CharacterConnection = nil;
+                    end;
                     if ToolConnection.Added then
-                        ToolConnection.Added:Disconnect()
-                        ToolConnection.Added = nil
-                    end
+                        ToolConnection.Added:Disconnect();
+                        ToolConnection.Added = nil;
+                    end;
                     if ToolConnection.Removed then
-                        ToolConnection.Removed:Disconnect()
-                        ToolConnection.Removed = nil
-                    end
-                    ESP.Targets[Target] = nil
-                end
-            end
-            TargetInfo.Init()
-        end
-        function ESP.RemoveTarget(NewTarget) for Target, TargetInfo in pairs(ESP.Targets or {}) do if Target == NewTarget then TargetInfo.Remove() end end end
+                        ToolConnection.Removed:Disconnect();
+                        ToolConnection.Removed = nil;
+                    end;
+                    ESP.Targets[Target] = nil;
+                end;
+            end;
+            TargetInfo.Init();
+        end;
+
+        function ESP.RemoveTarget(NewTarget)
+            for Target, TargetInfo in pairs(ESP.Targets) do
+                if Target == NewTarget then
+                    TargetInfo.Remove();
+                end;
+            end;
+        end;
+
         function ESP.AddUtility(Target, UtilityName, OptionName)
-            if ESP.Utilities[Target] then return end
+            if ESP.Utilities[Target] then return; end;
             local Info = {
-                Objects = {}, Option = OptionName; Name = UtilityName; }
-            local Objects = Info.Objects
-            local ESPFont = ESP.Font
-            local ESPFontSize = esp_settings.FontSize
-            local ESPHolder = ESP.Holder
+                Objects = {};
+                Option = OptionName;
+                Name = UtilityName;
+            };
+
+            local Objects = Info.Objects;
+            local ESPFont = ESP.Font;
+            local ESPFontSize = esp_settings.FontSize;
+            local ESPHolder = ESP.Holder;
+
             function Info.Init()
                 Objects["TargetHolder"] = Utility.CreateObject("Frame", {Parent = ESPHolder, Visible = false, BackgroundTransparency = 1, Size = UDim2_new(0, 0, 0, 0)})
                 Objects["BoxOutline"] = Utility.CreateObject("UIStroke", {Parent = Objects["TargetHolder"], Thickness = 2, LineJoinMode = Enum.LineJoinMode.Miter})
-                Objects["TargetName"] = Utility.CreateObject("TextLabel", {
-                    Parent = Objects["TargetHolder"], FontFace = ESPFont, TextSize = ESPFontSize, TextColor3 = Color3.new(1,1,1), Text = UtilityName, AnchorPoint = Vector2_new(0.5, 1), Position = UDim2_fromScale(0.5, 0), Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.XY }); 
+                Objects["BoxFill"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], Visible = false, BackgroundColor3 = Color3.new(1,1,1), BackgroundTransparency = 0.5, Size = UDim2_fromScale(1, 1), BorderSizePixel = 0})
+                Objects["TargetName"] = Utility.CreateObject("TextLabel", {Parent = Objects["TargetHolder"], FontFace = ESPFont, TextSize = ESPFontSize, TextColor3 = Color3.new(1,1,1), Text = UtilityName, AnchorPoint = Vector2_new(0.5, 1), Position = UDim2_fromScale(0.5, 0), Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.XY }); 
                 Utility.CreateObject("UIStroke", {Parent = Objects["TargetName"], Color = Color3_fromRGB(0, 0, 0)})
-                Objects["Distance"] = Utility.CreateObject("TextLabel", {
-                    Parent = Objects["TargetHolder"], FontFace = ESPFont, TextSize = ESPFontSize, TextColor3 = Color3.new(1,1,1), Text = "", AnchorPoint = Vector2_new(0.5, 0), Position = UDim2_fromScale(0.5, 1), Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.XY }); 
+                Objects["Distance"] = Utility.CreateObject("TextLabel", {Parent = Objects["TargetHolder"], FontFace = ESPFont, TextSize = ESPFontSize, TextColor3 = Color3.new(1,1,1), Text = "", AnchorPoint = Vector2_new(0.5, 0), Position = UDim2_fromScale(0.5, 1), Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.XY }); 
                 Utility.CreateObject("UIStroke", {Parent = Objects["Distance"], Color = Color3_fromRGB(0, 0, 0)})
-                ESP.Utilities[Target] = Info
-            end
+                ESP.Utilities[Target] = Info;
+            end;
+
             function Info.Update()
                 local toggle = Classes[Info.Option];
                 if not toggle or not toggle.Value then 
                     Objects["TargetHolder"].Visible = false;
                     return;
                 end;
+                
                 local colorOption = Classes[Info.Option .. "Color"];
                 local color = colorOption and colorOption.Value or Color3.new(1,1,1);
                 local rootpos = Target:IsA("Model") and (Target.PrimaryPart and Target.PrimaryPart.Position or Target:GetPivot().Position) or (Target:IsA("BasePart") and Target.Position or nil)
@@ -7750,59 +8692,109 @@ local function esp1()
                     Info.Remove();
                     return;
                 end;
+
                 local distance = (Camera.CFrame.Position - rootpos).Magnitude;
-                if distance > esp_settings.MaxDistance then Objects["TargetHolder"].Visible = false; return; end;
+                if distance > esp_settings.MaxDistance then
+                    Objects["TargetHolder"].Visible = false;
+                    return;
+                end;
+
                 local pos, onscreen = WorldToViewportPoint(Camera, rootpos);
                 if onscreen then
                     local size = (WorldToViewportPoint(Camera, rootpos - vector3_new(0, 2, 0)).Y - WorldToViewportPoint(Camera, rootpos + vector3_new(0, 2, 0)).Y) / 2
                     size = math_abs(size);
-                    if size < 5 then size = 5 end;
+                    if size < 5 then
+                        size = 5;
+                    end;
                     Objects["TargetHolder"].Visible = true;
                     Objects["TargetHolder"].Position = UDim2_fromOffset(pos.X - size/2, pos.Y - size/2);
                     Objects["TargetHolder"].Size = UDim2_fromOffset(size, size);
                     Objects["BoxOutline"].Color = color;
                     Objects["TargetName"].TextColor3 = color;
-                    Objects["Distance"].TextColor3 = color;
+
+                    local fillToggle = Classes[Info.Option .. "Fill"];
+                    local fillColorOption = Classes[Info.Option .. "FillColor"];
+                    Objects["BoxFill"].Visible = fillToggle and fillToggle.Value or false;
+                    Objects["BoxFill"].BackgroundColor3 = fillColorOption and fillColorOption.Value or color;
+
+                    local distanceToggle = Classes[Info.Option .. "Distance"];
+                    local distanceColorOption = Classes[Info.Option .. "DistanceColor"];
+                    Objects["Distance"].Visible = distanceToggle and distanceToggle.Value or false;
+                    Objects["Distance"].TextColor3 = distanceColorOption and distanceColorOption.Value or color;
                     Objects["Distance"].Text = math_floor(distance) .. "st";
                 else
                     Objects["TargetHolder"].Visible = false;
                 end;
             end
+
             function Info.Remove()
-                for _, obj in pairs(Objects or {}) do pcall(function() obj:Destroy() end) end
-                ESP.Utilities[Target] = nil
-            end
-            Info.Init()
-        end
-        function ESP.RemoveUtility(Target) if ESP.Utilities[Target] then ESP.Utilities[Target].Remove() end end
+                for _, obj in pairs(Objects) do
+                    pcall(function()
+                        obj:Destroy();
+                    end);
+                end;
+                ESP.Utilities[Target] = nil;
+            end;
+            Info.Init();
+        end;
+
+        function ESP.RemoveUtility(Target)
+            if ESP.Utilities[Target] then
+                ESP.Utilities[Target].Remove();
+            end;
+        end;
+
         function ESP.Unload()
-            for _, Connection in pairs(ESP.Connections or {}) do Connection:Disconnect() end
-            for _, Object in pairs(ESP.Objects or {}) do Object:Destroy() end
-            Fonts = nil
-        end
-    end
+            for _, Connection in pairs(ESP.Connections) do
+                Connection:Disconnect();
+            end;
+            for _, Object in pairs(ESP.Objects) do
+                Object:Destroy();
+            end;
+            Fonts = nil;
+        end;
+    end;
+
     do
-        for _, Player in pairs(Players:GetPlayers() or {}) do ESP.AddTarget(Player) end
-        Utility.AddConnection(Players.PlayerAdded, LPH_JIT(function(Player) ESP.AddTarget(Player) end))
-        Utility.AddConnection(Players.PlayerRemoving, LPH_JIT(function(Player) ESP.RemoveTarget(Player) end))
+        for _, Player in pairs(Players:GetPlayers()) do
+            ESP.AddTarget(Player);
+        end;
+
+        Utility.AddConnection(Players.PlayerAdded, LPH_JIT(function(Player)
+            ESP.AddTarget(Player);
+        end));
+
+        Utility.AddConnection(Players.PlayerRemoving, LPH_JIT(function(Player)
+            ESP.RemoveTarget(Player);
+        end));
         
         local function check_util(util)
-            if util.Name == "PlacedClaymore" then ESP.AddUtility(util, "Claymore", "Claymore")
-            elseif util.Name == "utility7Proxy" then ESP.AddUtility(util, "C4", "C4")
-            elseif util.Name == "utility5Proxy" then ESP.AddUtility(util, "Grenade", "Grenade")
-            elseif util.Name == "OpenBearTrap" then ESP.AddUtility(util, "Bear Trap", "Beartrap") end
-        end
-        local Map = workspace:FindFirstChild("Map")
-        local EffectsJunk = workspace:FindFirstChild("EffectsJunk")
+            if util.Name == "PlacedClaymore" then
+                ESP.AddUtility(util, "Claymore", "Claymore");
+            elseif util.Name == "utility7Proxy" then
+                ESP.AddUtility(util, "C4", "C4");
+            elseif util.Name == "utility5Proxy" then
+                ESP.AddUtility(util, "Grenade", "Grenade");
+            elseif util.Name == "OpenBearTrap" then
+                ESP.AddUtility(util, "Bear Trap", "Beartrap");
+            end;
+        end;
+
+        local Map = workspace:FindFirstChild("Map");
+        local EffectsJunk = workspace:FindFirstChild("EffectsJunk");
+
         if Map then
-            for i, v in pairs(Map:GetChildren() or {}) do check_util(v) end
+            for i, v in pairs(Map:GetChildren()) do
+                check_util(v);
+            end;
             Utility.AddConnection(Map.ChildAdded, check_util)
             Utility.AddConnection(Map.ChildRemoved, function(v)
                 ESP.RemoveUtility(v);
             end);
         end;
+
         if EffectsJunk then
-            for i, v in pairs(EffectsJunk:GetChildren() or {}) do
+            for i, v in pairs(EffectsJunk:GetChildren()) do
                 check_util(v);
             end;
             
@@ -7852,6 +8844,39 @@ espsection:AddToggle("esp_box", {
     end;
 });
 
+
+
+esp_box_dep = espsection:AddDependencyBox();
+
+esp_box_dep:AddSlider("esp_box_moving_rotation", {
+    Text = "moving rotation";
+    Default = 0;
+    Min = 0;
+    Max = 180;
+    Rounding = 0;
+    Compact = true;
+    Suffix = "°";
+    Callback = function(v)
+        ESP.Settings.BoundingBox.MovingRotation = v;
+    end;
+});
+
+esp_box_dep:AddSlider("esp_box_rotation_speed", {
+    Text = "rotation speed";
+    Default = 0;
+    Min = 0;
+    Max = 50;
+    Rounding = 0;
+    Compact = true;
+    Callback = function(v)
+        ESP.Settings.BoundingBox.RotationSpeed = v;
+    end;
+});
+
+esp_box_dep:SetupDependencies({
+    { Toggles.esp_box, true }
+});
+
 espsection:AddToggle("esp_box_glow", {
     Text = "box glow";
     Default = ESP.Settings.BoundingBox.Glow.Enabled;
@@ -7896,6 +8921,37 @@ espsection:AddToggle("esp_box_fill", {
     end;
 });
 
+esp_fill_dep = espsection:AddDependencyBox();
+esp_fill_dep:AddSlider("esp_fill_moving_rotation", {
+    Text = "moving rotation";
+    Default = 0;
+    Min = 0;
+    Max = 180;
+    Rounding = 0;
+    Compact = true;
+    Suffix = "°";
+    Callback = function(v)
+        ESP.Settings.BoundingBox.Fill.MovingRotation = v;
+    end;
+});
+
+esp_fill_dep:AddSlider("esp_fill_rotation_speed", {
+    Text = "rotation speed";
+    Default = 0;
+    Min = 0;
+    Max = 50;
+    Rounding = 0;
+    Compact = true;
+    Callback = function(v)
+        ESP.Settings.BoundingBox.Fill.RotationSpeed = v;
+    end;
+});
+
+esp_fill_dep:SetupDependencies({
+    { Toggles.esp_box_fill, true }
+});
+
+
 espsection:AddToggle("esp_healthbar", {
     Text = "health bar";
     Default = ESP.Settings.Bars.HealthBar.Enabled;
@@ -7920,6 +8976,34 @@ espsection:AddToggle("esp_healthbar", {
     Callback = function(Value)
         ESP.Settings.Bars.HealthBar.Color[3] = Value;
     end;
+});
+
+local esp_health_dep = espsection:AddDependencyBox();
+esp_health_dep:AddSlider("esp_health_moving_rotation", {
+    Text = "moving rotation";
+    Default = 0;
+    Min = 0;
+    Max = 180;
+    Rounding = 0;
+    Compact = true;
+    Suffix = "°";
+    Callback = function(v)
+        ESP.Settings.Bars.HealthBar.MovingRotation = v;
+    end;
+});
+esp_health_dep:AddSlider("esp_health_rotation_speed", {
+    Text = "rotation speed";
+    Default = 0;
+    Min = 0;
+    Max = 50;
+    Rounding = 0;
+    Compact = true;
+    Callback = function(v)
+        ESP.Settings.Bars.HealthBar.RotationSpeed = v;
+    end;
+});
+esp_health_dep:SetupDependencies({
+    { Toggles.esp_healthbar, true }
 });
 
 espsection:AddToggle("esp_name", {
@@ -8081,6 +9165,7 @@ espsection:AddToggle("UtilityESP", {
     Text = "enabled";
 	Default = false;
 });
+
 espsection:AddSlider("UtilityESPMaxDistance", {
     Text = "max distance";
 	Default = 5000;
@@ -8094,10 +9179,31 @@ espsection:AddSlider("UtilityESPMaxDistance", {
 espsection:AddToggle("C4", {
     Text = "c4";
 	Default = false;
-	Tooltip = "Show C4";
 }):AddColorPicker("C4Color", {
     Default = Color3.new(1, 0, 0); 
     Title = "c4 color";
+});
+
+c4_dep = espsection:AddDependencyBox();
+
+c4_dep:SetupDependencies({{
+    Toggles.C4, true;
+}});
+
+c4_dep:AddToggle("C4Fill", {
+    Text = "box fill";
+    Default = false;
+}):AddColorPicker("C4FillColor", {
+    Default = Color3.new(1, 0, 0);
+    Title = "fill color";
+});
+
+c4_dep:AddToggle("C4Distance", {
+    Text = "distance";
+    Default = false;
+}):AddColorPicker("C4DistanceColor", {
+    Default = Color3.new(1, 0, 0);
+    Title = "distance color";
 });
 
 espsection:AddToggle("Grenade", {
@@ -8108,12 +9214,55 @@ espsection:AddToggle("Grenade", {
     Title = "grenade color";
 });
 
+grenade_dep = espsection:AddDependencyBox();
+
+grenade_dep:SetupDependencies({{
+    Toggles.Grenade, true;
+}});
+
+grenade_dep:AddToggle("GrenadeFill", {
+    Text = "box fill";
+    Default = false;
+}):AddColorPicker("GrenadeFillColor", {
+    Default = Color3.new(0, 1, 0),
+    Title = "fill color";
+});
+
+grenade_dep:AddToggle("GrenadeDistance", {
+    Text = "distance";
+    Default = false;
+}):AddColorPicker("GrenadeDistanceColor", {
+    Default = Color3.new(0, 1, 0);
+    Title = "distance color";
+});
+
 espsection:AddToggle("Claymore", {
     Text = "claymore";
 	Default = false;
 }):AddColorPicker("ClaymoreColor", {
     Default = Color3.new(1, 1, 0);
     Title = "claymore color";
+});
+
+claymore_dep = espsection:AddDependencyBox();
+
+claymore_dep:SetupDependencies({{
+    Toggles.Claymore, true;
+}});
+
+claymore_dep:AddToggle("ClaymoreFill", {
+    Text = "box fill";
+    Default = false;
+}):AddColorPicker("ClaymoreFillColor", {
+    Default = Color3.new(1, 1, 0);
+    Title = "fill color";
+});
+
+claymore_dep:AddToggle("ClaymoreDistance", {
+    Text = "distance";
+}):AddColorPicker("ClaymoreDistanceColor", {
+    Default = Color3.new(1, 1, 0);
+    Title = "distance color";
 });
 
 espsection:AddToggle("Beartrap", {
@@ -8125,7 +9274,30 @@ espsection:AddToggle("Beartrap", {
     Title = "bear trap color";
 });
 
-local charactersection = tabs.visuals:AddLeftGroupbox("character visuals");
+beartrap_dep = espsection:AddDependencyBox();
+
+beartrap_dep:SetupDependencies({{
+    Toggles.Beartrap, true;
+}});
+
+beartrap_dep:AddToggle("BeartrapFill", {
+    Text = "box fill";
+    Default = false;
+}):AddColorPicker("BeartrapFillColor", {
+    Default = Color3.new(1, 0.5, 0);
+    Title = "fill color";
+});
+
+beartrap_dep:AddToggle("BeartrapDistance", {
+    Text = "distance";
+    Default = false;
+}):AddColorPicker("BeartrapDistanceColor", {
+    Default = Color3.new(1, 0.5, 0);
+    Title = "distance color";
+});
+
+charactersection = tabs.visuals:AddLeftGroupbox("character visuals");
+
 charactersection:AddToggle("RainbowCharacter", {
     Text = "rainbow character";
     Default = false;
@@ -8301,7 +9473,10 @@ do
 		end);
 	end;
 	local function create_clone(color)
-		if (dv_clone) then dv_clone:Destroy(); dv_clone = nil; end;
+		if (dv_clone) then
+            dv_clone:Destroy();
+            dv_clone = nil;
+        end;
 		parts_map = {};
 		local char = localplayer.Character;
 		if (not char or not char:FindFirstChild("HumanoidRootPart")) then
@@ -8325,6 +9500,20 @@ do
 				end;
 				apply_clone_part_settings(v, color, selected_material);
 			end;
+		end;
+		local old_head = clone:FindFirstChild("Head");
+		if old_head then
+			old_head:Destroy();
+		end;
+		local original_head = char:FindFirstChild("Head");
+		if original_head then
+			local new_head = Instance.new("MeshPart");
+			new_head.MeshId = "rbxassetid://12905992570";
+			new_head.Size = vector3_new(1.196195125579834, 1.2029438018798828, 1.2002544403076172);
+			new_head.Name = "Head";
+			apply_clone_part_settings(new_head, color, selected_material);
+			new_head.Parent = clone;
+			parts_map[original_head] = new_head;
 		end;
 		if (parts_added == 0) then
             dv_char = nil;
@@ -8377,7 +9566,7 @@ do
 						create_clone(color);
 					end;
 					if (dv_clone) then
-						dv_clone.Parent = workspace.Terrain;
+						dv_clone.Parent = localplayer.Character.Parent;
 						local color = (Options.desyncvisualisercolor and Options.desyncvisualisercolor.Value) or Color3.fromRGB(128, 0, 255);
 						local hrp_cframe = hrp.CFrame;
 						local selected_material = get_material();
@@ -8654,7 +9843,7 @@ local function init_esp()
 					end;
 				end;
 			end;
-			if player_connections[Player] and _nx(player_connections[Player] or {}) then
+			if player_connections[Player] and nx(player_connections[Player] or {}) then
                 for i, v in pairs(player_connections[Player] or {}) do
                     v:Disconnect();
                 end;
@@ -9447,7 +10636,7 @@ do
 
 	local function get_pos(caster)
 		if not caster then return Vector3.zero end;
-		if caster.GetPosition then 
+		if caster.GetPosition then
 			local s, r = pcall(caster.GetPosition, caster);
 			if s then return r end;
 		end;
@@ -9455,15 +10644,15 @@ do
 		local state = caster.StateInfo;
 		local trajectories = state and state.Trajectories;
 		if trajectories and #trajectories > 0 then
-			local v2 = trajectories[#trajectories]
-			local v3 = state.TotalRuntime - v2.StartTime
-			local Acceleration = v2.Acceleration
-			return v2.Origin + v2.InitialVelocity * v3 + Vector3.new(Acceleration.X * v3^2 / 2, Acceleration.Y * v3^2 / 2, Acceleration.Z * v3^2 / 2)
-		end
+			local v2 = trajectories[#trajectories];
+			local v3 = state.TotalRuntime - v2.StartTime;
+			local Acceleration = v2.Acceleration;
+			return v2.Origin + v2.InitialVelocity * v3 + Vector3.new(Acceleration.X * v3^2 / 2, Acceleration.Y * v3^2 / 2, Acceleration.Z * v3^2 / 2);
+		end;
 		
 		if caster.RayInfo and caster.RayInfo.CosmeticBulletObject then
 			local obj = caster.RayInfo.CosmeticBulletObject;
-			if obj:IsA("BasePart") then return obj.Position end;
+			if obj:IsA("BasePart") then return obj.Position; end;
 		end;
 		
 		return Vector3.zero;
@@ -9472,165 +10661,73 @@ do
 	function new_simulate(...)
 		local args = {...};
 		local caster = args[1];
-		if not (caster and caster.UserData and caster.StateInfo) then 
-			return old_simulate_cast(...);
-		end;
+		
+		local success, err = pcall(function()
+			if not (caster and caster.UserData and caster.StateInfo) then return end;
 
-		local weapon, metadata = framework:get_ranged();
-		if not (weapon and metadata) then 
-			return old_simulate_cast(...);
-		end;
+			local weapon, metadata = framework:get_ranged();
+			if not (weapon and metadata) then return end;
 
-		if not caster.UserData.pierce_hooked then
-			caster.UserData.pierce_hooked = true;
-			local old_pierce = caster.RayInfo.CanPierceCallback;
-			caster.RayInfo.CanPierceCallback = function(cast, result, ...)
-				if result.Instance and result.Instance.Name == "hitbox" then
-					return true;
-				end;
-				if old_pierce then
-                    return old_pierce(cast, result, ...);
-                end;
-				return false;
-			end;
-		end;
-
-		local Chance = framework:Chance(Classes.HitChance.Value);
-		if not Chance and not table.find(chance_cache, caster) then
-			table.insert(chance_cache, caster);
-		end;
-
-		if Toggles.avoidprojectiles.Value and caster.UserData.tool ~= weapon then
-			local root_part = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart");
-			if root_part then
-				local pos = get_pos(caster);
-				local projectile_speed = metadata._itemConfig and metadata._itemConfig.speed;
-				if pos and projectile_speed and projectile_speed > 0 then
-					local distance = (root_part.Position - pos).Magnitude;
-					local ping_seconds = LocalPlayer:GetNetworkPing();
-					
-					local caster_velocity = Vector3.zero;
-					if caster.GetVelocity then
-						caster_velocity = caster:GetVelocity();
+			if not caster.UserData.pierce_hooked then
+				caster.UserData.pierce_hooked = true;
+				local old_pierce = caster.RayInfo.CanPierceCallback;
+				caster.RayInfo.CanPierceCallback = function(cast, result, ...)
+					if result.Instance and (result.Instance.Name == "hitbox" or result.Instance.Name == "hitbox") then
+						return not Config.HitboxExpand;
 					end;
-
-					local predicted_pos = pos + (caster_velocity * ping_seconds);
-					local predicted_distance = (root_part.Position - predicted_pos).Magnitude;
-					local predicted_travel_time = predicted_distance / projectile_speed;
-					local safety_buffer = 0.05;
-					local adjusted_time = predicted_travel_time - ping_seconds - safety_buffer;
-
-					if adjusted_time <= 0.15 then
-						setrunning("AvoidProjectiles", true);
-						task.delay(0.5, function()
-							setrunning("AvoidProjectiles", false);
-						end);
+					if old_pierce then
+						return old_pierce(cast, result, ...);
 					end;
+					return false;
 				end;
 			end;
-		end;
 
-		if not table.find(chance_cache, caster) and Chance and caster.UserData.tool == weapon and (Classes.SilentAim.Value or settings.ragebot) then
+			if Classes.Wallbang.Value and caster.RayInfo then
+				local params = caster.RayInfo.Parameters;
+				if params then
+					params.FilterType = Enum.RaycastFilterType.Exclude;
+					params.FilterDescendantsInstances = {LocalPlayer.Character, Map, workspace.Terrain, workspace:FindFirstChild("EffectsJunk")};
+				end;
+			end;
 
-			if not (caster and caster.StateInfo) then
-                return old_simulate_cast(...);
-            end;
+			local Chance = framework:Chance(Classes.HitChance.Value);
+			if not Chance and not table.find(chance_cache, caster) then
+				table.insert(chance_cache, caster);
+			end;
 
-			local target_player = framework:closest_characters_origin(get_pos(caster), 19);
-			if Classes.ClosestType.Value == "Only Redirect To Target" then
-				target_player = nil;
-				local characters = framework:closest_characters_to_origin(get_pos(caster), 19);
-				if table.find(characters, silentaim_target) then
+			if not table.find(chance_cache, caster) and Chance and caster.UserData.tool == weapon and Classes.SilentAim.Value then
+				local target_player = nil;
+				if Classes.ClosestType.Value == "Only Redirect To Target" then
 					target_player = silentaim_target;
-				end;
-			end;
-
-			if settings.ragebot and target_player then
-				local head = target_player:FindFirstChild("Head");
-				local root_part = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart");
-				if head and root_part then
-					if Toggles.ShowLine.Value then
-						local part = Instance.new("Part");
-						part.Anchored = true;
-						part.CanCollide = false;
-						part.Material = Enum.Material.Neon;
-						part.Color = Options.LineColor.Value;
-						part.Size = Vector3.new(0.1, 0.1, (head.Position - root_part.Position).Magnitude);
-						part.CFrame = CFrame.new(root_part.Position, head.Position) * CFrame.new(0, 0, -part.Size.Z / 2);
-						part.Parent = workspace;
-						task.spawn(function()
-							local steps = 30;
-							for i = 1, steps do
-								part.Transparency = i / steps;
-								task.wait(2 / steps);
-							end;
-							part:Destroy();
-						end);
-					end;
-
-					if caster.Caster and caster.Caster.RayHit then
-						local fake_result = {
-							Instance = head,
-							Position = head.Position,
-							Normal = Vector3.yAxis,
-							Material = Enum.Material.SmoothPlastic,
-							Distance = 1,
-						};
-						local projectile_speed = metadata._itemConfig and metadata._itemConfig.speed or 3000;
-						local fake_velocity = (head.Position - get_pos(caster)).Unit * projectile_speed;
-						caster.Caster.RayHit:Fire(caster, fake_result, fake_velocity, caster.RayInfo and caster.RayInfo.CosmeticBulletObject);
-					end;
-					
-					if caster and caster.Terminate then 
-						caster:Terminate();
-					end;
-					return;
-				end;
-			end;
-
-			if Classes.SilentAim.Value and caster and caster.StateInfo then
-				local target = nil;
-				if Classes.ClosestType.Value == "Closest To Mouse" then
-					local mouse_tgt = framework:closest_to_mouse(Classes.FOVSize.Value);
-					target = mouse_tgt and mouse_tgt.Character;
 				else
-					target = target_player;
+					target_player = framework:closest_characters_origin(get_pos(caster), 19);
 				end;
 
-				if target then
+				if target_player then
 					local hit_part_name = Classes.SilentHitPart.Value == "Random" and R6BodyParts[math_random(1, #R6BodyParts)] or Classes.SilentHitPart.Value;
-					local hit_part = target:FindFirstChild(hit_part_name);
-					local humanoid = target:FindFirstChildOfClass("Humanoid");
+					local hit_part = target_player:FindFirstChild(hit_part_name);
+					local humanoid = target_player:FindFirstChildOfClass("Humanoid");
 					
 					if hit_part and humanoid then
 						local pos = get_pos(caster);
-						local projectile_speed = metadata._itemConfig and metadata._itemConfig.speed or 3000;
-						local projectile_gravity = metadata._itemConfig and (metadata._itemConfig.gravity or metadata._itemConfig.Acceleration) or Vector3.new(0, 0, 0);
+						local projectile_speed = metadata._itemConfig and metadata._itemConfig.speed or 200;
+						local projectile_gravity = metadata._itemConfig and (metadata._itemConfig.gravity or metadata._itemConfig.Acceleration) or vector3_new(0, 0, 0);
 
 						local aim_position = PredictTargetPosition(pos, {
 							Position = hit_part.Position,
 							Velocity = (Classes.Resolver.Value and humanoid.MoveDirection or hit_part.Velocity),
-						}, projectile_speed, 0, projectile_gravity);
+						}, projectile_speed, localplayer:GetNetworkPing() * 1000, projectile_gravity);
 
-						if (aim_position - pos).Magnitude <= Classes.SilentAimRange.Value then
+						if aim_position and (aim_position - pos).Magnitude <= Classes.SilentAimRange.Value then
 							local new_vel = (aim_position - pos).Unit * projectile_speed;
-							
-							if caster and caster.SetVelocity and caster.StateInfo then
+							if caster.SetVelocity then
 								caster:SetVelocity(new_vel);
-
-								if Classes.Wallbang.Value and caster.RayInfo then
-									local params = caster.RayInfo.Parameters;
-									if params then
-										params.FilterType = Enum.RaycastFilterType.Include;
-										params.FilterDescendantsInstances = {target};
-									end;
-								end;
 							end;
 						end;
 					end;
 				end;
 			end;
-		end;
+		end);
 
 		return old_simulate_cast(...);
 	end;
@@ -9641,14 +10738,33 @@ do
 		if settings.stick and stick_target then 
 			target = stick_target;
 		end;
+		
+		if not target and Classes.Wallbang.Value then
+			target = framework:get_closest_2(Options.FOVSize.Value);
+		end;
 
 		local weapon, metadata = framework:get_ranged();
+
+		if Classes.Wallbang.Value and metadata and metadata._mainCasterBehavior then
+			local old_params = metadata._mainCasterBehavior.RaycastParams;
+			local wallbang_params = RaycastParams.new();
+			wallbang_params.IgnoreWater = old_params.IgnoreWater;
+			wallbang_params.FilterType = Enum.RaycastFilterType.Exclude;
+			wallbang_params.FilterDescendantsInstances = {LocalPlayer.Character, Map, workspace.Terrain, workspace:FindFirstChild("EffectsJunk")};
+			
+			metadata._mainCasterBehavior.RaycastParams = wallbang_params;
+			task.defer(function()
+				metadata._mainCasterBehavior.RaycastParams = old_params;
+			end);
+		end;
+
 		if Classes.SilentAim.Value and target and weapon and metadata and framework:Chance(Classes.HitChance.Value) and not framework:in_menu(target) then
 			local hit_part = target.Character and target.Character:FindFirstChild(Classes.SilentHitPart.Value);
 			local humanoid = target.Character and target.Character:FindFirstChildOfClass("Humanoid");
 
 			if hit_part and humanoid then
-				local cheated_origin = metadata:getCheatedBackOriginIfInObject(metadata._mainCasterBehavior.RaycastParams);
+				local cheated_origin = metadata:getCheatedBackOriginIfInObject(metadata._mainCasterBehavior.RaycastParams) or (Classes.Wallbang.Value and args[1].Position);
+
 				if cheated_origin then
 					silentaim_target = target.Character;
 					local projectile_speed = metadata._itemConfig.speed;
@@ -9663,15 +10779,11 @@ do
 
 					args[1] = CFrame.lookAt(cheated_origin, aim_position);
 
-					local old_params = metadata._mainCasterBehavior.RaycastParams;
-					local new_params = RaycastParams.new();
-					new_params.IgnoreWater = old_params.IgnoreWater;
-					
-					if Classes.Wallbang.Value then
-						new_params.FilterType = Enum.RaycastFilterType.Include;
-						new_params.FilterDescendantsInstances = {target.Character};
-					else
-						new_params.FilterType = Enum.RaycastFilterType.Blacklist;
+					if not Classes.Wallbang.Value then
+						local old_params = metadata._mainCasterBehavior.RaycastParams;
+						local new_params = RaycastParams.new();
+						new_params.IgnoreWater = old_params.IgnoreWater;
+						new_params.FilterType = Enum.RaycastFilterType.Exclude;
 						local ignore_list = {workspace.Terrain};
 						if old_params.FilterDescendantsInstances then
 							for _, v in ipairs(old_params.FilterDescendantsInstances) do
@@ -9684,12 +10796,12 @@ do
 							end;
 						end;
 						new_params.FilterDescendantsInstances = ignore_list;
-					end;
 
-					metadata._mainCasterBehavior.RaycastParams = new_params;
-					task.defer(function()
-						metadata._mainCasterBehavior.RaycastParams = old_params;
-					end);
+						metadata._mainCasterBehavior.RaycastParams = new_params;
+						task.defer(function()
+							metadata._mainCasterBehavior.RaycastParams = old_params;
+						end);
+					end;
 				end;
 			end;
 		end;
@@ -9738,16 +10850,16 @@ do
 
 			local player = locked_target or framework:get_closest_2(Classes.RagebotDist.Value);
 
-			if locked_target and not _nx(locked_target or {}) then
+			if locked_target and not nx(locked_target) then
 				locked_target = nil;
 				continue;
 			end;
 
-			if not player or not _nx(player or {}) then
+			if not player or not nx(player) then
 				continue;
 			end;
 
-            local target_player = players:FindFirstChild(_nx(player or {}))
+            local target_player = players:FindFirstChild(nx(player))
             if target_player and (should_skip_by_whitelist(target_player, "ragebot")) then
                 locked_target = nil;
                 continue;
@@ -9773,7 +10885,7 @@ do
 				continue;
 			end;
 
-			local target_player = players:FindFirstChild(_nx(player or {}));
+			local target_player = players:FindFirstChild(nx(player or {}));
 			if not target_player or not target_player.Character then
 				continue;
 			end;
@@ -9799,16 +10911,33 @@ do
 			end;
 
 			metadata.canShootBulletssss = false;
-			locked_target = player
+			locked_target = player;
 
-			metadata._mainCasterBehavior.RaycastParams.FilterDescendantsInstances = {
-				metadata._mainCasterBehavior.RaycastParams.FilterDescendantsInstances;
-				PlayerCharacters;
-				Map;
-				Workspace.Terrain;
-			};
+			local rp_original = metadata._mainCasterBehavior.RaycastParams;
+			local rp_clone = RaycastParams.new();
+			
+			rp_clone.FilterType = Enum.RaycastFilterType.Exclude;
+			rp_clone.IgnoreWater = true;
+			rp_clone.RespectCanCollide = false;
+			
+			local new_filter = {Character, Map, workspace.Terrain, workspace:FindFirstChild("EffectsJunk")};
+			if rp_original.FilterDescendantsInstances then
+				for _, v in pairs(rp_original.FilterDescendantsInstances) do
+					if typeof(v) == "Instance" and not table.find(new_filter, v) then
+						table.insert(new_filter, v);
+					elseif typeof(v) == "table" then
+						for _, sub in pairs(v) do 
+							if typeof(sub) == "Instance" and not table.find(new_filter, sub) then
+								table.insert(new_filter, sub) 
+							end
+						end
+					end
+				end
+			end
+			
+			rp_clone.FilterDescendantsInstances = new_filter;
 
-			local origin = metadata:getCheatedBackOriginIfInObject(metadata._mainCasterBehavior.RaycastParams);
+			local origin = metadata:getCheatedBackOriginIfInObject(rp_clone) or Head.Position;
 			local projectile_speed = metadata._itemConfig.speed or 200;
 			local projectile_gravity = metadata._itemConfig.gravity or vector3_new(0, 0, 0);
 
@@ -9822,19 +10951,20 @@ do
 				projectile_gravity
 			);
 
-			local CF = cframe_new(vector3_new(), (final_posiiton - origin).Unit);
+			local dir_vec = (final_posiiton - origin);
+			if dir_vec.Magnitude < 0.001 then dir_vec = vector3_new(0, 1, 0) end
+			local CF = cframe_new(vector3_new(), dir_vec.Unit);
 			local dir = old_calculate_fire(CF, 0, 0, 5000);
-            local EffectsJunk = workspace:WaitForChild("EffectsJunk");
 
 			local fake_behaviour = {
-				RaycastParams = metadata._mainCasterBehavior.RaycastParams;
+				RaycastParams = rp_clone;
 				Acceleration = vector3_new();
 				MaxDistance = 5000;
 				HighFidelityBehavior = 1;
 				HighFidelitySegmentSize = 0.5;
 				CosmeticBulletContainer = EffectsJunk;
-				AutoIgnoreContainer = true;
-            };
+				AutoIgnoreContainer = false;
+			};
 
 			local template = metadata._cosmeticProjectileTemplate;
 			if typeof(fake_behaviour) == "Instance" then
@@ -9906,7 +11036,7 @@ do
 			if metadata._clientAmmoVO.Value ~= 0 then
 				local cooldown = metadata._itemConfig.cooldown;
 				if Toggles.safe_mode_ragebot.Value then
-					cooldown = cooldown + Options.safe_mode_slider1.Value
+					cooldown = cooldown + Options.safe_mode_slider1.Value;
 				end;
 				task.wait(cooldown);
 			end;
@@ -10128,7 +11258,7 @@ local function create_character_vis()
 
     local function apply_visuals()
         local char = localplayer.Character;
-        if not char or not _nx(original_data.Parts or {}) then return; end;
+        if not char or not nx(original_data.Parts or {}) then return; end;
         local is_rainbow = Toggles.RainbowCharacter and Toggles.RainbowCharacter.Value;
         local custom_color = Toggles.CustomMaterialColor and Toggles.CustomMaterialColor.Value;
         local mat = Classes.CharacterMaterial and Classes.CharacterMaterial.Value;
