@@ -10665,20 +10665,14 @@ do
 		local success, err = pcall(function()
 			if not (caster and caster.UserData and caster.StateInfo) then return end;
 
-			local weapon, metadata = framework:get_ranged();
-			if not (weapon and metadata) then return end;
-
 			if not caster.UserData.pierce_hooked then
 				caster.UserData.pierce_hooked = true;
 				local old_pierce = caster.RayInfo.CanPierceCallback;
 				caster.RayInfo.CanPierceCallback = function(cast, result, ...)
-					if result.Instance and (result.Instance.Name == "hitbox" or result.Instance.Name == "hitbox") then
+					if result.Instance and result.Instance.Name == "hitbox" then
 						return not Config.HitboxExpand;
 					end;
-					if old_pierce then
-						return old_pierce(cast, result, ...);
-					end;
-					return false;
+					return old_pierce and old_pierce(cast, result, ...) or false;
 				end;
 			end;
 
@@ -10690,12 +10684,17 @@ do
 				end;
 			end;
 
+            if not Classes.SilentAim.Value then return end;
+
+			local weapon, metadata = framework:get_ranged();
+			if not (weapon and metadata and caster.UserData.tool == weapon) then return end;
+
 			local Chance = framework:Chance(Classes.HitChance.Value);
 			if not Chance and not table.find(chance_cache, caster) then
 				table.insert(chance_cache, caster);
 			end;
 
-			if not table.find(chance_cache, caster) and Chance and caster.UserData.tool == weapon and Classes.SilentAim.Value then
+			if not table.find(chance_cache, caster) and Chance then
 				local target_player = nil;
 				if Classes.ClosestType.Value == "Only Redirect To Target" then
 					target_player = silentaim_target;
@@ -10719,16 +10718,33 @@ do
 						}, projectile_speed, localplayer:GetNetworkPing() * 1000, projectile_gravity);
 
 						if aim_position and (aim_position - pos).Magnitude <= Classes.SilentAimRange.Value then
-							local new_vel = (aim_position - pos).Unit * projectile_speed;
+                            local t = (aim_position - pos).Magnitude / projectile_speed;
+                            local G = projectile_gravity;
+                            local new_vel = (aim_position - pos) / t - 0.5 * G * t;
+
 							if caster.SetVelocity then
 								caster:SetVelocity(new_vel);
 							end;
+
+                            if Toggles.SilentAim and Toggles.SilentAim.Value and (aim_position - pos).Magnitude < 15 then
+                                metadata._mainCaster.RayHit:Fire(caster, {
+                                    Distance = (aim_position - pos).Magnitude;
+                                    Instance = hit_part;
+                                    Material = hit_part.Material;
+                                    Position = hit_part.Position;
+                                    Normal = Vector3.yAxis;
+                                }, nil, caster.RayInfo.CosmeticBulletObject);
+                                caster:Terminate();
+                                return true; -- Signal to stop
+                            end;
 						end;
+
 					end;
 				end;
 			end;
 		end);
 
+        if success and err == true then return end;
 		return old_simulate_cast(...);
 	end;
 
