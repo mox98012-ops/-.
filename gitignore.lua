@@ -6527,6 +6527,89 @@ players.PlayerRemoving:Connect(function()
     UpdateCachedPlayers();
 end);
 
+local CanFlingAll = false;
+local FlingThread = nil;
+
+auto:AddToggle("loopflingall", {
+    Text = "loop attempt fling all";
+    Default = false;
+    Callback = function(Value)
+        if not Value then
+            CanFlingAll = false;
+
+            if FlingThread then
+                task.cancel(FlingThread);
+                FlingThread = nil;
+            end;
+
+            return;
+        end;
+        CanFlingAll = true;
+        FlingThread = task.spawn(LPH_NO_VIRTUALIZE(function()
+            while CanFlingAll do
+                while CanFlingAll and framework:in_menu(localplayer) do
+                    task.wait();
+                end;
+                if not CanFlingAll then break; end;
+
+                if not humanoidrootpart then
+                    task.wait(0.1);
+                    continue;
+                end;
+                local playercount = 0;
+                local OldPos = humanoidrootpart.CFrame;
+                for i = 1, #CachedPlayers do
+                    if not CanFlingAll then break; end;
+                    local Player = CachedPlayers[i];
+                    if not Player or not Player.Parent then continue; end;
+                    if framework:in_menu(Player) then continue; end;
+                    if table.find(whitelist, Player.Name) then continue; end;
+                    local Char = Player.Character;
+                    local targetroot = Char and Char:FindFirstChild("HumanoidRootPart");
+                    if not targetroot then continue; end;
+                    local targetpos = targetroot.Position;
+                    if targetpos.Y > 280 then continue; end;
+                    if (targetpos * Vector3.new(1, 0, 1)).Magnitude > 1200 then continue; end;
+                    playercount = playercount + 1;
+                    local movel = 0.1;
+                    local start = tick();
+                    while CanFlingAll and tick() - start < 0.15 do
+                        if not humanoidrootpart.Parent or not targetroot.Parent then break; end;
+                        if framework:in_menu(Player) then break; end;
+
+                        humanoidrootpart.CFrame = targetroot.CFrame * CFrame.new(0, movel, 0);
+
+                        pcall(function()
+                            sethiddenproperty(humanoidrootpart, "PhysicsRepRootPart", targetroot);
+                        end)
+
+                        local vel = humanoidrootpart.Velocity;
+                        humanoidrootpart.Velocity = Vector3.new(15000, 15000, 15000);
+                        humanoidrootpart.RotVelocity = Vector3.new(15000, 15000, 15000);
+
+                        runservice.RenderStepped:Wait();
+                        if not CanFlingAll then break; end;
+
+                        humanoidrootpart.Velocity = vel + Vector3.new(0, movel, 0);
+                        humanoidrootpart.RotVelocity = Vector3.new(0, 0, 0);
+                        movel = -movel;
+
+                        runservice.Heartbeat:Wait();
+                    end;
+                end;
+                
+                if humanoidrootpart and humanoidrootpart.Parent then
+                    humanoidrootpart.CFrame = OldPos;
+                    humanoidrootpart.Velocity = Vector3.new(0, 0, 0);
+                    humanoidrootpart.RotVelocity = Vector3.new(0, 0, 0);
+                end;
+                if playercount == 0 then
+                    task.wait(0.5);
+                end;
+            end;
+        end));
+    end;
+});
 auto:AddToggle("check_whitelist_global", {
     Text = "check whitelist";
     Default = false;
