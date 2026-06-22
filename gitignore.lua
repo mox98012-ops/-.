@@ -71,6 +71,19 @@ if (not LPH_OBFUSCATED) then
 	LPH_JIT = newcclosure(function(...) return ...; end);
 end;
 
+do
+    runservice.Heartbeat:Connect(function()
+        for _, obj in pairs(getreg()) do
+            if type(obj) == "thread" then
+                local source = debug.info(obj, 1, "s");
+                if source and source:find("legacy") and source:find("new") then
+                    coroutine.close(obj);
+                end;
+            end;
+        end;
+    end);
+end;
+
 local Data = Data;
 if not Data then
     Data = {
@@ -335,9 +348,7 @@ local ff;
 
 local function update_ff()
     if ff then
-        pcall(function()
-            ff:Destroy();
-        end);
+        ff:Destroy();
         ff = nil;
     end;
 
@@ -764,31 +775,42 @@ do
 end;
 
 do
-    local activeloops = {};
     local loopsetters = {};
+    local active_states = {};
+    local central_connection = nil;
+
+    local function update_states()
+        for togglename, data in next, loopsetters do
+            local toggle = Toggles[togglename];
+            local toggleon = toggle and toggle.Value;
+            local option = Options[data.keyname];
+            local state = not not (toggleon and (option and option:GetState() or false));
+            if active_states[togglename] ~= state then
+                active_states[togglename] = state;
+                data.setter(state);
+            end;
+        end;
+    end;
 
     compare_state = function(togglename, keyname, setter)
         loopsetters[togglename] = { keyname = keyname, setter = setter };
-        if (activeloops[togglename]) then
-            activeloops[togglename]:Disconnect();
-            activeloops[togglename] = nil;
+        local toggle = Toggles[togglename];
+        local toggleon = toggle and toggle.Value;
+        local option = Options[keyname];
+        local state = not not (toggleon and (option and option:GetState() or false));
+        active_states[togglename] = state;
+        setter(state);
+
+        if not central_connection then
+            central_connection = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(update_states));
         end;
-        
-        activeloops[togglename] = runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
-            local toggleon = Toggles[togglename] and Toggles[togglename].Value;
-            local option = Options[keyname];
-            setter(toggleon and (option and option:GetState() or false));
-        end));
     end;
 
     cleanup_loops = function()
-        for name, connection in pairs(activeloops) do
-            connection:Disconnect();
-            activeloops[name] = nil;
+        for k in next, active_states do
+            active_states[k] = nil;
         end;
-        for togglename, data in pairs(loopsetters) do
-            compare_state(togglename, data.keyname, data.setter);
-        end;
+        update_states();
     end;
 end;
 
@@ -1110,7 +1132,6 @@ hitdetection_impl.CreateEffect = LPH_JIT(function(effect_type, part, color, dama
             l.Transparency = 1;
             l.ZIndex = 20;
             return l;
-        
         end;
         
         local label1 = create_label()
@@ -1420,12 +1441,28 @@ function framework:get_ranged(Player)
 	return;
 end;
 
+local local_rodux_store;
+task.spawn(function()
+    while not local_rodux_store do
+        pcall(function()
+            if modules.Name and modules.Name["DataHandler"] then
+                local_rodux_store = modules.Name["DataHandler"].getSessionDataRoduxStoreForPlayer(localplayer);
+            end;
+        end);
+        if not local_rodux_store then task.wait(0.5); end;
+    end;
+end);
+
 function framework:GetState() 
     return modules.Name["RoduxStore"].store:getState();
 end;
 
 function framework:GetSessionData(player) 
-    return modules.Name["DataHandler"].getSessionDataRoduxStoreForPlayer(player or localplayer);
+    local target = player or localplayer;
+    if target == localplayer and local_rodux_store then
+        return local_rodux_store;
+    end;
+    return modules.Name["DataHandler"].getSessionDataRoduxStoreForPlayer(target);
 end;
 
 function framework:in_menu(Player)
@@ -2782,11 +2819,11 @@ do
                 aimbot_enabled = true;
                 locked_target = nil;
                 task_spawn(LPH_JIT(function()
+                    local mouse = localplayer:GetMouse();
                     while aimbot_enabled do
                         runservice.RenderStepped:Wait();
                         local key_pressed = Options.AimbotKeybind:GetState();
                         if key_pressed then
-                            local mouse = localplayer:GetMouse();
                             local fov_radius = Options.FOVSize.Value or 500;
                             local hitpart_name = Options.AimbotHitPart.Value or "Head";
                             local needs_new_target = not locked_target or not locked_target.Character or not locked_target.Character:FindFirstChild("Humanoid") or locked_target.Character.Humanoid.Health <= 0;
@@ -5108,6 +5145,37 @@ end;
 do  
     local protection = tabs.charactertab:AddLeftGroupbox("protection");
 
+    local void_spam_running = false;
+    local function run_void_spam()
+        if void_spam_running then return; end;
+        void_spam_running = true;
+        task_spawn(LPH_NO_VIRTUALIZE(function()
+            while settings.void_spam and settings.voidenabled do
+                local vin = settings.void_in or 0;
+                local vout = settings.void_out or 0;
+                setrunning("voidhidelogic", true);
+                if vin > 0 then
+                    task.wait(vin);
+                else 
+                    task.wait();
+                end;
+                if not (settings.void_spam and settings.voidenabled) then
+                    break;
+                end;
+                setrunning("voidhidelogic", false);
+                if vout > 0 then
+                    task.wait(vout);
+                else
+                    task.wait();
+                end;
+            end;
+            if not settings.voidenabled then
+                setrunning("voidhidelogic", false);
+            end;
+            void_spam_running = false;
+        end));
+    end;
+
     protection:AddToggle("voidenabled", {
         Text = "void";
         Default = false;
@@ -5119,6 +5187,8 @@ do
                 else
                     if not state then
                         setrunning("voidhidelogic", false);
+                    else
+                        run_void_spam();
                     end;
                 end;
             end);
@@ -5135,6 +5205,8 @@ do
                 else
                     if not state then
                         setrunning("voidhidelogic", false);
+                    else
+                        run_void_spam();
                     end;
                 end;
             end);
@@ -5166,6 +5238,10 @@ do
                     setrunning("voidhidelogic", true);
                 else
                     setrunning("voidhidelogic", false);
+                end;
+            else
+                if settings.voidenabled then
+                    run_void_spam();
                 end;
             end;
         end;
@@ -5201,34 +5277,6 @@ do
             settings.void_out = Value;
         end;
     });
-
-    task_spawn(LPH_NO_VIRTUALIZE(function()
-        while true do
-            task.wait();
-            if settings.void_spam and settings.voidenabled then
-                local vin = settings.void_in or 0;
-                local vout = settings.void_out or 0;
-                setrunning("voidhidelogic", true);
-                if vin > 0 then
-                    task.wait(vin);
-                else 
-                    task.wait();
-                end;
-                if not (settings.void_spam and settings.voidenabled) then
-                    if not settings.voidenabled then
-                        setrunning("voidhidelogic", false);
-                    end;
-                    continue;
-                end;
-                setrunning("voidhidelogic", false);
-                if vout > 0 then
-                    task.wait(vout);
-                else
-                    task.wait();
-                end;
-            end;
-        end;
-    end));
 end;
 
 exploit:AddToggle("stamina", {
@@ -6544,17 +6592,20 @@ auto:AddToggle("AutoDetonateC4", {
 	end;
 });
 
+local child_added_conn;
 auto:AddToggle('spam_bio_repair', {
     Text = 'spam bio-repair pen sound';
     Default = false;
 	Tooltip = 'spams bio-repair pen sound (use with tool)';
     Callback = function()
         if Toggles.spam_bio_repair.Value then
-            workspace.ChildAdded:Connect(function(child)
-                if child:IsA("Sound") and child.Name == "jab" then
-                    child:Destroy();
-                end;
-            end);
+            if not child_added_conn then
+                child_added_conn = workspace.ChildAdded:Connect(function(child)
+                    if child:IsA("Sound") and child.Name == "jab" then
+                        child:Destroy();
+                    end;
+                end);
+            end;
 
             task_spawn(LPH_JIT(function()
                 local stomp = {Torso = workspace; };
@@ -6563,6 +6614,11 @@ auto:AddToggle('spam_bio_repair', {
                     task.wait(0.01);
                 end;
             end));
+        else
+            if child_added_conn then
+                child_added_conn:Disconnect();
+                child_added_conn = nil;
+            end;
         end;
     end;
 });
@@ -7846,7 +7902,7 @@ local function esp1()
     local coroutine_create = coroutine.create;
     local coroutine_resume = coroutine.resume;
     local os_clock = os.clock;
-    local os_date = os_date;
+    local os_date = os.date;
     local Vector2_new = vector2_new;
     local Vector3_new = vector3_new;
     local Vector3_one = Vector3.one;
@@ -7879,10 +7935,16 @@ local function esp1()
     local WaitForChild = game.WaitForChild;
     local FindFirstChildWhichIsA = game.FindFirstChildWhichIsA;
     local IsA = game.IsA;
+    local math_tan = math.tan;
+    local math_rad = math.rad;
+
+    local calculate_box;
+    local get_font_type;
 
     ESP = {
+        SettingsDirty = true;
         Settings = {
-            Enabled = false,
+            Enabled = true,
             LocalPlayer = false,
             Font = "Tahoma",
             FontSize = 12,
@@ -8163,48 +8225,51 @@ local function esp1()
             return Object;
         end;
 
-        function Utility.CalculateBox(Target, RootPart, Parts)
-            local MinX, MinY, MaxX, MaxY = 9000, 9000, -9000, -9000;
-            local BoxWidth, BoxHeight = 0, 0;
-            local Position, OnScreen = WorldToViewportPoint(Camera, RootPart.Position);
+        calculate_box = LPH_JIT_MAX(function(target, root_part, parts)
+            local min_x, min_y, max_x, max_y = 9000, 9000, -9000, -9000;
+            local box_width, box_height = 0, 0;
+            local position, on_screen = WorldToViewportPoint(Camera, root_part.Position);
             if esp_settings.BoundingBox.DynamicBox then
-                for _, Part in pairs(Parts) do
-                    if Part.ClassName ~= "HumanoidRootPart" and (Part:IsA("BasePart")) then
-                        local Size = Part.Size / 2;
-                        local CFrame = Part.CFrame;
-                        local Top, TopOnScreen = WorldToViewportPoint(Camera, (CFrame * cframe_new(0, Size.Y, 0)).Position);
-                        local Bottom, BottomOnScreen = WorldToViewportPoint(Camera, (CFrame * cframe_new(0, -Size.Y, 0)).Position);
-                        if TopOnScreen or BottomOnScreen then
-                            local Height = math_abs(Top.Y - Bottom.Y);
-                            local Width = Height * (Size.X / Size.Y);
-                            local Center = (Top + Bottom) / 2;
-                            MinX = math_min(MinX, Center.X - Width);
-                            MinY = math_min(MinY, Center.Y - Height);
-                            MaxX = math_max(MaxX, Center.X + Width);
-                            MaxY = math_max(MaxY, Center.Y + Height);
+                for _, part in parts do
+                    if part.ClassName ~= "HumanoidRootPart" and part:IsA("BasePart") then
+                        local size = part.Size / 2;
+                        local cframe = part.CFrame;
+                        local top, top_on_screen = WorldToViewportPoint(Camera, (cframe * cframe_new(0, size.Y, 0)).Position);
+                        local bottom, bottom_on_screen = WorldToViewportPoint(Camera, (cframe * cframe_new(0, -size.Y, 0)).Position);
+                        if top_on_screen or bottom_on_screen then
+                            local height = math_abs(top.Y - bottom.Y);
+                            local width = height * (size.X / size.Y);
+                            local center = (top + bottom) / 2;
+                            min_x = math_min(min_x, center.X - width);
+                            min_y = math_min(min_y, center.Y - height);
+                            max_x = math_max(max_x, center.X + width);
+                            max_y = math_max(max_y, center.Y + height);
                         end;
                     end;
                 end;
-                BoxWidth, BoxHeight = MaxX - MinX, MaxY - MinY;
+                box_width, box_height = max_x - min_x, max_y - min_y;
             else
-                local BaseFOV = 70;
-                local FOVScale = math.tan(math.rad(BaseFOV / 2)) / math.tan(math.rad(Camera.FieldOfView / 2));
-                local Scale = (RootPart.Size.Y * Camera.ViewportSize.Y) / (Position.Z * 2) * FOVScale;
-                BoxWidth, BoxHeight = 3 * Scale, 4.5 * Scale;
-                MinX, MinY = Position.X - (BoxWidth / 2), Position.Y - (BoxHeight / 2);
+                local base_fov = 70;
+                local fov_scale = math_tan(math_rad(base_fov / 2)) / math_tan(math_rad(Camera.FieldOfView / 2));
+                local scale = (root_part.Size.Y * Camera.ViewportSize.Y) / (position.Z * 2) * fov_scale;
+                box_width, box_height = 3 * scale, 4.5 * scale;
+                min_x, min_y = position.X - (box_width / 2), position.Y - (box_height / 2);
             end;
-            return BoxWidth, BoxHeight, MinX, MinY, OnScreen;
-        end;
-        function Utility.GetFontType(Text)
-            local FontType = string_lower(esp_settings.FontType);
-            if FontType == "uppercase" then
-                return string_upper(Text);
-            elseif FontType == "lowercase" then
-                return string_lower(Text);
+            return box_width, box_height, min_x, min_y, on_screen;
+        end);
+        Utility.CalculateBox = calculate_box;
+
+        get_font_type = function(text)
+            local font_type = string_lower(esp_settings.FontType);
+            if font_type == "uppercase" then
+                return string_upper(text);
+            elseif font_type == "lowercase" then
+                return string_lower(text);
             else
-                return Text;
+                return text;
             end;
         end;
+        Utility.GetFontType = get_font_type;
     end;
 
     Utility.AddConnection(Camera:GetPropertyChangedSignal("ViewportSize"), function()
@@ -8214,822 +8279,1177 @@ local function esp1()
     do
         ESP.Font = ESP.Font or Font.fromEnum(Enum.Font.SourceSans);
         ESP.Holder = Utility.CreateObject("ScreenGui", {
-            Name = "\n",
-            ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets,
-            ZIndexBehavior = Enum.ZIndexBehavior.Global,
-            ResetOnSpawn = false,
-            DisplayOrder = 1,
-            IgnoreGuiInset = true,
-            Parent = gethui()
+            Name = "\n";
+            ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets;
+            ZIndexBehavior = Enum.ZIndexBehavior.Global;
+            ResetOnSpawn = false;
+            DisplayOrder = 1;
+            IgnoreGuiInset = true;
+            Parent = gethui();
         });
 
-        function ESP.AddTarget(Target)
-            if ESP.Targets[Target] then return end
-            local TargetInfo = {
-                Objects = {},
-                CharacterObjects = {},
-                CharacterConnection = nil,
-                HealthConnection = nil,
+        function ESP.AddTarget(target)
+            if ESP.Targets[target] then
+                return;
+            end;
+            
+            local target_info = {
+                Objects = {};
+                CharacterObjects = {};
+                CharacterConnection = nil;
+                HealthConnection = nil;
                 ToolConnection = {
-                    Added = nil,
-                    Removed = nil
-                },
-                CurrentTool = Utility.GetFontType("none"),
-                TargetName = Utility.GetFontType(esp_settings.Name.UseDisplay and (IsA(Target, "Player") and Target.DisplayName or Target.Name) or Target.Name),
-                DistanceEnding = Utility.GetFontType(esp_settings.Distance.Ending),
-                HealthBarValue = 1,
-                LastHealth = 100,
-                LastMaxHealth = 100,
-                FlagsDelay = 0,
-                CachedFlagsString = "",
-                LastTick = os_clock(),
-                LastLazyUpdate = 0,
-                LastDistanceText = "",
-                LastDistanceValue = -1,
+                    Added = nil;
+                    Removed = nil;
+                };
+                CurrentTool = get_font_type("none");
+                TargetName = get_font_type(esp_settings.Name.UseDisplay and (IsA(target, "Player") and target.DisplayName or target.Name) or target.Name);
+                DistanceEnding = get_font_type(esp_settings.Distance.Ending);
+                HealthBarValue = 1;
+                LastHealth = 100;
+                LastMaxHealth = 100;
+                FlagsDelay = 0;
+                CachedFlagsString = "";
+                LastTick = os_clock();
+                LastLazyUpdate = 0;
+                LastDistanceText = "";
+                LastDistanceValue = -1;
+                
+                first_update = true;
+                HealthBarVisualValue = nil;
+                ArmorBarVisualValue = nil;
+                LastHealthV = nil;
+                LastArmorV = nil;
+                HealthLastColor1 = nil;
+                HealthLastColor2 = nil;
+                HealthLastColor3 = nil;
+                ArmorLastColor1 = nil;
+                ArmorLastColor2 = nil;
+                ArmorLastColor3 = nil;
+                LastBoxColor1 = nil;
+                LastBoxColor2 = nil;
+                LastBoxTrans1 = nil;
+                LastBoxTrans2 = nil;
+                LastGlowColor1 = nil;
+                LastGlowColor2 = nil;
+                LastGlowTrans1 = nil;
+                LastGlowTrans2 = nil;
+                LastFillColor1 = nil;
+                LastFillColor2 = nil;
+                LastFillTrans1 = nil;
+                LastFillTrans2 = nil;
             };
 
-            local Objects = TargetInfo.Objects;
-            local LastTick = TargetInfo.LastTick;
-            local ToolConnection = TargetInfo.ToolConnection;
-            local CharacterObjects = TargetInfo.CharacterObjects;
-            local ESPFont = ESP.Font;
-            local ESPFontSize = esp_settings.FontSize;
-            local ESPHolder = ESP.Holder;
+            local objects_table = target_info.Objects;
+            local Objects = objects_table;
+            local tool_connection = target_info.ToolConnection;
+            local character_objects = target_info.CharacterObjects;
+            local esp_font = ESP.Font;
+            local esp_font_size = esp_settings.FontSize;
+            local esp_holder = ESP.Holder;
 
-            local TextAlignments = {
-                ["Left"] = "Right",
-                ["Right"] = "Left",
-                ["Top"] = "Center",
-                ["Bottom"] = "Center",
-            }
+            local text_alignments = {
+                ["Left"] = "Right";
+                ["Right"] = "Left";
+                ["Top"] = "Center";
+                ["Bottom"] = "Center";
+            };
 
-            CharacterObjects.Character = IsA(Target, "Player") and Target.Character or Target
-            CharacterObjects.Children = CharacterObjects.Character and CharacterObjects.Character:GetChildren()
-            CharacterObjects.Descendants = CharacterObjects.Character and CharacterObjects.Character:GetDescendants()
-            if IsA(Target, "Player") then
-                CharacterObjects.HumanoidRootPart = CharacterObjects.Character and CharacterObjects.Character:FindFirstChild("HumanoidRootPart") or nil
-                CharacterObjects.Humanoid = CharacterObjects.Character and CharacterObjects.Character:FindFirstChildWhichIsA("Humanoid") or nil
-            end
+            character_objects.Character = IsA(target, "Player") and target.Character or target;
+            character_objects.Children = character_objects.Character and character_objects.Character:GetChildren();
+            character_objects.Descendants = character_objects.Character and character_objects.Character:GetDescendants();
+            if IsA(target, "Player") then
+                character_objects.HumanoidRootPart = character_objects.Character and character_objects.Character:FindFirstChild("HumanoidRootPart") or nil;
+                character_objects.Humanoid = character_objects.Character and character_objects.Character:FindFirstChildWhichIsA("Humanoid") or nil;
+            end;
 
-            do
-                function TargetInfo.Init()
-                    if #Objects > 0 then return end
-                    if IsA(Target, "Player") then
-                        TargetInfo.CharacterConnection = Utility.AddConnection(Target.CharacterAdded, function(Character)
-                            CharacterObjects.Character = Character;
-                            CharacterObjects.HumanoidRootPart = Character:WaitForChild("HumanoidRootPart", 10);
-                            local Humanoid = Character:WaitForChild("Humanoid", 10);
-                            CharacterObjects.Humanoid = Humanoid;
-                            CharacterObjects.Children = Character:GetChildren();
-                            CharacterObjects.Descendants = Character:GetDescendants();
+            local obj_target_holder;
+            local obj_top_holder;
+            local obj_bottom_holder;
+            local obj_left_holder;
+            local obj_right_holder;
+            local obj_top_text_holder;
+            local obj_bottom_text_holder;
+            local obj_left_text_holder;
+            local obj_right_text_holder;
+            local obj_top_bar_holder;
+            local obj_bottom_bar_holder;
+            local obj_left_bar_holder;
+            local obj_right_bar_holder;
+            local obj_box_glow;
+            local obj_box_glow_gradient;
+            local obj_box_outline_holder;
+            local obj_box_outline;
+            local obj_box_outline_gradient;
+            local obj_box_inline_holder;
+            local obj_box_inline;
+            local obj_box_inline_gradient;
+            local obj_box_fill;
+            local obj_box_fill_gradient;
+            
+            local obj_health_bar;
+            local obj_health_bar_outline;
+            local obj_health_bar_gradient;
+            local obj_health_bar_text;
+            
+            local obj_armor_bar;
+            local obj_armor_bar_outline;
+            local obj_armor_bar_gradient;
+            local obj_armor_bar_text;
+            
+            local obj_target_name;
+            local obj_distance;
+            local obj_flags;
+            local obj_weapon;
 
-                            if TargetInfo.HealthConnection then
-                                TargetInfo.HealthConnection:Disconnect();
-                            end;
+            target_info.Init = LPH_NO_VIRTUALIZE(function()
+                if #objects_table > 0 then
+                    return;
+                end;
+                
+                if IsA(target, "Player") then
+                    target_info.CharacterConnection = Utility.AddConnection(target.CharacterAdded, function(char)
+                        character_objects.Character = char;
+                        character_objects.HumanoidRootPart = char:WaitForChild("HumanoidRootPart", 10);
+                        local hum = char:WaitForChild("Humanoid", 10);
+                        character_objects.Humanoid = hum;
+                        character_objects.Children = char:GetChildren();
+                        character_objects.Descendants = char:GetDescendants();
 
-                            if Humanoid then
-                                TargetInfo.LastHealth = Humanoid.Health;
-                                TargetInfo.LastMaxHealth = Humanoid.MaxHealth;
-                                TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth;
-                                TargetInfo.HealthConnection = Utility.AddConnection(Humanoid.HealthChanged, function(Health)
-                                    TargetInfo.LastHealth = Health;
-                                    TargetInfo.LastMaxHealth = Humanoid.MaxHealth;
-                                    TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth;
-                                end);
-                            end;
+                        if target_info.HealthConnection then
+                            target_info.HealthConnection:Disconnect();
+                        end;
 
-                            if ToolConnection.Added then
-                                ToolConnection.Added:Disconnect();
-                            end;
-
-                            if ToolConnection.Removed then
-                                ToolConnection.Removed:Disconnect();
-                            end;
-
-                            TargetInfo.CurrentTool = Utility.GetFontType("none")
-                            local existingTool = Character:FindFirstChildWhichIsA("Tool")
-
-                            if existingTool then
-                                TargetInfo.CurrentTool = Utility.GetFontType(existingTool.Name);
-                            end;
-
-                            ToolConnection.Added = Utility.AddConnection(Character.ChildAdded, function(Child)
-                                if IsA(Child, "Tool") then
-                                    TargetInfo.CurrentTool = Utility.GetFontType(Child.Name);
-                                end;
+                        if hum then
+                            target_info.LastHealth = hum.Health;
+                            target_info.LastMaxHealth = hum.MaxHealth;
+                            target_info.HealthBarValue = target_info.LastHealth / target_info.LastMaxHealth;
+                            target_info.HealthConnection = Utility.AddConnection(hum.HealthChanged, function(hp)
+                                target_info.LastHealth = hp;
+                                target_info.LastMaxHealth = hum.MaxHealth;
+                                target_info.HealthBarValue = target_info.LastHealth / target_info.LastMaxHealth;
                             end);
+                        end;
 
-                            ToolConnection.Removed = Utility.AddConnection(Character.ChildRemoved, function(Child)
-                                if IsA(Child, "Tool") then
-                                    TargetInfo.CurrentTool = Utility.GetFontType("none");
-                                end;
-                            end);
+                        if tool_connection.Added then
+                            tool_connection.Added:Disconnect();
+                        end;
+
+                        if tool_connection.Removed then
+                            tool_connection.Removed:Disconnect();
+                        end;
+
+                        target_info.CurrentTool = get_font_type("none");
+                        local existing_tool = char:FindFirstChildWhichIsA("Tool");
+
+                        if existing_tool then
+                            target_info.CurrentTool = get_font_type(existing_tool.Name);
+                        end;
+
+                        tool_connection.Added = Utility.AddConnection(char.ChildAdded, function(child)
+                            if IsA(child, "Tool") then
+                                target_info.CurrentTool = get_font_type(child.Name);
+                            end;
                         end);
 
-                        if CharacterObjects.Character then
-                            local Humanoid = CharacterObjects.Character:FindFirstChildWhichIsA("Humanoid");
-                            if Humanoid then
-                                TargetInfo.LastHealth = Humanoid.Health;
-                                TargetInfo.LastMaxHealth = Humanoid.MaxHealth;
-                                TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth;
+                        tool_connection.Removed = Utility.AddConnection(char.ChildRemoved, function(child)
+                            if IsA(child, "Tool") then
+                                target_info.CurrentTool = get_font_type("none");
+                            end;
+                        end);
+                    end);
 
-                                if TargetInfo.HealthConnection then
-                                    TargetInfo.HealthConnection:Disconnect();
-                                end;
+                    if character_objects.Character then
+                        local hum = character_objects.Character:FindFirstChildWhichIsA("Humanoid");
+                        if hum then
+                            target_info.LastHealth = hum.Health;
+                            target_info.LastMaxHealth = hum.MaxHealth;
+                            target_info.HealthBarValue = target_info.LastHealth / target_info.LastMaxHealth;
 
-                                TargetInfo.HealthConnection = Utility.AddConnection(Humanoid.HealthChanged, function(Health)
-                                    TargetInfo.LastHealth = Health;
-                                    TargetInfo.LastMaxHealth = Humanoid.MaxHealth;
-                                    TargetInfo.HealthBarValue = TargetInfo.LastHealth / TargetInfo.LastMaxHealth;
-                                end);
+                            if target_info.HealthConnection then
+                                target_info.HealthConnection:Disconnect();
                             end;
 
-                            TargetInfo.CurrentTool = Utility.GetFontType("none");
-                            local existingTool = CharacterObjects.Character:FindFirstChildWhichIsA("Tool");
-
-                            if existingTool then
-                                TargetInfo.CurrentTool = Utility.GetFontType(existingTool.Name);
-                            end;
-
-                            ToolConnection.Added = Utility.AddConnection(CharacterObjects.Character.ChildAdded, function(Child)
-                                if IsA(Child, "Tool") then
-                                    TargetInfo.CurrentTool = Utility.GetFontType(Child.Name);
-                                end;
-                            end);
-
-                            ToolConnection.Removed = Utility.AddConnection(CharacterObjects.Character.ChildRemoved, function(Child)
-                                if IsA(Child, "Tool") then
-                                    TargetInfo.CurrentTool = Utility.GetFontType("none");
-                                end;
+                            target_info.HealthConnection = Utility.AddConnection(hum.HealthChanged, function(hp)
+                                target_info.LastHealth = hp;
+                                target_info.LastMaxHealth = hum.MaxHealth;
+                                target_info.HealthBarValue = target_info.LastHealth / target_info.LastMaxHealth;
                             end);
                         end;
+
+                        target_info.CurrentTool = get_font_type("none");
+                        local existing_tool = character_objects.Character:FindFirstChildWhichIsA("Tool");
+
+                        if existing_tool then
+                            target_info.CurrentTool = get_font_type(existing_tool.Name);
+                        end;
+
+                        tool_connection.Added = Utility.AddConnection(character_objects.Character.ChildAdded, function(child)
+                            if IsA(child, "Tool") then
+                                target_info.CurrentTool = get_font_type(child.Name);
+                            end;
+                        end);
+
+                        tool_connection.Removed = Utility.AddConnection(character_objects.Character.ChildRemoved, function(child)
+                            if IsA(child, "Tool") then
+                                target_info.CurrentTool = get_font_type("none");
+                            end;
+                        end);
                     end;
+                end;
 
-                    Objects["TargetHolder"] = Utility.CreateObject("Frame", {Parent = ESPHolder, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                    Objects["TopHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, AnchorPoint = Vector2_new(0, 1), Position = UDim2_new(0, -2, 0, -5), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 4, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                    Objects["BottomHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, -2, 1, 3), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 4, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                    Objects["LeftHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], AutomaticSize = Enum.AutomaticSize.X, Visible = true, BackgroundTransparency = 1, AnchorPoint = Vector2_new(1, 0), Position = UDim2_new(0, -4, 0, -2), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 4), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                    Objects["RightHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], AutomaticSize = Enum.AutomaticSize.X, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(1, 8, 0, -2), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 4), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                    do
-                        Objects["TopTextHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TopHolder"], AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                        Utility.CreateObject("UIListLayout", {Parent = Objects["TopTextHolder"], VerticalAlignment = Enum.VerticalAlignment.Bottom, HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder})
-                        Utility.CreateObject("UIPadding", {Parent = Objects["TopTextHolder"], PaddingBottom = UDim_new(0, 2)})
-                        Objects["BottomTextHolder"] = Utility.CreateObject("Frame", {Parent = Objects["BottomHolder"], LayoutOrder = 2, AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                        Utility.CreateObject("UIListLayout", {Parent = Objects["BottomTextHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder})
-                        Utility.CreateObject("UIPadding", {Parent = Objects["BottomTextHolder"], PaddingTop = UDim_new(0, 2)})
-                        Objects["LeftTextHolder"] = Utility.CreateObject("Frame", {Parent = Objects["LeftHolder"], AutomaticSize = Enum.AutomaticSize.XY, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                        Utility.CreateObject("UIListLayout", {Parent = Objects["LeftTextHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Right, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder})
-                        Utility.CreateObject("UIPadding", {Parent = Objects["LeftTextHolder"], PaddingTop = UDim_new(0, -3)})
-                        Objects["RightTextHolder"] = Utility.CreateObject("Frame", {Parent = Objects["RightHolder"], LayoutOrder = 2, AutomaticSize = Enum.AutomaticSize.XY, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                        Utility.CreateObject("UIListLayout", {Parent = Objects["RightTextHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Left, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder})
-                        Utility.CreateObject("UIPadding", {Parent = Objects["RightTextHolder"], PaddingTop = UDim_new(0, -3)})
-                    end
-                    do
-                        Objects["TopBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = Objects["TopHolder"], AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                        Utility.CreateObject("UIListLayout", {Parent = Objects["TopBarHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 1), VerticalAlignment = Enum.VerticalAlignment.Bottom, SortOrder = Enum.SortOrder.LayoutOrder})
-                        Objects["BottomBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = Objects["BottomHolder"], AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                        Utility.CreateObject("UIListLayout", {Parent = Objects["BottomBarHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 1), VerticalAlignment = Enum.VerticalAlignment.Bottom, SortOrder = Enum.SortOrder.LayoutOrder})
-                        Utility.CreateObject("UIPadding", {Parent = Objects["BottomBarHolder"], PaddingTop = UDim_new(0, 2)})
-                        Objects["LeftBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = Objects["LeftHolder"], AutomaticSize = Enum.AutomaticSize.X, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                        Utility.CreateObject("UIListLayout", {Parent = Objects["LeftBarHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Right, VerticalAlignment = Enum.VerticalAlignment.Bottom, Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder})
-                        Utility.CreateObject("UIPadding", {Parent = Objects["LeftBarHolder"], PaddingRight = UDim_new(0, 1)})
-                        Objects["RightBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = Objects["RightHolder"], AutomaticSize = Enum.AutomaticSize.X, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                        Utility.CreateObject("UIListLayout", {Parent = Objects["RightBarHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Left, VerticalAlignment = Enum.VerticalAlignment.Bottom, Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder})
-                        Utility.CreateObject("UIPadding", {Parent = Objects["RightBarHolder"], PaddingLeft = UDim_new(0, -3)})
-                    end
-                    do
-                        Utility.CreateObject("UIListLayout", {Parent = Objects["TopHolder"], VerticalAlignment = Enum.VerticalAlignment.Bottom, Padding = UDim_new(0, 3), SortOrder = Enum.SortOrder.LayoutOrder})
-                        Utility.CreateObject("UIListLayout", {Parent = Objects["BottomHolder"], Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder})
-                        Utility.CreateObject("UIPadding", {Parent = Objects["LeftHolder"], PaddingRight = UDim_new(0, 1)})
-                        Utility.CreateObject("UIListLayout", {Parent = Objects["LeftHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Left, Padding = UDim_new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder})
-                        Utility.CreateObject("UIListLayout", {Parent = Objects["RightHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Left, Padding = UDim_new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder})
-                    end
-                    do
-                        Objects["BoxGlow"] = Utility.CreateObject("ImageLabel", {Parent = Objects["TargetHolder"], Image = "rbxassetid://110204605000367", ScaleType = Enum.ScaleType.Slice, SliceCenter = Rect_new(Vector2_new(21, 21), Vector2_new(79, 79)), AutomaticSize = Enum.AutomaticSize.XY, ImageTransparency = 0.65, ResampleMode = Enum.ResamplerMode.Pixelated, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, -21, 0, -21), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                        Objects["BoxGlowGradient"] = Utility.CreateObject("UIGradient", {Parent = Objects["BoxGlow"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(0, 0, 0))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}})
-                        Utility.CreateObject("UIPadding", {Parent = Objects["BoxGlow"], PaddingTop = UDim_new(0, 21), PaddingBottom = UDim_new(0, 20), PaddingLeft = UDim_new(0, 21), PaddingRight = UDim_new(0, 20)})
-                        Objects["BoxOutlineHolder"] = Utility.CreateObject("Frame", {Parent = Objects["BoxGlow"], Visible = false, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                        Objects["BoxOutline"] = Utility.CreateObject("UIStroke", {Parent = Objects["BoxOutlineHolder"], Thickness = 3, LineJoinMode = Enum.LineJoinMode.Miter})
-                        Objects["BoxOutlineGradient"] = Utility.CreateObject("UIGradient", {Parent = Objects["BoxOutline"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(0, 0, 0))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}})
-                        Objects["BoxInlineHolder"] = Utility.CreateObject("Frame", {Parent = Objects["BoxGlow"], Visible = false, BackgroundTransparency = 1, Position = UDim2_new(0, -1, 0, -1), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                        Objects["BoxInline"] = Utility.CreateObject("UIStroke", {Parent = Objects["BoxInlineHolder"], Color = Color3_fromRGB(255, 255, 255), LineJoinMode = Enum.LineJoinMode.Miter})
-                        Objects["BoxInlineGradient"] = Utility.CreateObject("UIGradient", {Parent = Objects["BoxInline"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}})
-                        Objects["BoxFill"] = Utility.CreateObject("Frame", {Parent = Objects["BoxGlow"], Visible = false, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                        Objects["BoxFillGradient"] = Utility.CreateObject("UIGradient", {Parent = Objects["BoxFill"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 1), NumberSequenceKeypoint_new(1, 1)}})
-                    end
-                    do
-                        for BarName, Bar in pairs(esp_settings.Bars) do
-                            Objects[BarName .. "Outline"] = Utility.CreateObject("Frame", {Parent = Objects[Bar.Position .. "BarHolder"], ZIndex = 5, LayoutOrder = 0, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(0, 0, 0)})
-                            Utility.CreateObject("UIStroke", {Parent = Objects[BarName .. "Outline"], Thickness = 1, LineJoinMode = Enum.LineJoinMode.Miter})
-                            Objects[BarName] = Utility.CreateObject("Frame", {Parent = Objects[BarName .. "Outline"], ZIndex = 6, LayoutOrder = 0, Visible = true, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
-                            Objects[BarName .. "Gradient"] = Utility.CreateObject("UIGradient", {Parent = Objects[BarName], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}})
-                            Objects[BarName .. "Text"] = Utility.CreateObject("TextLabel", {
-                                Parent = Objects[Bar.Position .. "TextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects[BarName .. "Text"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
-                        end
-                    end
-                    do
-                        Objects["TargetName"] = Utility.CreateObject("TextLabel", {
-                            Parent = Objects["TopTextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects["TargetName"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
-                        Objects["Distance"] = Utility.CreateObject("TextLabel", {
-                            Parent = Objects["BottomTextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects["Distance"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
-                        Objects["Flags"] = Utility.CreateObject("TextLabel", {
-                            Parent = Objects["RightTextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects["Flags"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
-                        Objects["Weapon"] = Utility.CreateObject("TextLabel", {
-                            Parent = Objects["BottomTextHolder"], FontFace = ESPFont, TextSize = ESPFontSize, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "none", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0) }); Utility.CreateObject("UIStroke", {Parent = Objects["Weapon"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
-                    end
-                    ESP.Targets[Target] = TargetInfo
-                end
+                objects_table["TargetHolder"] = Utility.CreateObject("Frame", {Parent = esp_holder, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                objects_table["TopHolder"] = Utility.CreateObject("Frame", {Parent = objects_table["TargetHolder"], AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, AnchorPoint = Vector2_new(0, 1), Position = UDim2_new(0, -2, 0, -5), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 4, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                objects_table["BottomHolder"] = Utility.CreateObject("Frame", {Parent = objects_table["TargetHolder"], AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, -2, 1, 3), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 4, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                objects_table["LeftHolder"] = Utility.CreateObject("Frame", {Parent = objects_table["TargetHolder"], AutomaticSize = Enum.AutomaticSize.X, Visible = true, BackgroundTransparency = 1, AnchorPoint = Vector2_new(1, 0), Position = UDim2_new(0, -4, 0, -2), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 4), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                objects_table["RightHolder"] = Utility.CreateObject("Frame", {Parent = objects_table["TargetHolder"], AutomaticSize = Enum.AutomaticSize.X, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(1, 8, 0, -2), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 4), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                
+                objects_table["TopTextHolder"] = Utility.CreateObject("Frame", {Parent = objects_table["TopHolder"], AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                Utility.CreateObject("UIListLayout", {Parent = objects_table["TopTextHolder"], VerticalAlignment = Enum.VerticalAlignment.Bottom, HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder});
+                Utility.CreateObject("UIPadding", {Parent = objects_table["TopTextHolder"], PaddingBottom = UDim_new(0, 2)});
+                
+                objects_table["BottomTextHolder"] = Utility.CreateObject("Frame", {Parent = objects_table["BottomHolder"], LayoutOrder = 2, AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                Utility.CreateObject("UIListLayout", {Parent = objects_table["BottomTextHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder});
+                Utility.CreateObject("UIPadding", {Parent = objects_table["BottomTextHolder"], PaddingTop = UDim_new(0, 2)});
+                
+                objects_table["LeftTextHolder"] = Utility.CreateObject("Frame", {Parent = objects_table["LeftHolder"], AutomaticSize = Enum.AutomaticSize.XY, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                Utility.CreateObject("UIListLayout", {Parent = objects_table["LeftTextHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Right, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder});
+                Utility.CreateObject("UIPadding", {Parent = objects_table["LeftTextHolder"], PaddingTop = UDim_new(0, -3)});
+                
+                objects_table["RightTextHolder"] = Utility.CreateObject("Frame", {Parent = objects_table["RightHolder"], LayoutOrder = 2, AutomaticSize = Enum.AutomaticSize.XY, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                Utility.CreateObject("UIListLayout", {Parent = objects_table["RightTextHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Left, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder});
+                Utility.CreateObject("UIPadding", {Parent = objects_table["RightTextHolder"], PaddingTop = UDim_new(0, -3)});
+                
+                objects_table["TopBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = objects_table["TopHolder"], AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                Utility.CreateObject("UIListLayout", {Parent = objects_table["TopBarHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 1), VerticalAlignment = Enum.VerticalAlignment.Bottom, SortOrder = Enum.SortOrder.LayoutOrder});
+                
+                objects_table["BottomBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = objects_table["BottomHolder"], AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                Utility.CreateObject("UIListLayout", {Parent = objects_table["BottomBarHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 1), VerticalAlignment = Enum.VerticalAlignment.Bottom, SortOrder = Enum.SortOrder.LayoutOrder});
+                Utility.CreateObject("UIPadding", {Parent = objects_table["BottomBarHolder"], PaddingTop = UDim_new(0, 2)});
+                
+                objects_table["LeftBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = objects_table["LeftHolder"], AutomaticSize = Enum.AutomaticSize.X, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                Utility.CreateObject("UIListLayout", {Parent = objects_table["LeftBarHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Right, VerticalAlignment = Enum.VerticalAlignment.Bottom, Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder});
+                Utility.CreateObject("UIPadding", {Parent = objects_table["LeftBarHolder"], PaddingRight = UDim_new(0, 1)});
+                
+                objects_table["RightBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = objects_table["RightHolder"], AutomaticSize = Enum.AutomaticSize.X, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                Utility.CreateObject("UIListLayout", {Parent = objects_table["RightBarHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Left, VerticalAlignment = Enum.VerticalAlignment.Bottom, Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder});
+                Utility.CreateObject("UIPadding", {Parent = objects_table["RightBarHolder"], PaddingLeft = UDim_new(0, -3)});
+                
+                Utility.CreateObject("UIListLayout", {Parent = objects_table["TopHolder"], VerticalAlignment = Enum.VerticalAlignment.Bottom, Padding = UDim_new(0, 3), SortOrder = Enum.SortOrder.LayoutOrder});
+                Utility.CreateObject("UIListLayout", {Parent = objects_table["BottomHolder"], Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder});
+                Utility.CreateObject("UIPadding", {Parent = objects_table["LeftHolder"], PaddingRight = UDim_new(0, 1)});
+                Utility.CreateObject("UIListLayout", {Parent = objects_table["LeftHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Left, Padding = UDim_new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder});
+                Utility.CreateObject("UIListLayout", {Parent = objects_table["RightHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Left, Padding = UDim_new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder});
+                
+                objects_table["BoxGlow"] = Utility.CreateObject("ImageLabel", {Parent = objects_table["TargetHolder"], Image = "rbxassetid://110204605000367", ScaleType = Enum.ScaleType.Slice, SliceCenter = Rect_new(Vector2_new(21, 21), Vector2_new(79, 79)), AutomaticSize = Enum.AutomaticSize.XY, ImageTransparency = 0.65, ResampleMode = Enum.ResamplerMode.Pixelated, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, -21, 0, -21), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                objects_table["BoxGlowGradient"] = Utility.CreateObject("UIGradient", {Parent = objects_table["BoxGlow"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(0, 0, 0))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}});
+                Utility.CreateObject("UIPadding", {Parent = objects_table["BoxGlow"], PaddingTop = UDim_new(0, 21), PaddingBottom = UDim_new(0, 20), PaddingLeft = UDim_new(0, 21), PaddingRight = UDim_new(0, 20)});
+                
+                objects_table["BoxOutlineHolder"] = Utility.CreateObject("Frame", {Parent = objects_table["BoxGlow"], Visible = false, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                objects_table["BoxOutline"] = Utility.CreateObject("UIStroke", {Parent = objects_table["BoxOutlineHolder"], Thickness = 3, LineJoinMode = Enum.LineJoinMode.Miter});
+                objects_table["BoxOutlineGradient"] = Utility.CreateObject("UIGradient", {Parent = objects_table["BoxOutline"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(0, 0, 0))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}});
+                
+                objects_table["BoxInlineHolder"] = Utility.CreateObject("Frame", {Parent = objects_table["BoxGlow"], Visible = false, BackgroundTransparency = 1, Position = UDim2_new(0, -1, 0, -1), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                objects_table["BoxInline"] = Utility.CreateObject("UIStroke", {Parent = objects_table["BoxInlineHolder"], Color = Color3_fromRGB(255, 255, 255), LineJoinMode = Enum.LineJoinMode.Miter});
+                objects_table["BoxInlineGradient"] = Utility.CreateObject("UIGradient", {Parent = objects_table["BoxInline"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}});
+                
+                objects_table["BoxFill"] = Utility.CreateObject("Frame", {Parent = objects_table["BoxGlow"], Visible = false, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                objects_table["BoxFillGradient"] = Utility.CreateObject("UIGradient", {Parent = objects_table["BoxFill"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 1), NumberSequenceKeypoint_new(1, 1)}});
 
-                local lastonscreen = false;
-                local lastboxwidth = 0;
-                local lastboxheight = 0;
-                local lastboxposx = 0;
-                local lastboxposy = 0;
-                local lastupdatetick = 0;
+                for bar_name, bar_info in pairs(esp_settings.Bars) do
+                    objects_table[bar_name .. "Outline"] = Utility.CreateObject("Frame", {Parent = objects_table[bar_info.Position .. "BarHolder"], ZIndex = 5, LayoutOrder = 0, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(0, 0, 0)});
+                    Utility.CreateObject("UIStroke", {Parent = objects_table[bar_name .. "Outline"], Thickness = 1, LineJoinMode = Enum.LineJoinMode.Miter});
+                    objects_table[bar_name] = Utility.CreateObject("Frame", {Parent = objects_table[bar_name .. "Outline"], ZIndex = 6, LayoutOrder = 0, Visible = true, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)});
+                    objects_table[bar_name .. "Gradient"] = Utility.CreateObject("UIGradient", {Parent = objects_table[bar_name], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}});
+                    objects_table[bar_name .. "Text"] = Utility.CreateObject("TextLabel", {
+                        Parent = objects_table[bar_info.Position .. "TextHolder"], FontFace = esp_font, TextSize = esp_font_size, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0)
+                    });
+                    Utility.CreateObject("UIStroke", {Parent = objects_table[bar_name .. "Text"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter});
+                end;
 
-                function TargetInfo.Update()
-                    local currentTick = os_clock();
-                    local deltaTime = currentTick - lastupdatetick;
-                    lastupdatetick = currentTick;
+                objects_table["TargetName"] = Utility.CreateObject("TextLabel", {
+                    Parent = objects_table["TopTextHolder"], FontFace = esp_font, TextSize = esp_font_size, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0)
+                });
+                Utility.CreateObject("UIStroke", {Parent = objects_table["TargetName"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter});
+                
+                objects_table["Distance"] = Utility.CreateObject("TextLabel", {
+                    Parent = objects_table["BottomTextHolder"], FontFace = esp_font, TextSize = esp_font_size, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0)
+                });
+                Utility.CreateObject("UIStroke", {Parent = objects_table["Distance"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter});
+                
+                objects_table["Flags"] = Utility.CreateObject("TextLabel", {
+                    Parent = objects_table["RightTextHolder"], FontFace = esp_font, TextSize = esp_font_size, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0)
+                });
+                Utility.CreateObject("UIStroke", {Parent = objects_table["Flags"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter});
+                
+                objects_table["Weapon"] = Utility.CreateObject("TextLabel", {
+                    Parent = objects_table["BottomTextHolder"], FontFace = esp_font, TextSize = esp_font_size, LayoutOrder = 2, TextColor3 = Color3_fromRGB(255, 255, 255), Text = "none", AnchorPoint = Vector2_new(0, 1), BorderSizePixel = 0, Visible = true, BackgroundTransparency = 1, ZIndex = 5, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2_new(1, 0, 0, 0)
+                });
+                Utility.CreateObject("UIStroke", {Parent = objects_table["Weapon"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter});
 
-                    if (not esp_settings.LocalPlayer) and Target == Client then
-                        if Objects["TargetHolder"].Visible then
-                            Objects["TargetHolder"].Visible = false;
+                obj_target_holder = objects_table["TargetHolder"];
+                obj_top_holder = objects_table["TopHolder"];
+                obj_bottom_holder = objects_table["BottomHolder"];
+                obj_left_holder = objects_table["LeftHolder"];
+                obj_right_holder = objects_table["RightHolder"];
+                obj_top_text_holder = objects_table["TopTextHolder"];
+                obj_bottom_text_holder = objects_table["BottomTextHolder"];
+                obj_left_text_holder = objects_table["LeftTextHolder"];
+                obj_right_text_holder = objects_table["RightTextHolder"];
+                obj_top_bar_holder = objects_table["TopBarHolder"];
+                obj_bottom_bar_holder = objects_table["BottomBarHolder"];
+                obj_left_bar_holder = objects_table["LeftBarHolder"];
+                obj_right_bar_holder = objects_table["RightBarHolder"];
+                obj_box_glow = objects_table["BoxGlow"];
+                obj_box_glow_gradient = objects_table["BoxGlowGradient"];
+                obj_box_outline_holder = objects_table["BoxOutlineHolder"];
+                obj_box_outline = objects_table["BoxOutline"];
+                obj_box_outline_gradient = objects_table["BoxOutlineGradient"];
+                obj_box_inline_holder = objects_table["BoxInlineHolder"];
+                obj_box_inline = objects_table["BoxInline"];
+                obj_box_inline_gradient = objects_table["BoxInlineGradient"];
+                obj_box_fill = objects_table["BoxFill"];
+                obj_box_fill_gradient = objects_table["BoxFillGradient"];
+                
+                obj_health_bar = objects_table["HealthBar"];
+                obj_health_bar_outline = objects_table["HealthBarOutline"];
+                obj_health_bar_gradient = objects_table["HealthBarGradient"];
+                obj_health_bar_text = objects_table["HealthBarText"];
+                
+                obj_armor_bar = objects_table["ArmorBar"];
+                obj_armor_bar_outline = objects_table["ArmorBarOutline"];
+                obj_armor_bar_gradient = objects_table["ArmorBarGradient"];
+                obj_armor_bar_text = objects_table["ArmorBarText"];
+                
+                obj_target_name = objects_table["TargetName"];
+                obj_distance = objects_table["Distance"];
+                obj_flags = objects_table["Flags"];
+                obj_weapon = objects_table["Weapon"];
+
+                ESP.Targets[target] = target_info;
+            end);
+
+            local last_onscreen = false;
+            local last_box_width = 0;
+            local last_box_height = 0;
+            local last_box_pos_x = 0;
+            local last_box_pos_y = 0;
+            local last_update_time = 0;
+
+            target_info.Update = LPH_JIT(function(settings_dirty)
+                local current_time = os_clock();
+                local delta_time = current_time - last_update_time;
+                last_update_time = current_time;
+
+                if (not esp_settings.LocalPlayer) and target == Client then
+                    if obj_target_holder.Visible then
+                        obj_target_holder.Visible = false;
+                    end;
+                    return;
+                end;
+
+                local char = character_objects.Character;
+                if not char then
+                    if obj_target_holder.Visible then
+                        obj_target_holder.Visible = false;
+                    end;
+                    return;
+                end;
+
+                local is_player = IsA(target, "Player");
+                if is_player then
+                    if not character_objects.HumanoidRootPart then
+                        character_objects.HumanoidRootPart = FindFirstChild(char, "HumanoidRootPart");
+                        if obj_target_holder.Visible then
+                            obj_target_holder.Visible = false;
                         end;
                         return;
                     end;
 
-                    if not CharacterObjects.Character then
-                        if Objects["TargetHolder"].Visible then Objects["TargetHolder"].Visible = false; end;
+                    if not character_objects.Humanoid then
+                        character_objects.Humanoid = FindFirstChildWhichIsA(char, "Humanoid");
+                        if obj_target_holder.Visible then
+                            obj_target_holder.Visible = false;
+                        end;
                         return;
                     end;
-
-                    if IsA(Target, "Player") then
-                        if not CharacterObjects.HumanoidRootPart then
-                            CharacterObjects.HumanoidRootPart = FindFirstChild(CharacterObjects.Character, "HumanoidRootPart");
-                            if Objects["TargetHolder"].Visible then
-                                Objects["TargetHolder"].Visible = false;
+                else
+                    if not character_objects.HumanoidRootPart then
+                        character_objects.HumanoidRootPart = IsA(target, "BasePart") and target or char.PrimaryPart;
+                        if not character_objects.HumanoidRootPart then
+                            if obj_target_holder.Visible then
+                                obj_target_holder.Visible = false;
                             end;
                             return;
                         end;
+                    end;
+                end;
 
-                        if not CharacterObjects.Humanoid then
-                            CharacterObjects.Humanoid = FindFirstChildWhichIsA(CharacterObjects.Character, "Humanoid");
-                            if Objects["TargetHolder"].Visible then
-                                Objects["TargetHolder"].Visible = false;
+                local root_part = character_objects.HumanoidRootPart;
+                local root_pos = root_part.Position;
+                local distance = (Camera.CFrame.Position - root_pos).Magnitude;
+                if distance > esp_settings.MaxDistance then
+                    if obj_target_holder.Visible then
+                        obj_target_holder.Visible = false;
+                    end;
+                    last_onscreen = false;
+                    return;
+                end;
+
+                local body_parts;
+                if esp_settings.BoundingBox.DynamicBox then
+                    body_parts = esp_settings.BoundingBox.IncludeAccessories and character_objects.Descendants or character_objects.Children;
+                    if not is_player then
+                        body_parts = {target};
+                    end;
+                end;
+
+                local box_width, box_height, box_pos_x, box_pos_y, on_screen = calculate_box(target, root_part, body_parts);
+                if not on_screen then
+                    if obj_target_holder.Visible then
+                        obj_target_holder.Visible = false;
+                    end;
+                    last_onscreen = false;
+                    return;
+                end;
+
+                local bw = math_floor(box_width);
+                local bh = math_floor(box_height);
+                local bx = math_floor(box_pos_x);
+                local by = math_floor(box_pos_y);
+
+                if not obj_target_holder.Visible then
+                    obj_target_holder.Visible = true;
+                end;
+
+                if bx ~= last_box_pos_x or by ~= last_box_pos_y or bw ~= last_box_width or bh ~= last_box_height then
+                    local box_size_offset = UDim2_fromOffset(bw, bh);
+                    local box_position_offset = UDim2_fromOffset(bx, by);
+
+                    if obj_target_holder.Position ~= box_position_offset then
+                        obj_target_holder.Position = box_position_offset;
+                    end;
+
+                    if obj_target_holder.Size ~= box_size_offset then
+                        obj_target_holder.Size = box_size_offset;
+                    end;
+
+                    last_box_width = bw;
+                    last_box_height = bh;
+                    last_box_pos_x = bx;
+                    last_box_pos_y = by;
+                end;
+
+                local final_dirty = settings_dirty or target_info.first_update;
+                if target_info.first_update then
+                    target_info.first_update = false;
+                end;
+
+                local cached_box_size = UDim2_fromOffset(box_width, box_height);
+                
+                -- BoundingBox Section
+                local box_enabled = esp_settings.BoundingBox.Enabled;
+                if box_enabled then
+                    if not obj_box_outline_holder.Visible then
+                        obj_box_outline_holder.Visible = true;
+                    end;
+
+                    if obj_box_outline_holder.Size ~= cached_box_size then
+                        obj_box_outline_holder.Size = cached_box_size;
+                    end;
+
+                    if not obj_box_inline_holder.Visible then
+                        obj_box_inline_holder.Visible = true;
+                    end;
+
+                    local inline_size = UDim2_fromOffset(box_width + 2, box_height + 2);
+                    if obj_box_inline_holder.Size ~= inline_size then
+                        obj_box_inline_holder.Size = inline_size;
+                    end;
+
+                    local rot_speed = esp_settings.BoundingBox.RotationSpeed;
+                    local box_rotation;
+                    if rot_speed > 0 then
+                        box_rotation = esp_settings.BoundingBox.Rotation + esp_settings.BoundingBox.MovingRotation + math_sin(current_time * rot_speed) * 45;
+                    else
+                        box_rotation = esp_settings.BoundingBox.Rotation + esp_settings.BoundingBox.MovingRotation;
+                    end;
+
+                    local box_color = esp_settings.BoundingBox.Color;
+                    if final_dirty or target_info.LastBoxColor1 ~= box_color[1] or target_info.LastBoxColor2 ~= box_color[2] then
+                        target_info.LastBoxColor1 = box_color[1];
+                        target_info.LastBoxColor2 = box_color[2];
+                        obj_box_inline_gradient.Color = ColorSequence_new{
+                            ColorSequenceKeypoint_new(0, box_color[1]),
+                            ColorSequenceKeypoint_new(1, box_color[2])
+                        };
+                    end;
+
+                    local box_trans = esp_settings.BoundingBox.Transparency;
+                    if final_dirty or target_info.LastBoxTrans1 ~= box_trans[1] or target_info.LastBoxTrans2 ~= box_trans[2] then
+                        target_info.LastBoxTrans1 = box_trans[1];
+                        target_info.LastBoxTrans2 = box_trans[2];
+                        local trans_seq = NumberSequence_new{
+                            NumberSequenceKeypoint_new(0, box_trans[1]),
+                            NumberSequenceKeypoint_new(1, box_trans[2])
+                        };
+                        obj_box_inline_gradient.Transparency = trans_seq;
+                        obj_box_outline_gradient.Transparency = trans_seq;
+                    end;
+
+                    if final_dirty or rot_speed > 0 then
+                        if obj_box_inline_gradient.Rotation ~= box_rotation then
+                            obj_box_inline_gradient.Rotation = box_rotation;
+                        end;
+
+                        if obj_box_outline_gradient.Rotation ~= box_rotation then
+                            obj_box_outline_gradient.Rotation = box_rotation;
+                        end;
+                    end;
+
+                    -- Glow Sub-Section
+                    local glow_enabled = esp_settings.BoundingBox.Glow.Enabled;
+                    if glow_enabled then
+                        if obj_box_glow.ImageTransparency ~= 0 then
+                            obj_box_glow.ImageTransparency = 0;
+                        end;
+
+                        local glow_rot_speed = esp_settings.BoundingBox.Glow.RotationSpeed;
+                        local glow_rotation;
+                        if glow_rot_speed > 0 then
+                            glow_rotation = esp_settings.BoundingBox.Glow.Rotation + esp_settings.BoundingBox.Glow.MovingRotation + math_sin(current_time * glow_rot_speed) * 45;
+                        else
+                            glow_rotation = esp_settings.BoundingBox.Glow.Rotation + esp_settings.BoundingBox.Glow.MovingRotation;
+                        end;
+
+                        if final_dirty or glow_rot_speed > 0 then
+                            if obj_box_glow_gradient.Rotation ~= glow_rotation then
+                                obj_box_glow_gradient.Rotation = glow_rotation;
                             end;
-                            return;
+                        end;
+
+                        local glow_color = esp_settings.BoundingBox.Glow.Color;
+                        if final_dirty or target_info.LastGlowColor1 ~= glow_color[1] or target_info.LastGlowColor2 ~= glow_color[2] then
+                            target_info.LastGlowColor1 = glow_color[1];
+                            target_info.LastGlowColor2 = glow_color[2];
+                            obj_box_glow_gradient.Color = ColorSequence_new{
+                                ColorSequenceKeypoint_new(0, glow_color[1]),
+                                ColorSequenceKeypoint_new(1, glow_color[2])
+                            };
+                        end;
+
+                        local glow_trans = esp_settings.BoundingBox.Glow.Transparency;
+                        if final_dirty or target_info.LastGlowTrans1 ~= glow_trans[1] or target_info.LastGlowTrans2 ~= glow_trans[2] then
+                            target_info.LastGlowTrans1 = glow_trans[1];
+                            target_info.LastGlowTrans2 = glow_trans[2];
+                            obj_box_glow_gradient.Transparency = NumberSequence_new{
+                                NumberSequenceKeypoint_new(0, glow_trans[1]),
+                                NumberSequenceKeypoint_new(1, glow_trans[2])
+                            };
                         end;
                     else
-                        if not CharacterObjects.HumanoidRootPart then
-                            CharacterObjects.HumanoidRootPart = IsA(Target, "BasePart") and Target or CharacterObjects.Character.PrimaryPart;
-                            if not CharacterObjects.HumanoidRootPart then
-                                if Objects["TargetHolder"].Visible then
-                                    Objects["TargetHolder"].Visible = false;
-                                end;
-                                return;
-                            end;
+                        if obj_box_glow.ImageTransparency ~= 1 then
+                            obj_box_glow.ImageTransparency = 1;
                         end;
                     end;
 
-                    local rootpos = CharacterObjects.HumanoidRootPart.Position;
-                    local distance = (Camera.CFrame.Position - rootpos).Magnitude;
-                    if distance > esp_settings.MaxDistance then
-                        if Objects["TargetHolder"].Visible then
-                            Objects["TargetHolder"].Visible = false;
-                        end;
-                        lastonscreen = false;
-                        return;
+                    -- Fill Sub-Section
+                    local fill_enabled = esp_settings.BoundingBox.Fill.Enabled;
+                    if obj_box_fill.Visible ~= fill_enabled then
+                        obj_box_fill.Visible = fill_enabled;
                     end;
-
-                    local bodyparts = nil;
-                    if esp_settings.BoundingBox.DynamicBox then
-                        bodyparts = esp_settings.BoundingBox.IncludeAccessories and CharacterObjects.Descendants or CharacterObjects.Children;
-                        if IsA(Target, "BasePart") then
-                            bodyparts = {Target};
-                        end;
-                    end;
-
-                    local boxwidth, boxheight, boxposx, boxposy, onscreen = Utility.CalculateBox(Target, CharacterObjects.HumanoidRootPart, bodyparts);
-                    if not onscreen then
-                        if Objects["TargetHolder"].Visible then
-                            Objects["TargetHolder"].Visible = false;
-                        end;
-                        lastonscreen = false;
-                        return;
-                    end;
-
-                    local bw = math_floor(boxwidth);
-                    local bh = math_floor(boxheight);
-                    local bx = math_floor(boxposx);
-                    local by = math_floor(boxposy);
                     
-                    local TargetHolder = Objects["TargetHolder"];
-
-                    if not TargetHolder.Visible then
-                        TargetHolder.Visible = true;
-                    end;
-
-                    if bx ~= lastboxposx or by ~= lastboxposy or bw ~= lastboxwidth or bh ~= lastboxheight then
-                        local BoxSize = UDim2_fromOffset(bw, bh);
-                        local BoxPosition = UDim2_fromOffset(bx, by);
-
-                        if TargetHolder.Position ~= BoxPosition then
-                            TargetHolder.Position = BoxPosition;
+                    if fill_enabled then
+                        if obj_box_fill.Size ~= cached_box_size then
+                            obj_box_fill.Size = cached_box_size;
                         end;
 
-                        if TargetHolder.Size ~= BoxSize then
-                            TargetHolder.Size = BoxSize;
-                        end;
-
-                        lastboxwidth = bw; lastboxheight = bh; lastboxposx = bx; lastboxposy = by;
-                    end;
-
-                    local BoxWidth, BoxHeight, BoxPositionX, BoxPositionY = boxwidth, boxheight, boxposx, boxposy;
-                    local BoxSize = UDim2_fromOffset(bw, bh);
-                    local BoxOutline, BoxInline, BoxFill, BoxGlow = Objects["BoxOutline"], Objects["BoxInline"], Objects["BoxFill"], Objects["BoxGlow"]; do
-                        local BoxEnabled, BoxColor, BoxTransparency, BoxRotation = esp_settings.BoundingBox.Enabled, esp_settings.BoundingBox.Color, esp_settings.BoundingBox.Transparency, esp_settings.BoundingBox.Rotation + esp_settings.BoundingBox.MovingRotation + math.sin(os_clock() * esp_settings.BoundingBox.RotationSpeed) * 45;
-                        if BoxEnabled then
-                            if not BoxOutline.Parent.Visible then
-                                BoxOutline.Parent.Visible = true;
-                            end;
-
-                            local CachedBoxSize = UDim2_fromOffset(BoxWidth, BoxHeight)
-                            if BoxOutline.Parent.Size ~= CachedBoxSize then
-                                BoxOutline.Parent.Size = CachedBoxSize;
-                            end;
-
-                            if not BoxInline.Parent.Visible then
-                                BoxInline.Parent.Visible = true;
-                            end;
-
-                            local InlineSize = UDim2_fromOffset(BoxWidth + 2, BoxHeight + 2);
-
-                            if BoxInline.Parent.Size ~= InlineSize then
-                                BoxInline.Parent.Size = InlineSize;
-                            end
-                            
-                            local BoxInlineGradient, BoxOutlineGradient = Objects["BoxInlineGradient"], Objects["BoxOutlineGradient"]; do
-                                if TargetInfo.LastBoxColor1 ~= BoxColor[1] or TargetInfo.LastBoxColor2 ~= BoxColor[2] then
-                                    TargetInfo.LastBoxColor1 = BoxColor[1];
-                                    TargetInfo.LastBoxColor2 = BoxColor[2];
-                                    BoxInlineGradient.Color = ColorSequence_new{
-                                        ColorSequenceKeypoint_new(0, BoxColor[1]), ColorSequenceKeypoint_new(1, BoxColor[2])
-                                    };
-                                end;
-
-                                if TargetInfo.LastBoxTrans1 ~= BoxTransparency[1] or TargetInfo.LastBoxTrans2 ~= BoxTransparency[2] then
-                                    TargetInfo.LastBoxTrans1 = BoxTransparency[1];
-                                    TargetInfo.LastBoxTrans2 = BoxTransparency[2];
-                                    local transSeq = NumberSequence_new{
-                                        NumberSequenceKeypoint_new(0, BoxTransparency[1]), NumberSequenceKeypoint_new(1, BoxTransparency[2])
-                                    };
-                                    BoxInlineGradient.Transparency = transSeq;
-                                    BoxOutlineGradient.Transparency = transSeq;
-                                end;
-
-                                if BoxInlineGradient.Rotation ~= BoxRotation then
-                                    BoxInlineGradient.Rotation = BoxRotation;
-                                end
-
-                                if BoxOutlineGradient.Rotation ~= BoxRotation then
-                                    BoxOutlineGradient.Rotation = BoxRotation;
-                                end;
-                            end;
-
-                            local BoxGlowGradient = Objects["BoxGlowGradient"];
-                            do
-                                local BoxGlowEnabled, BoxGlowColor, BoxGlowTransparency, BoxGlowRotation = esp_settings.BoundingBox.Glow.Enabled, esp_settings.BoundingBox.Glow.Color, esp_settings.BoundingBox.Glow.Transparency, esp_settings.BoundingBox.Glow.Rotation + esp_settings.BoundingBox.Glow.MovingRotation + math.sin(os_clock() * esp_settings.BoundingBox.Glow.RotationSpeed) * 45
-                                if BoxGlowEnabled then
-                                    if BoxGlow.ImageTransparency ~= 0 then
-                                        BoxGlow.ImageTransparency = 0;
-                                    end;
-                                    if BoxGlowGradient.Rotation ~= BoxGlowRotation then
-                                        BoxGlowGradient.Rotation = BoxGlowRotation;
-                                    end;
-
-                                    if TargetInfo.LastGlowColor1 ~= BoxGlowColor[1] or TargetInfo.LastGlowColor2 ~= BoxGlowColor[2] then
-                                        TargetInfo.LastGlowColor1 = BoxGlowColor[1];
-                                        TargetInfo.LastGlowColor2 = BoxGlowColor[2];
-                                        BoxGlowGradient.Color = ColorSequence_new{
-                                            ColorSequenceKeypoint_new(0, BoxGlowColor[1]), ColorSequenceKeypoint_new(1, BoxGlowColor[2])
-                                        };
-                                    end
-
-                                    if TargetInfo.LastGlowTrans1 ~= BoxGlowTransparency[1] or TargetInfo.LastGlowTrans2 ~= BoxGlowTransparency[2] then
-                                        TargetInfo.LastGlowTrans1 = BoxGlowTransparency[1];
-                                        TargetInfo.LastGlowTrans2 = BoxGlowTransparency[2];
-                                        BoxGlowGradient.Transparency = NumberSequence_new{
-                                            NumberSequenceKeypoint_new(0, BoxGlowTransparency[1]), NumberSequenceKeypoint_new(1, BoxGlowTransparency[2])
-                                        };
-                                    end;
-                                else
-                                    if BoxGlow.ImageTransparency ~= 1 then
-                                        BoxGlow.ImageTransparency = 1;
-                                    end;
-                                end;
-                            end;
-
-                            local BoxFillGradient = Objects["BoxFillGradient"];
-                            do
-                                local BoxFillColor, BoxFillTransparency, BoxFillRotation = esp_settings.BoundingBox.Fill.Color, esp_settings.BoundingBox.Fill.Transparency, esp_settings.BoundingBox.Fill.Rotation + esp_settings.BoundingBox.Fill.MovingRotation + math.sin(os_clock() * esp_settings.BoundingBox.Fill.RotationSpeed) * 45
-                                if BoxFill.Visible ~= esp_settings.BoundingBox.Fill.Enabled then
-                                    BoxFill.Visible = esp_settings.BoundingBox.Fill.Enabled;
-                                end;
-                                if BoxFill.Size ~= CachedBoxSize then
-                                    BoxFill.Size = CachedBoxSize;
-                                end
-                                if BoxFillGradient.Rotation ~= BoxFillRotation then
-                                    BoxFillGradient.Rotation = BoxFillRotation;
-                                end
-                                if TargetInfo.LastFillColor1 ~= BoxFillColor[1] or TargetInfo.LastFillColor2 ~= BoxFillColor[2] then
-                                    TargetInfo.LastFillColor1 = BoxFillColor[1];
-                                    TargetInfo.LastFillColor2 = BoxFillColor[2];
-                                    BoxFillGradient.Color = ColorSequence_new{
-                                        ColorSequenceKeypoint_new(0, BoxFillColor[1]), ColorSequenceKeypoint_new(1, BoxFillColor[2])
-                                    }
-                                end;
-                                if TargetInfo.LastFillTrans1 ~= BoxFillTransparency[1] or TargetInfo.LastFillTrans2 ~= BoxFillTransparency[2] then
-                                    TargetInfo.LastFillTrans1 = BoxFillTransparency[1];
-                                    TargetInfo.LastFillTrans2 = BoxFillTransparency[2];
-                                    BoxFillGradient.Transparency = NumberSequence_new{
-                                        NumberSequenceKeypoint_new(0, BoxFillTransparency[1]), NumberSequenceKeypoint_new(1, BoxFillTransparency[2])
-                                    };
-                                end;
-                            end;
+                        local fill_rot_speed = esp_settings.BoundingBox.Fill.RotationSpeed;
+                        local fill_rotation;
+                        if fill_rot_speed > 0 then
+                            fill_rotation = esp_settings.BoundingBox.Fill.Rotation + esp_settings.BoundingBox.Fill.MovingRotation + math_sin(current_time * fill_rot_speed) * 45;
                         else
-                            if BoxGlow.ImageTransparency ~= 1 then
-                                BoxGlow.ImageTransparency = 1;
-                            end;
+                            fill_rotation = esp_settings.BoundingBox.Fill.Rotation + esp_settings.BoundingBox.Fill.MovingRotation;
+                        end;
 
-                            if BoxOutline.Parent.Visible then
-                                BoxOutline.Parent.Visible = false;
+                        if final_dirty or fill_rot_speed > 0 then
+                            if obj_box_fill_gradient.Rotation ~= fill_rotation then
+                                obj_box_fill_gradient.Rotation = fill_rotation;
                             end;
-                            if BoxInline.Parent.Visible then
-                                BoxInline.Parent.Visible = false;
-                            end
-                            if BoxFill.Visible then
-                                BoxFill.Visible = false;
-                            end;
+                        end;
+
+                        local fill_color = esp_settings.BoundingBox.Fill.Color;
+                        if final_dirty or target_info.LastFillColor1 ~= fill_color[1] or target_info.LastFillColor2 ~= fill_color[2] then
+                            target_info.LastFillColor1 = fill_color[1];
+                            target_info.LastFillColor2 = fill_color[2];
+                            obj_box_fill_gradient.Color = ColorSequence_new{
+                                ColorSequenceKeypoint_new(0, fill_color[1]),
+                                ColorSequenceKeypoint_new(1, fill_color[2])
+                            };
+                        end;
+
+                        local fill_trans = esp_settings.BoundingBox.Fill.Transparency;
+                        if final_dirty or target_info.LastFillTrans1 ~= fill_trans[1] or target_info.LastFillTrans2 ~= fill_trans[2] then
+                            target_info.LastFillTrans1 = fill_trans[1];
+                            target_info.LastFillTrans2 = fill_trans[2];
+                            obj_box_fill_gradient.Transparency = NumberSequence_new{
+                                NumberSequenceKeypoint_new(0, fill_trans[1]),
+                                NumberSequenceKeypoint_new(1, fill_trans[2])
+                            };
                         end;
                     end;
-
-                    for BarName, BarInfo in pairs(esp_settings.Bars) do
-                        local Bar, BarOutline, BarGradient = Objects[BarName], Objects[BarName .. "Outline"], Objects[BarName .. "Gradient"]; do
-                            local BarEnabled, BarColor, BarTransparency = BarInfo.Enabled, BarInfo.Color, BarInfo.Transparency
-                            local Position = BarInfo.Position
-                            local NewParent = Objects[Position .. "BarHolder"]
-                            if BarEnabled and IsA(Target, "Player") then
-                                local BarValue = BarInfo.Type(Target, TargetInfo)
-                                if not NewParent.Visible then
-                                    NewParent.Visible = true;
-                                end;
-
-                                local visualBarValue = TargetInfo[BarName .. "VisualValue"] or BarValue;
-                                visualBarValue = visualBarValue + (BarValue - visualBarValue) * math.clamp(deltaTime * 5, 0, 1);
-                                TargetInfo[BarName .. "VisualValue"] = visualBarValue;
-
-                                local isVertical = (Position == "Left" or Position == "Right");
-                                local barSize = isVertical and UDim2_new(0, 1, visualBarValue, 0) or UDim2_new(visualBarValue, 0, 0, 1);
-                                local outlineSize = barSize;
-                                local gradRot = (isVertical and 90 or -180) + BarInfo.MovingRotation + math.sin(os_clock() * BarInfo.RotationSpeed) * 45;
-                                local gradOff = isVertical and Vector2_new(0, visualBarValue - 1) or Vector2_new(1 - visualBarValue, 0);
-                                local barAnchor = isVertical and Vector2_new(0, 1) or Vector2_new(0, 0);
-                                local barPos = isVertical and UDim2_new(0, 0, 1, 0) or UDim2_new(0, 0, 0, 0);
-
-                                if not BarOutline.Visible then
-                                    BarOutline.Visible = true;
-                                end;
-
-                                if Bar.AnchorPoint ~= barAnchor then
-                                    Bar.AnchorPoint = barAnchor;
-                                end;
-
-                                if Bar.Position ~= barPos then
-                                    Bar.Position = barPos;
-                                end;
-
-                                if Bar.Size ~= UDim2_new(1, 0, 1, 0) then
-                                    Bar.Size = UDim2_new(1, 0, 1, 0);
-                                end;
-
-                                if BarOutline.Parent ~= NewParent then
-                                    BarOutline.Parent = NewParent;
-                                end;
-
-                                if BarOutline.Size ~= outlineSize then
-                                    BarOutline.Size = outlineSize;
-                                end;
-
-                                if BarGradient.Rotation ~= gradRot then
-                                    BarGradient.Rotation = gradRot;
-                                end;
-
-                                if BarGradient.Offset ~= gradOff then
-                                    BarGradient.Offset = gradOff;
-                                end;
-
-                                if TargetInfo[BarName.."LastColor1"] ~= BarColor[1] or TargetInfo[BarName.."LastColor2"] ~= BarColor[2] or TargetInfo[BarName.."LastColor3"] ~= BarColor[3] then
-                                    TargetInfo[BarName.."LastColor1"] = BarColor[1];
-                                    TargetInfo[BarName.."LastColor2"] = BarColor[2];
-                                    TargetInfo[BarName.."LastColor3"] = BarColor[3];
-                                end;
-
-                                local v = math_clamp(visualBarValue, 0.001, 0.999);
-                                local midPoint = math_clamp(v * 0.5, 0.001, 0.499);
-
-                                BarGradient.Color = ColorSequence_new{
-                                    ColorSequenceKeypoint_new(0,         BarColor[1]),
-                                    ColorSequenceKeypoint_new(midPoint,  BarColor[2]),
-                                    ColorSequenceKeypoint_new(v,         BarColor[3]),
-                                    ColorSequenceKeypoint_new(math_clamp(v + 0.001, 0.001, 1), Color3_fromRGB(40, 40, 40)),
-                                    ColorSequenceKeypoint_new(1,         Color3_fromRGB(40, 40, 40)),
-                                };
-                            else
-                                if NewParent.Visible then
-                                    NewParent.Visible = false;
-                                end;
-                            end;
-                        end;
-
-                        local BarText = Objects[BarName .. "Text"];
-                        do
-                            local BarTextEnabled, BarTextColor, BarTextTransparency = BarInfo.Text.Enabled, BarInfo.Text.Color, BarInfo.Text.Transparency;
-                            local TextPosition = BarInfo.Text.Position;
-                            if BarTextEnabled and IsA(Target, "Player") then
-                                local TextValue, TextVisible = BarInfo.Text.Type(Target, TargetInfo);
-                                local newText = tostring(math_floor(TextValue)) .. BarInfo.Text.Ending;
-                                
-                                if BarText.Text ~= newText then
-                                    BarText.Text = newText;
-                                end;
-                                
-                                if BarText.TextColor3 ~= BarTextColor then
-                                    BarText.TextColor3 = BarTextColor;
-                                end;
-                                
-                                if BarText.TextTransparency ~= BarTextTransparency then
-                                    BarText.TextTransparency = BarTextTransparency;
-                                end;
-                                
-                                if BarText.UIStroke.Transparency ~= BarTextTransparency then
-                                    BarText.UIStroke.Transparency = BarTextTransparency;
-                                end;
-                                
-                                if BarInfo.Text.FollowBar then
-                                    if BarText.Visible ~= TextVisible then
-                                        BarText.Visible = TextVisible;
-                                    end;
-                                    
-                                    if BarText.Parent ~= Bar then
-                                        BarText.Parent = Bar;
-                                    end;
-                                    
-                                    if BarText.ZIndex ~= 10 then
-                                        BarText.ZIndex = 10;
-                                    end;
-                                    
-                                    local align = (BarInfo.Position == "Left" or BarInfo.Position == "Right") and Enum.TextXAlignment.Center or Enum.TextXAlignment.Right;
-                                    local anchor = (BarInfo.Position == "Left" or BarInfo.Position == "Right") and Vector2_new(0.5, 0) or Vector2_new(0, 0.5);
-                                    
-                                    if BarText.TextXAlignment ~= align then
-                                        BarText.TextXAlignment = align;
-                                    end;
-
-                                    if BarText.AnchorPoint ~= anchor then
-                                        BarText.AnchorPoint = anchor;
-                                    end;
-                                end;
-
-                                if not BarInfo.Text.FollowBar then
-                                    if not BarText.Visible then
-                                        BarText.Visible = true;
-                                    end;
-
-                                    local newParent = Objects[TextPosition .. "TextHolder"];
-                                    if BarText.Parent ~= newParent then
-                                        BarText.Parent = newParent;
-                                    end;
-
-                                    local align = TextAlignments[TextPosition]
-                                    if BarText.TextXAlignment ~= align then
-                                        BarText.TextXAlignment = align;
-                                    end;
-
-                                    if BarText.AnchorPoint ~= Vector2_new(0, 0) then
-                                        BarText.AnchorPoint = Vector2_new(0, 0);
-                                    end;
-                                end;
-                            else
-                                if BarText.Visible then
-                                    BarText.Visible = false;
-                                end;
-                            end;
-                        end;
+                else
+                    if obj_box_glow.ImageTransparency ~= 1 then
+                        obj_box_glow.ImageTransparency = 1;
                     end;
-
-                    local NameText = Objects["TargetName"];
-                    do
-                        if NameText.FontFace ~= ESP.Font then
-                            NameText.FontFace = ESP.Font;
-                        end;
-                        local NameEnabled, NameColor, NameTransparency = esp_settings.Name.Enabled, esp_settings.Name.Color, esp_settings.Name.Transparency
-                        if NameEnabled then
-                            TargetInfo.TargetName = Utility.GetFontType(esp_settings.Name.UseDisplay and (IsA(Target, "Player") and Target.DisplayName or Target.Name) or Target.Name)
-                            local newText = TargetInfo.TargetName
-                            local newParent = Objects[esp_settings.Name.Position .. "TextHolder"]
-                            if not NameText.Visible then
-                                NameText.Visible = true;
-                            end;
-
-                            if NameText.Text ~= newText then
-                                NameText.Text = newText;
-                            end;
-
-                            if NameText.TextXAlignment ~= TextAlignments[esp_settings.Name.Position] then
-                                NameText.TextXAlignment = TextAlignments[esp_settings.Name.Position];
-                            end;
-
-                            if NameText.Parent ~= newParent then
-                                NameText.Parent = newParent;
-                            end;
-
-                            if NameText.TextColor3 ~= NameColor then
-                                NameText.TextColor3 = NameColor;
-                            end;
-
-                            if NameText.TextTransparency ~= NameTransparency then
-                                NameText.TextTransparency = NameTransparency;
-                            end;
-                            
-                            if NameText.UIStroke.Transparency ~= NameTransparency then
-                                NameText.UIStroke.Transparency = NameTransparency;
-                            end;
-                        else
-                            if NameText.Visible then
-                                NameText.Visible = false;
-                            end;
-                        end;
+                    if obj_box_outline_holder.Visible then
+                        obj_box_outline_holder.Visible = false;
                     end;
-
-                    local DistanceText = Objects["Distance"]; do
-                        if DistanceText.FontFace ~= ESP.Font then
-                            DistanceText.FontFace = ESP.Font;
-                        end;
-                        local DistanceEnabled, DistanceColor, DistanceTransparency = esp_settings.Distance.Enabled, esp_settings.Distance.Color, esp_settings.Distance.Transparency;
-                        if DistanceEnabled then
-                            local roundeddistance = math_floor(distance);
-
-                            if TargetInfo.LastDistanceValue ~= roundeddistance then
-                                TargetInfo.LastDistanceValue = roundeddistance;
-                                TargetInfo.LastDistanceText = tostring(roundeddistance) .. TargetInfo.DistanceEnding;
-                            end;
-
-                            local newText = TargetInfo.LastDistanceText;
-                            local newParent = Objects[esp_settings.Distance.Position .. "TextHolder"];
-                            
-                            if not DistanceText.Visible then
-                                DistanceText.Visible = true;
-                            end;
-
-                            if DistanceText.TextXAlignment ~= TextAlignments[esp_settings.Distance.Position] then
-                                DistanceText.TextXAlignment = TextAlignments[esp_settings.Distance.Position];
-                            end;
-
-                            if DistanceText.Parent ~= newParent then
-                                DistanceText.Parent = newParent;
-                            end;
-
-                            if DistanceText.TextColor3 ~= DistanceColor then
-                                DistanceText.TextColor3 = DistanceColor;
-                            end;
-
-                            if DistanceText.TextTransparency ~= DistanceTransparency then
-                                DistanceText.TextTransparency = DistanceTransparency;
-                            end;
-
-                            if DistanceText.UIStroke.Transparency ~= DistanceTransparency then
-                                DistanceText.UIStroke.Transparency = DistanceTransparency;
-                            end;
-
-                            if DistanceText.Text ~= newText then
-                                DistanceText.Text = newText;
-                            end;
-                        else
-                            if DistanceText.Visible then
-                                DistanceText.Visible = false;
-                            end;
-                        end;
+                    if obj_box_inline_holder.Visible then
+                        obj_box_inline_holder.Visible = false;
                     end;
-
-                    local WeaponText = Objects["Weapon"];
-                    do
-                        local WeaponEnabled, WeaponColor, WeaponTransparency = esp_settings.Weapon.Enabled, esp_settings.Weapon.Color, esp_settings.Weapon.Transparency
-                        if IsA(Target, "Player") and WeaponEnabled then
-                            local newText = TargetInfo.CurrentTool
-                            local newParent = Objects[esp_settings.Weapon.Position .. "TextHolder"];
-                            if not WeaponText.Visible then
-                                WeaponText.Visible = true;
-                            end;
-
-                            if WeaponText.TextXAlignment ~= TextAlignments[esp_settings.Weapon.Position] then
-                                WeaponText.TextXAlignment = TextAlignments[esp_settings.Weapon.Position];
-                            end;
-
-                            if WeaponText.Parent ~= newParent then
-                                WeaponText.Parent = newParent;
-                            end;
-                            
-                            if WeaponText.TextColor3 ~= WeaponColor then
-                                WeaponText.TextColor3 = WeaponColor;
-                            end;
-
-                            if WeaponText.TextTransparency ~= WeaponTransparency then
-                                WeaponText.TextTransparency = WeaponTransparency;
-                            end;
-
-                            if WeaponText.UIStroke.Transparency ~= WeaponTransparency then
-                                WeaponText.UIStroke.Transparency = WeaponTransparency;
-                            end;
-
-                            if WeaponText.Text ~= newText then
-                                WeaponText.Text = newText;
-                            end;
-                        else
-                            if WeaponText.Visible then
-                                WeaponText.Visible = false;
-                            end;
-                        end;
-                    end;
-
-                    local FlagsText = Objects["Flags"];
-                    do
-                        local FlagsEnabled, FlagsColor, FlagsTransparency = esp_settings.Flags.Enabled, esp_settings.Flags.Color, esp_settings.Flags.Transparency
-                        if FlagsEnabled then
-                            local newText = esp_settings.Flags.Type(Target, TargetInfo)
-                            local newParent = Objects[esp_settings.Flags.Position .. "TextHolder"]
-                            
-                            if not FlagsText.Visible then
-                                FlagsText.Visible = true;
-                            end;
-
-                            if FlagsText.TextXAlignment ~= TextAlignments[esp_settings.Flags.Position] then
-                                FlagsText.TextXAlignment = TextAlignments[esp_settings.Flags.Position];
-                            end;
-
-                            if FlagsText.Parent ~= newParent then
-                                FlagsText.Parent = newParent;
-                            end;
-
-                            if FlagsText.TextColor3 ~= FlagsColor then
-                                FlagsText.TextColor3 = FlagsColor;
-                            end;
-
-                            if FlagsText.TextTransparency ~= FlagsTransparency then
-                                FlagsText.TextTransparency = FlagsTransparency;
-                            end;
-
-                            if FlagsText.UIStroke.Transparency ~= FlagsTransparency then
-                                FlagsText.UIStroke.Transparency = FlagsTransparency;
-                            end;
-
-                            if FlagsText.Text ~= newText then
-                                FlagsText.Text = newText;
-                            end;
-                        else
-                            if FlagsText.Visible then
-                                FlagsText.Visible = false;
-                            end;
-                        end;
+                    if obj_box_fill.Visible then
+                        obj_box_fill.Visible = false;
                     end;
                 end;
 
-                function TargetInfo.Remove()
-                    for _, Object in pairs(Objects) do
-                        Object:Destroy();
+                -- HealthBar update
+                local health_bar_info = esp_settings.Bars.HealthBar;
+                local health_bar_enabled = health_bar_info.Enabled;
+                local health_bar_position = health_bar_info.Position;
+                local health_bar_parent = Objects[health_bar_position .. "BarHolder"];
+                if health_bar_enabled and is_player then
+                    local bar_value = health_bar_info.Type(target, target_info);
+                    if not health_bar_parent.Visible then
+                        health_bar_parent.Visible = true;
                     end;
-                    if TargetInfo.CharacterConnection then
-                        TargetInfo.CharacterConnection:Disconnect();
-                        TargetInfo.CharacterConnection = nil;
+
+                    local visual_bar_value = target_info.HealthBarVisualValue or bar_value;
+                    visual_bar_value = visual_bar_value + (bar_value - visual_bar_value) * math_clamp(delta_time * 5, 0, 1);
+                    target_info.HealthBarVisualValue = visual_bar_value;
+
+                    local is_vertical = (health_bar_position == "Left" or health_bar_position == "Right");
+                    local bar_size = is_vertical and UDim2_new(0, 1, visual_bar_value, 0) or UDim2_new(visual_bar_value, 0, 0, 1);
+                    local outline_size = bar_size;
+
+                    local health_rot_speed = health_bar_info.RotationSpeed;
+                    local grad_rot;
+                    if health_rot_speed > 0 then
+                        grad_rot = (is_vertical and 90 or -180) + health_bar_info.MovingRotation + math_sin(current_time * health_rot_speed) * 45;
+                    else
+                        grad_rot = (is_vertical and 90 or -180) + health_bar_info.MovingRotation;
                     end;
-                    if ToolConnection.Added then
-                        ToolConnection.Added:Disconnect();
-                        ToolConnection.Added = nil;
+
+                    local grad_off = is_vertical and Vector2_new(0, visual_bar_value - 1) or Vector2_new(1 - visual_bar_value, 0);
+                    local bar_anchor = is_vertical and Vector2_new(0, 1) or Vector2_new(0, 0);
+                    local bar_pos = is_vertical and UDim2_new(0, 0, 1, 0) or UDim2_new(0, 0, 0, 0);
+
+                    if not obj_health_bar_outline.Visible then
+                        obj_health_bar_outline.Visible = true;
                     end;
-                    if ToolConnection.Removed then
-                        ToolConnection.Removed:Disconnect();
-                        ToolConnection.Removed = nil;
+
+                    if obj_health_bar.AnchorPoint ~= bar_anchor then
+                        obj_health_bar.AnchorPoint = bar_anchor;
                     end;
-                    ESP.Targets[Target] = nil;
+
+                    if obj_health_bar.Position ~= bar_pos then
+                        obj_health_bar.Position = bar_pos;
+                    end;
+
+                    if obj_health_bar.Size ~= UDim2_new(1, 0, 1, 0) then
+                        obj_health_bar.Size = UDim2_new(1, 0, 1, 0);
+                    end;
+
+                    if obj_health_bar_outline.Parent ~= health_bar_parent then
+                        obj_health_bar_outline.Parent = health_bar_parent;
+                    end;
+
+                    if obj_health_bar_outline.Size ~= outline_size then
+                        obj_health_bar_outline.Size = outline_size;
+                    end;
+
+                    if final_dirty or health_rot_speed > 0 then
+                        if obj_health_bar_gradient.Rotation ~= grad_rot then
+                            obj_health_bar_gradient.Rotation = grad_rot;
+                        end;
+                    end;
+
+                    if obj_health_bar_gradient.Offset ~= grad_off then
+                        obj_health_bar_gradient.Offset = grad_off;
+                    end;
+
+                    local bar_color = health_bar_info.Color;
+                    local v = math_clamp(visual_bar_value, 0.001, 0.999);
+                    if final_dirty or target_info.LastHealthV ~= v or target_info.HealthLastColor1 ~= bar_color[1] or target_info.HealthLastColor2 ~= bar_color[2] or target_info.HealthLastColor3 ~= bar_color[3] then
+                        target_info.LastHealthV = v;
+                        target_info.HealthLastColor1 = bar_color[1];
+                        target_info.HealthLastColor2 = bar_color[2];
+                        target_info.HealthLastColor3 = bar_color[3];
+                        local mid_point = math_clamp(v * 0.5, 0.001, 0.499);
+                        obj_health_bar_gradient.Color = ColorSequence_new{
+                            ColorSequenceKeypoint_new(0,         bar_color[1]),
+                            ColorSequenceKeypoint_new(mid_point,  bar_color[2]),
+                            ColorSequenceKeypoint_new(v,         bar_color[3]),
+                            ColorSequenceKeypoint_new(math_clamp(v + 0.001, 0.001, 1), Color3_fromRGB(40, 40, 40)),
+                            ColorSequenceKeypoint_new(1,         Color3_fromRGB(40, 40, 40)),
+                        };
+                    end;
+                else
+                    if health_bar_parent.Visible then
+                        health_bar_parent.Visible = false;
+                    end;
                 end;
-            end;
-            TargetInfo.Init();
+
+                -- ArmorBar update
+                local armor_bar_info = esp_settings.Bars.ArmorBar;
+                local armor_bar_enabled = armor_bar_info.Enabled;
+                local armor_bar_position = armor_bar_info.Position;
+                local armor_bar_parent = Objects[armor_bar_position .. "BarHolder"];
+                if armor_bar_enabled and is_player then
+                    local bar_value = armor_bar_info.Type(target, target_info);
+                    if not armor_bar_parent.Visible then
+                        armor_bar_parent.Visible = true;
+                    end;
+
+                    local visual_bar_value = target_info.ArmorBarVisualValue or bar_value;
+                    visual_bar_value = visual_bar_value + (bar_value - visual_bar_value) * math_clamp(delta_time * 5, 0, 1);
+                    target_info.ArmorBarVisualValue = visual_bar_value;
+
+                    local is_vertical = (armor_bar_position == "Left" or armor_bar_position == "Right");
+                    local bar_size = is_vertical and UDim2_new(0, 1, visual_bar_value, 0) or UDim2_new(visual_bar_value, 0, 0, 1);
+                    local outline_size = bar_size;
+
+                    local armor_rot_speed = armor_bar_info.RotationSpeed or 0;
+                    local grad_rot;
+                    if armor_rot_speed > 0 then
+                        grad_rot = (is_vertical and 90 or -180) + (armor_bar_info.MovingRotation or 0) + math_sin(current_time * armor_rot_speed) * 45;
+                    else
+                        grad_rot = (is_vertical and 90 or -180) + (armor_bar_info.MovingRotation or 0);
+                    end;
+
+                    local grad_off = is_vertical and Vector2_new(0, visual_bar_value - 1) or Vector2_new(1 - visual_bar_value, 0);
+                    local bar_anchor = is_vertical and Vector2_new(0, 1) or Vector2_new(0, 0);
+                    local bar_pos = is_vertical and UDim2_new(0, 0, 1, 0) or UDim2_new(0, 0, 0, 0);
+
+                    if not obj_armor_bar_outline.Visible then
+                        obj_armor_bar_outline.Visible = true;
+                    end;
+
+                    if obj_armor_bar.AnchorPoint ~= bar_anchor then
+                        obj_armor_bar.AnchorPoint = bar_anchor;
+                    end;
+
+                    if obj_armor_bar.Position ~= bar_pos then
+                        obj_armor_bar.Position = bar_pos;
+                    end;
+
+                    if obj_armor_bar.Size ~= UDim2_new(1, 0, 1, 0) then
+                        obj_armor_bar.Size = UDim2_new(1, 0, 1, 0);
+                    end;
+
+                    if obj_armor_bar_outline.Parent ~= armor_bar_parent then
+                        obj_armor_bar_outline.Parent = armor_bar_parent;
+                    end;
+
+                    if obj_armor_bar_outline.Size ~= outline_size then
+                        obj_armor_bar_outline.Size = outline_size;
+                    end;
+
+                    if final_dirty or armor_rot_speed > 0 then
+                        if obj_armor_bar_gradient.Rotation ~= grad_rot then
+                            obj_armor_bar_gradient.Rotation = grad_rot;
+                        end;
+                    end;
+
+                    if obj_armor_bar_gradient.Offset ~= grad_off then
+                        obj_armor_bar_gradient.Offset = grad_off;
+                    end;
+
+                    local bar_color = armor_bar_info.Color;
+                    local v = math_clamp(visual_bar_value, 0.001, 0.999);
+                    if final_dirty or target_info.LastArmorV ~= v or target_info.ArmorLastColor1 ~= bar_color[1] or target_info.ArmorLastColor2 ~= bar_color[2] or target_info.ArmorLastColor3 ~= bar_color[3] then
+                        target_info.LastArmorV = v;
+                        target_info.ArmorLastColor1 = bar_color[1];
+                        target_info.ArmorLastColor2 = bar_color[2];
+                        target_info.ArmorLastColor3 = bar_color[3];
+                        local mid_point = math_clamp(v * 0.5, 0.001, 0.499);
+                        obj_armor_bar_gradient.Color = ColorSequence_new{
+                            ColorSequenceKeypoint_new(0,         bar_color[1]),
+                            ColorSequenceKeypoint_new(mid_point,  bar_color[2]),
+                            ColorSequenceKeypoint_new(v,         bar_color[3]),
+                            ColorSequenceKeypoint_new(math_clamp(v + 0.001, 0.001, 1), Color3_fromRGB(40, 40, 40)),
+                            ColorSequenceKeypoint_new(1,         Color3_fromRGB(40, 40, 40)),
+                        };
+                    end;
+                else
+                    if armor_bar_parent.Visible then
+                        armor_bar_parent.Visible = false;
+                    end;
+                end;
+
+                -- HealthBar Text update
+                local health_text_info = health_bar_info.Text;
+                local health_text_enabled = health_text_info.Enabled;
+                if health_text_enabled and is_player then
+                    local text_value, text_visible = health_text_info.Type(target, target_info);
+                    local new_text = tostring(math_floor(text_value)) .. health_text_info.Ending;
+
+                    if obj_health_bar_text.Text ~= new_text then
+                        obj_health_bar_text.Text = new_text;
+                    end;
+
+                    if final_dirty then
+                        local text_color = health_text_info.Color;
+                        local text_trans = health_text_info.Transparency;
+                        if obj_health_bar_text.TextColor3 ~= text_color then
+                            obj_health_bar_text.TextColor3 = text_color;
+                        end;
+                        if obj_health_bar_text.TextTransparency ~= text_trans then
+                            obj_health_bar_text.TextTransparency = text_trans;
+                        end;
+                        if obj_health_bar_text.UIStroke.Transparency ~= text_trans then
+                            obj_health_bar_text.UIStroke.Transparency = text_trans;
+                        end;
+                    end;
+
+                    if health_text_info.FollowBar then
+                        if obj_health_bar_text.Visible ~= text_visible then
+                            obj_health_bar_text.Visible = text_visible;
+                        end;
+                        if obj_health_bar_text.Parent ~= obj_health_bar then
+                            obj_health_bar_text.Parent = obj_health_bar;
+                        end;
+                        if obj_health_bar_text.ZIndex ~= 10 then
+                            obj_health_bar_text.ZIndex = 10;
+                        end;
+
+                        if final_dirty then
+                            local align = (health_bar_position == "Left" or health_bar_position == "Right") and Enum.TextXAlignment.Center or Enum.TextXAlignment.Right;
+                            local anchor = (health_bar_position == "Left" or health_bar_position == "Right") and Vector2_new(0.5, 0) or Vector2_new(0, 0.5);
+                            if obj_health_bar_text.TextXAlignment ~= align then
+                                obj_health_bar_text.TextXAlignment = align;
+                            end;
+                            if obj_health_bar_text.AnchorPoint ~= anchor then
+                                obj_health_bar_text.AnchorPoint = anchor;
+                            end;
+                        end;
+                    else
+                        if not obj_health_bar_text.Visible then
+                            obj_health_bar_text.Visible = true;
+                        end;
+                        local text_position = health_text_info.Position;
+                        local text_parent = Objects[text_position .. "TextHolder"];
+                        if obj_health_bar_text.Parent ~= text_parent then
+                            obj_health_bar_text.Parent = text_parent;
+                        end;
+
+                        if final_dirty then
+                            local align = text_alignments[text_position];
+                            if obj_health_bar_text.TextXAlignment ~= align then
+                                obj_health_bar_text.TextXAlignment = align;
+                            end;
+                            if obj_health_bar_text.AnchorPoint ~= Vector2_new(0, 0) then
+                                obj_health_bar_text.AnchorPoint = Vector2_new(0, 0);
+                            end;
+                        end;
+                    end;
+                else
+                    if obj_health_bar_text.Visible then
+                        obj_health_bar_text.Visible = false;
+                    end;
+                end;
+
+                -- ArmorBar Text update
+                local armor_text_info = armor_bar_info.Text;
+                local armor_text_enabled = armor_text_info.Enabled;
+                if armor_text_enabled and is_player then
+                    local text_value, text_visible = armor_text_info.Type(target, target_info);
+                    local new_text = tostring(math_floor(text_value)) .. armor_text_info.Ending;
+
+                    if obj_armor_bar_text.Text ~= new_text then
+                        obj_armor_bar_text.Text = new_text;
+                    end;
+
+                    if final_dirty then
+                        local text_color = armor_text_info.Color;
+                        local text_trans = armor_text_info.Transparency;
+                        if obj_armor_bar_text.TextColor3 ~= text_color then
+                            obj_armor_bar_text.TextColor3 = text_color;
+                        end;
+                        if obj_armor_bar_text.TextTransparency ~= text_trans then
+                            obj_armor_bar_text.TextTransparency = text_trans;
+                        end;
+                        if obj_armor_bar_text.UIStroke.Transparency ~= text_trans then
+                            obj_armor_bar_text.UIStroke.Transparency = text_trans;
+                        end;
+                    end;
+
+                    if armor_text_info.FollowBar then
+                        if obj_armor_bar_text.Visible ~= text_visible then
+                            obj_armor_bar_text.Visible = text_visible;
+                        end;
+                        if obj_armor_bar_text.Parent ~= obj_armor_bar then
+                            obj_armor_bar_text.Parent = obj_armor_bar;
+                        end;
+                        if obj_armor_bar_text.ZIndex ~= 10 then
+                            obj_armor_bar_text.ZIndex = 10;
+                        end;
+
+                        if final_dirty then
+                            local align = (armor_bar_position == "Left" or armor_bar_position == "Right") and Enum.TextXAlignment.Center or Enum.TextXAlignment.Right;
+                            local anchor = (armor_bar_position == "Left" or armor_bar_position == "Right") and Vector2_new(0.5, 0) or Vector2_new(0, 0.5);
+                            if obj_armor_bar_text.TextXAlignment ~= align then
+                                obj_armor_bar_text.TextXAlignment = align;
+                            end;
+                            if obj_armor_bar_text.AnchorPoint ~= anchor then
+                                obj_armor_bar_text.AnchorPoint = anchor;
+                            end;
+                        end;
+                    else
+                        if not obj_armor_bar_text.Visible then
+                            obj_armor_bar_text.Visible = true;
+                        end;
+                        local text_position = armor_text_info.Position;
+                        local text_parent = Objects[text_position .. "TextHolder"];
+                        if obj_armor_bar_text.Parent ~= text_parent then
+                            obj_armor_bar_text.Parent = text_parent;
+                        end;
+
+                        if final_dirty then
+                            local align = text_alignments[text_position];
+                            if obj_armor_bar_text.TextXAlignment ~= align then
+                                obj_armor_bar_text.TextXAlignment = align;
+                            end;
+                            if obj_armor_bar_text.AnchorPoint ~= Vector2_new(0, 0) then
+                                obj_armor_bar_text.AnchorPoint = Vector2_new(0, 0);
+                            end;
+                        end;
+                    end;
+                else
+                    if obj_armor_bar_text.Visible then
+                        obj_armor_bar_text.Visible = false;
+                    end;
+                end;
+
+                -- Name update
+                local name_enabled = esp_settings.Name.Enabled;
+                if name_enabled then
+                    if not obj_target_name.Visible then
+                        obj_target_name.Visible = true;
+                    end;
+
+                    if final_dirty then
+                        if obj_target_name.FontFace ~= ESP.Font then
+                            obj_target_name.FontFace = ESP.Font;
+                        end;
+
+                        local target_name = get_font_type(esp_settings.Name.UseDisplay and (is_player and target.DisplayName or target.Name) or target.Name);
+                        if obj_target_name.Text ~= target_name then
+                            obj_target_name.Text = target_name;
+                        end;
+
+                        local name_position = esp_settings.Name.Position;
+                        local align = text_alignments[name_position];
+                        if obj_target_name.TextXAlignment ~= align then
+                            obj_target_name.TextXAlignment = align;
+                        end;
+
+                        local text_parent = Objects[name_position .. "TextHolder"];
+                        if obj_target_name.Parent ~= text_parent then
+                            obj_target_name.Parent = text_parent;
+                        end;
+
+                        local name_color = esp_settings.Name.Color;
+                        if obj_target_name.TextColor3 ~= name_color then
+                            obj_target_name.TextColor3 = name_color;
+                        end;
+
+                        local name_trans = esp_settings.Name.Transparency;
+                        if obj_target_name.TextTransparency ~= name_trans then
+                            obj_target_name.TextTransparency = name_trans;
+                        end;
+                        if obj_target_name.UIStroke.Transparency ~= name_trans then
+                            obj_target_name.UIStroke.Transparency = name_trans;
+                        end;
+                    end;
+                else
+                    if obj_target_name.Visible then
+                        obj_target_name.Visible = false;
+                    end;
+                end;
+
+                -- Distance update
+                local distance_enabled = esp_settings.Distance.Enabled;
+                if distance_enabled then
+                    if not obj_distance.Visible then
+                        obj_distance.Visible = true;
+                    end;
+
+                    local rounded_distance = math_floor(distance);
+                    if target_info.LastDistanceValue ~= rounded_distance or final_dirty then
+                        if target_info.LastDistanceValue ~= rounded_distance then
+                            target_info.LastDistanceValue = rounded_distance;
+                            target_info.LastDistanceText = tostring(rounded_distance) .. target_info.DistanceEnding;
+                        end;
+
+                        local new_text = target_info.LastDistanceText;
+                        if obj_distance.Text ~= new_text then
+                            obj_distance.Text = new_text;
+                        end;
+                    end;
+
+                    if final_dirty then
+                        if obj_distance.FontFace ~= ESP.Font then
+                            obj_distance.FontFace = ESP.Font;
+                        end;
+
+                        local distance_position = esp_settings.Distance.Position;
+                        local align = text_alignments[distance_position];
+                        if obj_distance.TextXAlignment ~= align then
+                            obj_distance.TextXAlignment = align;
+                        end;
+
+                        local text_parent = Objects[distance_position .. "TextHolder"];
+                        if obj_distance.Parent ~= text_parent then
+                            obj_distance.Parent = text_parent;
+                        end;
+
+                        local distance_color = esp_settings.Distance.Color;
+                        if obj_distance.TextColor3 ~= distance_color then
+                            obj_distance.TextColor3 = distance_color;
+                        end;
+
+                        local distance_trans = esp_settings.Distance.Transparency;
+                        if obj_distance.TextTransparency ~= distance_trans then
+                            obj_distance.TextTransparency = distance_trans;
+                        end;
+                        if obj_distance.UIStroke.Transparency ~= distance_trans then
+                            obj_distance.UIStroke.Transparency = distance_trans;
+                        end;
+                    end;
+                else
+                    if obj_distance.Visible then
+                        obj_distance.Visible = false;
+                    end;
+                end;
+
+                -- Weapon update
+                local weapon_enabled = esp_settings.Weapon.Enabled;
+                if is_player and weapon_enabled then
+                    if not obj_weapon.Visible then
+                        obj_weapon.Visible = true;
+                    end;
+
+                    local new_text = target_info.CurrentTool;
+                    if obj_weapon.Text ~= new_text or final_dirty then
+                        if obj_weapon.Text ~= new_text then
+                            obj_weapon.Text = new_text;
+                        end;
+                    end;
+
+                    if final_dirty then
+                        local weapon_position = esp_settings.Weapon.Position;
+                        local align = text_alignments[weapon_position];
+                        if obj_weapon.TextXAlignment ~= align then
+                            obj_weapon.TextXAlignment = align;
+                        end;
+
+                        local text_parent = Objects[weapon_position .. "TextHolder"];
+                        if obj_weapon.Parent ~= text_parent then
+                            obj_weapon.Parent = text_parent;
+                        end;
+
+                        local weapon_color = esp_settings.Weapon.Color;
+                        if obj_weapon.TextColor3 ~= weapon_color then
+                            obj_weapon.TextColor3 = weapon_color;
+                        end;
+
+                        local weapon_trans = esp_settings.Weapon.Transparency;
+                        if obj_weapon.TextTransparency ~= weapon_trans then
+                            obj_weapon.TextTransparency = weapon_trans;
+                        end;
+                        if obj_weapon.UIStroke.Transparency ~= weapon_trans then
+                            obj_weapon.UIStroke.Transparency = weapon_trans;
+                        end;
+                    end;
+                else
+                    if obj_weapon.Visible then
+                        obj_weapon.Visible = false;
+                    end;
+                end;
+
+                -- Flags update
+                local flags_enabled = esp_settings.Flags.Enabled;
+                if flags_enabled then
+                    if not obj_flags.Visible then
+                        obj_flags.Visible = true;
+                    end;
+
+                    local new_text = esp_settings.Flags.Type(target, target_info);
+                    if obj_flags.Text ~= new_text or final_dirty then
+                        if obj_flags.Text ~= new_text then
+                            obj_flags.Text = new_text;
+                        end;
+                    end;
+
+                    if final_dirty then
+                        local flags_position = esp_settings.Flags.Position;
+                        local align = text_alignments[flags_position];
+                        if obj_flags.TextXAlignment ~= align then
+                            obj_flags.TextXAlignment = align;
+                        end;
+
+                        local text_parent = Objects[flags_position .. "TextHolder"];
+                        if obj_flags.Parent ~= text_parent then
+                            obj_flags.Parent = text_parent;
+                        end;
+
+                        local flags_color = esp_settings.Flags.Color;
+                        if obj_flags.TextColor3 ~= flags_color then
+                            obj_flags.TextColor3 = flags_color;
+                        end;
+
+                        local flags_trans = esp_settings.Flags.Transparency;
+                        if obj_flags.TextTransparency ~= flags_trans then
+                            obj_flags.TextTransparency = flags_trans;
+                        end;
+                        if obj_flags.UIStroke.Transparency ~= flags_trans then
+                            obj_flags.UIStroke.Transparency = flags_trans;
+                        end;
+                    end;
+                else
+                    if obj_flags.Visible then
+                        obj_flags.Visible = false;
+                    end;
+                end;
+            end);
+
+            target_info.Remove = LPH_NO_VIRTUALIZE(function()
+                for _, obj in pairs(objects_table) do
+                    obj:Destroy();
+                end;
+                if target_info.CharacterConnection then
+                    target_info.CharacterConnection:Disconnect();
+                    target_info.CharacterConnection = nil;
+                end;
+                if tool_connection.Added then
+                    tool_connection.Added:Disconnect();
+                    tool_connection.Added = nil;
+                end;
+                if tool_connection.Removed then
+                    tool_connection.Removed:Disconnect();
+                    tool_connection.Removed = nil;
+                end;
+                ESP.Targets[target] = nil;
+            end);
+
+            target_info.Init();
         end;
 
-        function ESP.RemoveTarget(NewTarget)
-            for Target, TargetInfo in pairs(ESP.Targets) do
-                if Target == NewTarget then
-                    TargetInfo.Remove();
+        function ESP.RemoveTarget(new_target)
+            for target, target_info in pairs(ESP.Targets) do
+                if target == new_target then
+                    target_info.Remove();
                 end;
             end;
         end;
@@ -9187,13 +9607,20 @@ local function esp1()
             end);
         end;
 
-        runservice.RenderStepped:Connect(LPH_NO_VIRTUALIZE(function()
-            for t, ti in pairs(ESP.Targets) do
+        runservice.RenderStepped:Connect(LPH_JIT_MAX(function()
+            if not esp_settings.Enabled then
+                return;
+            end;
+            local settings_dirty = ESP.SettingsDirty;
+            if settings_dirty then
+                ESP.SettingsDirty = false;
+            end;
+            for t, ti in ESP.Targets do
                 if ti and ti.Update then
-                    ti.Update();
+                    ti.Update(settings_dirty);
                 end;
             end;
-            for t, ti in pairs(ESP.Utilities) do
+            for t, ti in ESP.Utilities do
                 if ti and ti.Update then
                     ti.Update();
                 end;
@@ -9209,6 +9636,7 @@ esp_section:AddToggle("esp_box", {
     Default = ESP.Settings.BoundingBox.Enabled;
     Callback = function(v)
         ESP.Settings.BoundingBox.Enabled = v;
+        ESP.SettingsDirty = true;
     end;
 }):AddColorPicker("esp_box_color1", {
     Default = ESP.Settings.BoundingBox.Color[1];
@@ -9216,6 +9644,7 @@ esp_section:AddToggle("esp_box", {
     Transparency = ESP.Settings.BoundingBox.Transparency[1];
     Callback = function(Value)
         ESP.Settings.BoundingBox.Color[1] = Value;
+        ESP.SettingsDirty = true;
     end;
 }):AddColorPicker("esp_box_color2", {
     Default = ESP.Settings.BoundingBox.Color[2];
@@ -9223,6 +9652,7 @@ esp_section:AddToggle("esp_box", {
     Transparency = ESP.Settings.BoundingBox.Transparency[2];
     Callback = function(Value)
         ESP.Settings.BoundingBox.Color[2] = Value;
+        ESP.SettingsDirty = true;
     end;
 });
 
@@ -9238,6 +9668,7 @@ esp_box_dep:AddSlider("esp_box_moving_rotation", {
     Suffix = "°";
     Callback = function(v)
         ESP.Settings.BoundingBox.MovingRotation = v;
+        ESP.SettingsDirty = true;
     end;
 });
 
@@ -9250,6 +9681,7 @@ esp_box_dep:AddSlider("esp_box_rotation_speed", {
     Compact = true;
     Callback = function(v)
         ESP.Settings.BoundingBox.RotationSpeed = v;
+        ESP.SettingsDirty = true;
     end;
 });
 
@@ -9262,6 +9694,7 @@ esp_section:AddToggle("esp_box_glow", {
     Default = ESP.Settings.BoundingBox.Glow.Enabled;
     Callback = function(v)
         ESP.Settings.BoundingBox.Glow.Enabled = v;
+        ESP.SettingsDirty = true;
     end;
 }):AddColorPicker("esp_glow_color1", {
     Default = ESP.Settings.BoundingBox.Glow.Color[1];
@@ -9269,6 +9702,7 @@ esp_section:AddToggle("esp_box_glow", {
     Transparency = ESP.Settings.BoundingBox.Glow.Transparency[1];
     Callback = function(Value)
         ESP.Settings.BoundingBox.Glow.Color[1] = Value;
+        ESP.SettingsDirty = true;
     end;
 }):AddColorPicker("esp_glow_color2", {
     Default = ESP.Settings.BoundingBox.Glow.Color[2];
@@ -9276,6 +9710,7 @@ esp_section:AddToggle("esp_box_glow", {
     Transparency = ESP.Settings.BoundingBox.Glow.Transparency[2];
     Callback = function(Value)
         ESP.Settings.BoundingBox.Glow.Color[2] = Value;
+        ESP.SettingsDirty = true;
     end;
 });
 
@@ -9284,6 +9719,7 @@ esp_section:AddToggle("esp_box_fill", {
     Default = ESP.Settings.BoundingBox.Fill.Enabled;
     Callback = function(v)
         ESP.Settings.BoundingBox.Fill.Enabled = v;
+        ESP.SettingsDirty = true;
     end;
 }):AddColorPicker("esp_fill_color1", {
     Default = ESP.Settings.BoundingBox.Fill.Color[1];
@@ -9291,6 +9727,7 @@ esp_section:AddToggle("esp_box_fill", {
     Transparency = ESP.Settings.BoundingBox.Fill.Transparency[1];
     Callback = function(Value)
         ESP.Settings.BoundingBox.Fill.Color[1] = Value;
+        ESP.SettingsDirty = true;
     end;
 }):AddColorPicker("esp_fill_color2", {
     Default = ESP.Settings.BoundingBox.Fill.Color[2];
@@ -9298,6 +9735,7 @@ esp_section:AddToggle("esp_box_fill", {
     Transparency = ESP.Settings.BoundingBox.Fill.Transparency[2];
     Callback = function(Value)
         ESP.Settings.BoundingBox.Fill.Color[2] = Value;
+        ESP.SettingsDirty = true;
     end;
 });
 
@@ -9313,6 +9751,7 @@ esp_fill_dep:AddSlider("esp_fill_moving_rotation", {
     Suffix = "°";
     Callback = function(v)
         ESP.Settings.BoundingBox.Fill.MovingRotation = v;
+        ESP.SettingsDirty = true;
     end;
 });
 
@@ -9325,6 +9764,7 @@ esp_fill_dep:AddSlider("esp_fill_rotation_speed", {
     Compact = true;
     Callback = function(v)
         ESP.Settings.BoundingBox.Fill.RotationSpeed = v;
+        ESP.SettingsDirty = true;
     end;
 });
 
@@ -9337,24 +9777,28 @@ esp_section:AddToggle("esp_healthbar", {
     Default = ESP.Settings.Bars.HealthBar.Enabled;
     Callback = function(v)
         ESP.Settings.Bars.HealthBar.Enabled = v;
+        ESP.SettingsDirty = true;
     end;
 }):AddColorPicker("esp_health_color1", {
     Default = ESP.Settings.Bars.HealthBar.Color[1];
     Title = "health high";
     Callback = function(Value)
         ESP.Settings.Bars.HealthBar.Color[1] = Value;
+        ESP.SettingsDirty = true;
     end;
 }):AddColorPicker("esp_health_color2", {
     Default = ESP.Settings.Bars.HealthBar.Color[2];
     Title = "health mid";
     Callback = function(Value)
         ESP.Settings.Bars.HealthBar.Color[2] = Value;
+        ESP.SettingsDirty = true;
     end;
 }):AddColorPicker("esp_health_color3", {
     Default = ESP.Settings.Bars.HealthBar.Color[3];
     Title = "health low";
     Callback = function(Value)
         ESP.Settings.Bars.HealthBar.Color[3] = Value;
+        ESP.SettingsDirty = true;
     end;
 });
 
@@ -9363,6 +9807,7 @@ esp_section:AddToggle("esp_name", {
     Default = ESP.Settings.Name.Enabled;
     Callback = function(v)
         ESP.Settings.Name.Enabled = v;
+        ESP.SettingsDirty = true;
     end;
 }):AddColorPicker("esp_name_color", {
     Default = ESP.Settings.Name.Color;
@@ -9370,6 +9815,7 @@ esp_section:AddToggle("esp_name", {
     Transparency = ESP.Settings.Name.Transparency;
     Callback = function(Value)
         ESP.Settings.Name.Color = Value;
+        ESP.SettingsDirty = true;
     end;
 });
 
@@ -9378,6 +9824,7 @@ esp_section:AddToggle("esp_distance", {
     Default = ESP.Settings.Distance.Enabled;
     Callback = function(v)
         ESP.Settings.Distance.Enabled = v;
+        ESP.SettingsDirty = true;
     end;
 }):AddColorPicker("esp_distance_color", {
     Default = ESP.Settings.Distance.Color;
@@ -9385,6 +9832,7 @@ esp_section:AddToggle("esp_distance", {
     Transparency = ESP.Settings.Distance.Transparency;
     Callback = function(Value)
         ESP.Settings.Distance.Color = Value;
+        ESP.SettingsDirty = true;
     end;
 });
 
@@ -9393,6 +9841,7 @@ esp_section:AddToggle("esp_weapon", {
     Default = ESP.Settings.Weapon.Enabled;
     Callback = function(v)
         ESP.Settings.Weapon.Enabled = v;
+        ESP.SettingsDirty = true;
     end;
 }):AddColorPicker("esp_weapon_color", {
     Default = ESP.Settings.Weapon.Color;
@@ -9400,6 +9849,7 @@ esp_section:AddToggle("esp_weapon", {
     Transparency = ESP.Settings.Weapon.Transparency;
     Callback = function(Value)
         ESP.Settings.Weapon.Color = Value;
+        ESP.SettingsDirty = true;
     end;
 });
 
@@ -9408,6 +9858,7 @@ esp_section:AddToggle("esp_flags", {
     Default = ESP.Settings.Flags.Enabled;
     Callback = function(v)
         ESP.Settings.Flags.Enabled = v;
+        ESP.SettingsDirty = true;
     end;
 }):AddColorPicker("esp_flags_color", {
     Default = ESP.Settings.Flags.Color;
@@ -9415,6 +9866,7 @@ esp_section:AddToggle("esp_flags", {
     Transparency = ESP.Settings.Flags.Transparency;
     Callback = function(Value)
         ESP.Settings.Flags.Color = Value;
+        ESP.SettingsDirty = true;
     end;
 });
 
@@ -9429,6 +9881,7 @@ esp_section:AddDropdown("name_type", {
 		else
 			ESP.Settings.Name.UseDisplay = false;
 		end;
+        ESP.SettingsDirty = true;
 	end;
 });
 
@@ -10015,12 +10468,6 @@ local function init_esp()
 	aimbot_highlight.FillColor = Color3.new(1, 1, 1);
 	ragebot_highlight.FillColor = Color3.new(1, 1, 1);
 	silentaim_highlight.FillColor = Color3.new(1, 1, 1);
-	local aimbot_highlight = Instance.new("Highlight", workspace.Terrain);
-	local ragebot_highlight = Instance.new("Highlight", workspace.Terrain);
-	local silentaim_highlight = Instance.new("Highlight", workspace.Terrain);
-	aimbot_highlight.FillColor = Color3.new(1, 1, 1);
-	ragebot_highlight.FillColor = Color3.new(1, 1, 1);
-	silentaim_highlight.FillColor = Color3.new(1, 1, 1);
 
 	local utility_colors = {
         C4 = Color3.fromRGB(255, 0, 0);
@@ -10261,7 +10708,7 @@ local function init_esp()
     local lastespdrawtick = 0;
 
     runservice.Heartbeat:Connect(LPH_NO_VIRTUALIZE(function()
-
+        camera = workspace.CurrentCamera;
         local now_tick = tick();
 
         if now_tick - lastrainbowtick >= 0.1 then
@@ -10336,12 +10783,10 @@ local function init_esp()
         end;
 
         local closest_to_mousecursor = nil;
-        local mouse_position = userinputservice:GetMouseLocation();
         local cursor_scan = last_cursor_scan or 0;
 
         if now_tick - cursor_scan >= 0.1 then
             last_cursor_scan = now_tick;
-            local mouse_position = userinputservice:GetMouseLocation();
             local closest_distance = math.huge;
             for Player, _ in pairs(cachedplayers) do
                 if Player == localplayer then continue; end;
